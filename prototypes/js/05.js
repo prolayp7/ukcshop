@@ -40,9 +40,9 @@ function header(){
   return '<div class="announce"><div class="wrap"><span>Free next-day delivery on everything over <b>£75</b> · Order before 17:00</span>'+
       '<a href="#">See delivery options</a></div></div>'+
     '<div class="util"><div class="wrap">'+
-      '<a class="ico" href="#">'+ic("i-truck",15,15)+'Track your order</a>'+
-      '<a class="ico" href="#">'+ic("i-wrench",15,15)+'Store &amp; workshop</a>'+
-      '<a class="ico" href="#">'+ic("i-shield",15,15)+'Warranty &amp; returns</a>'+
+      '<a class="ico" href="'+S.url("account",{tab:"orders"})+'">'+ic("i-truck",15,15)+'Track your order</a>'+
+      '<a class="ico" href="'+S.url("stores")+'">'+ic("i-wrench",15,15)+'Store &amp; workshop</a>'+
+      '<a class="ico" href="'+S.url("support")+'">'+ic("i-shield",15,15)+'Warranty &amp; returns</a>'+
       '<div class="right"><span class="ico">'+ic("i-user",15,15)+'Need help? <a class="tel" href="#">0161 496 0100</a></span>'+
         '<span class="sel">Inc. VAT '+ic("i-chev",12,12)+'</span><span class="sel">£ GBP '+ic("i-chev",12,12)+'</span></div>'+
     '</div></div>'+
@@ -85,10 +85,14 @@ function footer(){
       return '<li><a href="'+S.url("category",{cat:c})+'">'+E(c)+'</a></li>'; }).join("")+'</ul></div>'+
     '<div><h4>Services</h4><ul><li><a href="#">PC configurator</a></li><li><a href="#">Build &amp; test</a></li>'+
       '<li><a href="#">Repairs &amp; upgrades</a></li><li><a href="#">Trade-in</a></li><li><a href="#">Business accounts</a></li></ul></div>'+
-    '<div><h4>Support</h4><ul><li><a href="#">Track an order</a></li><li><a href="#">Delivery &amp; returns</a></li>'+
-      '<li><a href="#">Warranty / RMA</a></li><li><a href="#">Finance</a></li><li><a href="#">Contact us</a></li></ul></div>'+
-    '<div><h4>Company</h4><ul><li><a href="'+S.url("brands")+'">All brands</a></li><li><a href="#">About us</a></li>'+
-      '<li><a href="#">Reviews</a></li><li><a href="#">Terms</a></li><li><a href="#">Privacy</a></li></ul></div>'+
+    '<div><h4>Support</h4><ul><li><a href="'+S.url("support")+'">Help centre</a></li><li><a href="'+S.url("account",{tab:"orders"})+'">Track an order</a></li>'+
+      '<li><a href="'+S.url("delivery")+'">Delivery information</a></li><li><a href="'+S.url("returns")+'">Returns &amp; refunds</a></li>'+
+      '<li><a href="'+S.url("warranty")+'">Warranty / RMA</a></li><li><a href="'+S.url("paymentInfo")+'">Finance</a></li>'+
+      '<li><a href="'+S.url("contact")+'">Contact us</a></li></ul></div>'+
+    '<div><h4>Company</h4><ul><li><a href="'+S.url("brands")+'">All brands</a></li><li><a href="'+S.url("about")+'">About us</a></li>'+
+      '<li><a href="'+S.url("stores")+'">Store locations</a></li><li><a href="#">Reviews</a></li>'+
+      '<li><a href="'+S.url("terms")+'">Terms</a></li><li><a href="'+S.url("privacy")+'">Privacy</a></li>'+
+      '<li><a href="'+S.url("cookiePolicy")+'">Cookie policy</a></li></ul></div>'+
     '</div><div class="fbot"><span>© 2026 UK Computer Shop Ltd · Company 07234891 · VAT GB 123 4567 89</span>'+
       '<div class="pay"><span>VISA</span><span>MASTERCARD</span><span>AMEX</span><span>PAYPAL</span><span>KLARNA</span><span>APPLE PAY</span></div>'+
     '</div></div></footer>'+

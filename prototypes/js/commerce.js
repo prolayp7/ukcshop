@@ -625,7 +625,381 @@ function orderReturn(D){
   document.title = "Return request — UK Computer Shop";
 }
 
+
+/* ------------------------------------------------ About, Contact, Store Locations
+   Marketing/informational content — not legal documents. Reuses the same
+   invented business facts already established elsewhere (address, phone,
+   founding year) rather than adding new ones that would disagree with them. */
+function about(D){
+  mount(D.header() + D.crumbs([{ label:"Home", href:S.url("home") }, { label:"About us" }]) +
+    '<div class="wrap"><div class="info-hero"><span class="eyebrow">Since 2009</span>'+
+      '<h1>An independent computer shop that still builds what it sells</h1>'+
+      '<p>We started as a two-person repair counter in Manchester and grew into a full-catalogue retailer without losing the habit of testing everything ourselves before it goes out the door.</p></div>'+
+    '<div class="info-body">'+
+      '<p>UK Computer Shop opened in 2009 as a repair and upgrade counter serving Manchester’s university district. Word travelled on the strength of straight answers rather than a sales pitch, and the catalogue grew from a shelf of spare parts into the six departments you can browse today — components, complete systems, laptops, peripherals, networking and accessories.</p>'+
+      '<p>We are still run out of the same workshop, now expanded to hold a proper build room alongside the counter. Every system we assemble is built, cable-managed and stress-tested there before it is boxed, by the same team who will answer the phone if something goes wrong with it.</p>'+
+      '<div class="about-stats">'+
+        '<div><b>2009</b><span>Trading since</span></div>'+
+        '<div><b>'+S.all.length+'</b><span>Products in the current catalogue</span></div>'+
+        '<div><b>3&nbsp;years</b><span>Warranty on systems we build</span></div>'+
+        '<div><b>4.8/5</b><span>Average customer rating</span></div>'+
+      '</div>'+
+      '<div class="about-fig" style="background-image:url(https://picsum.photos/seed/ukcs-about-bench/1000/700)"></div>'+
+      '<h2>What that means in practice</h2>'+
+      '<div class="about-principles">'+
+        '<div class="about-principle"><b>Specification first</b><p>Every listing carries the SKU, manufacturer part number and full spec sheet we would want to see if we were buying it ourselves.</p></div>'+
+        '<div class="about-principle"><b>Compatibility checked</b><p>Anything we suggest alongside a part you are looking at has actually been checked against socket, memory generation and power headroom.</p></div>'+
+        '<div class="about-principle"><b>We answer our own phone</b><p>Support and the build room share a building. If a system we assembled has a problem, the person you speak to can walk over and look at it.</p></div>'+
+      '</div>'+
+      '<h2>Visit us</h2>'+
+      '<p>The workshop and showroom are open to browse, collect an order, or bring in a machine for a look. See <a href="'+S.url("stores")+'">store details and opening hours</a>, or <a href="'+S.url("contact")+'">get in touch</a> before you come in for anything time-sensitive.</p>'+
+    '</div></div>' + D.footer());
+  document.title = "About us — UK Computer Shop";
+}
+
+function contact(D){
+  function render(sent){
+    mount(D.header() + D.crumbs([{ label:"Home", href:S.url("home") }, { label:"Contact us" }]) +
+      '<div class="wrap"><div class="info-hero"><span class="eyebrow">We’re around Monday to Saturday</span>'+
+        '<h1>Get in touch</h1><p>For an existing order, the fastest route is usually your <a href="'+S.url("account",{tab:"orders"})+'">order details page</a> — otherwise, here is every other way to reach us.</p></div>'+
+      '<div class="contact-grid">'+
+        '<div><div class="contact-methods">'+
+          '<div class="contact-method">'+icon("i-user",18,18)+'<span><b>Phone</b><a href="tel:01614960100">0161 496 0100</a><br><span>Mon–Sat, 9:00–18:00</span></span></div>'+
+          '<div class="contact-method">'+icon("i-search",18,18)+'<span><b>Email</b><a href="mailto:help@ukcomputershop.example">help@ukcomputershop.example</a><br><span>We reply within one working day</span></span></div>'+
+          '<div class="contact-method">'+icon("i-wrench",18,18)+'<span><b>Workshop &amp; showroom</b><span>Unit 7, Ardwick Green North, Manchester M12 6FZ</span><br><a href="'+S.url("stores")+'">Opening hours &amp; directions</a></span></div>'+
+        '</div></div>'+
+        '<div class="contact-form">'+(sent ? contactSent() : contactForm())+'</div>'+
+      '</div></div>' + D.footer());
+    var f = $("#contactForm");
+    if (f) f.addEventListener("submit", function(e){ e.preventDefault(); render(true); window.scrollTo({top:0,behavior:"smooth"}); });
+  }
+  function contactForm(){
+    return '<h2>Send us a message</h2><form id="contactForm">'+
+      '<div class="ck-two"><div class="ck-field"><label>Name</label><input required></div>'+
+        '<div class="ck-field"><label>Email address</label><input type="email" required></div></div>'+
+      '<div class="ck-field"><label>Order reference (optional)</label><input placeholder="UKCS-000000"></div>'+
+      '<div class="ck-field"><label>Subject</label><select required><option value="">Choose a topic</option>'+
+        '<option>An existing order</option><option>Product advice before I buy</option><option>Warranty or repair</option>'+
+        '<option>Returns or refunds</option><option>Trade or business account</option><option>Something else</option></select></div>'+
+      '<div class="ck-field"><label>Message</label><textarea rows="5" required style="width:100%;border:1px solid var(--c-line-strong);background:var(--c-surface-2);color:var(--c-text);padding:11px 12px;border-radius:var(--c-radius);font-family:inherit;font-size:14px;resize:vertical"></textarea></div>'+
+      '<button class="bk-cta" type="submit" style="width:100%">Send message</button></form>';
+  }
+  function contactSent(){
+    return '<div class="contact-sent">'+icon("i-shield",34,34)+'<h2>Message sent</h2>'+
+      '<p>Thanks — this is a design prototype, so nothing was actually sent, but a real submission here would reach us within one working day.</p></div>';
+  }
+  render(false);
+  document.title = "Contact us — UK Computer Shop";
+}
+
+function stores(D){
+  mount(D.header() + D.crumbs([{ label:"Home", href:S.url("home") }, { label:"Store locations" }]) +
+    '<div class="wrap"><div class="info-hero"><span class="eyebrow">One workshop, for now</span>'+
+      '<h1>Visit the workshop</h1><p>We trade from a single site in Manchester — warehouse, build room and showroom all under one roof. No other locations exist yet, so this page is deliberately short rather than padded out with invented branches.</p></div>'+
+      '<div class="store-card">'+
+        '<div class="fig" style="background-image:url(https://picsum.photos/seed/ukcs-store-front/700/700)"></div>'+
+        '<div class="body"><h2>Manchester — Ardwick Green</h2><span class="tag">Workshop, showroom &amp; collection point</span>'+
+          '<div class="store-row">'+icon("i-wrench",18,18)+'<span><b>Address</b><span>Unit 7, Ardwick Green North, Manchester M12 6FZ</span></span></div>'+
+          '<div class="store-row">'+icon("i-user",18,18)+'<span><b>Phone</b><span><a href="tel:01614960100">0161 496 0100</a></span></span></div>'+
+          '<div class="store-row">'+icon("i-truck",18,18)+'<span><b>Opening hours</b><span>Monday–Friday 9:00–18:00<br>Saturday 10:00–16:00<br>Closed Sunday and bank holidays</span></span></div>'+
+          '<div class="store-row">'+icon("i-shield",18,18)+'<span><b>Collection</b><span>Orders placed before 15:00 are usually ready to collect the same day — we will email you when it is ready.</span></span></div>'+
+          '<div class="store-amenities"><span>Build service desk</span><span>PC configurator kiosk</span><span>Trade counter</span><span>Free parking</span><span>Wheelchair accessible</span></div>'+
+        '</div></div>'+
+      '<p style="color:var(--c-muted);font-size:13.5px;max-width:60ch">Planning to bring in a system for a repair or upgrade? A quick call ahead on the number above means we can have a technician free when you arrive.</p>'+
+    '</div>' + D.footer());
+  document.title = "Store locations — UK Computer Shop";
+}
+
+
+
+/* ------------------------------------------------ FAQ */
+function faq(D){
+  var uDelivery = S.url("delivery"), uReturns = S.url("returns"), uWarranty = S.url("warranty"),
+      uPayment = S.url("paymentInfo"), uContact = S.url("contact"), uOrders = S.url("account",{tab:"orders"});
+  var groups = [
+    { t:"Orders & delivery", items:[
+      ["What time do I need to order by for next-day delivery?",
+       "Order before 17:00 Monday to Friday and, for in-stock items, we despatch the same day. Orders placed after 17:00 or over a weekend go out the next working day."],
+      ["Can I change my delivery address after ordering?",
+       "If the order has not yet been despatched, contact us with your order reference as soon as possible and we will update it. Once it has left the workshop we cannot redirect it."],
+      ["Do you deliver outside the UK mainland?",
+       "Not currently. We deliver to UK mainland addresses only — see our <a href=\"" + uDelivery + "\">delivery information</a> for the full list of options."],
+      ["My order hasn't arrived — what do I do?",
+       "Check your <a href=\"" + uOrders + "\">order details</a> first, then get in <a href=\"" + uContact + "\">touch with us</a> with your order reference if it is later than the estimate shown there."]
+    ]},
+    { t:"Products & compatibility", items:[
+      ["How do I know a part will fit my existing build?",
+       "Every product page lists the full specification — socket, memory type, dimensions and so on. On top of that, our \u201cfrequently bought together\u201d suggestions are compatibility-checked: we will not pair an AM5 processor with an LGA1851 board, or suggest a power supply that undersizes a given graphics card."],
+      ["Do you build custom PCs to a spec I choose?",
+       "Yes — every part in the catalogue can go into a custom build. Get in touch with the parts you have in mind, or start from one of our pre-built tiers and swap components before checkout."],
+      ["What does \u201crefurbished\u201d mean on a listing?",
+       "Refurbished systems and laptops have been tested, any faulty components replaced, and are graded before sale. Each listing states the grade and what was checked."]
+    ]},
+    { t:"Payment & finance", items:[
+      ["What payment methods do you accept?",
+       "Card, PayPal, Klarna, and 0% finance on orders over £600 — see <a href=\"" + uPayment + "\">payment information</a> for details."],
+      ["How does the 0% finance option work?",
+       "Available at checkout on orders over £600, spread over 12 months at no additional interest, subject to a standard credit check by our finance partner."],
+      ["Do your prices include VAT?",
+       "Yes, all prices shown are inclusive of VAT at the UK standard rate unless stated otherwise. The exclusive-of-VAT figure is shown alongside the price on every product and order page."]
+    ]},
+    { t:"Returns & warranty", items:[
+      ["What is your returns window?",
+       "30 days from delivery for most items in original condition. See our <a href=\"" + uReturns + "\">returns &amp; refunds</a> page for exceptions, including custom-built systems."],
+      ["What warranty comes with a system you build?",
+       "Three years collect-and-return on every system we assemble, on top of whatever warranty the individual components carry from their manufacturer. Full details are on our <a href=\"" + uWarranty + "\">warranty information</a> page."],
+      ["An item arrived faulty — what happens?",
+       "We collect, test and replace it at no cost to you either way. Start a return from your <a href=\"" + uOrders + "\">order details page</a> and select \u201carrived faulty or damaged\u201d as the reason."]
+    ]}
+  ];
+  mount(D.header() + D.crumbs([{ label:"Home", href:S.url("home") }, { label:"FAQ" }]) +
+    '<div class="wrap"><div class="info-hero"><span class="eyebrow">Frequently asked</span>'+
+      '<h1>Questions we hear a lot</h1><p>Can\'t find it here? <a href="'+uContact+'">Contact us</a> directly and we will answer it properly rather than pointing you back at this page.</p></div>'+
+    '<div class="info-body" style="max-width:78ch">'+
+    groups.map(function(g,gi){
+      return '<div class="faq-group"><h2>'+E(g.t)+'</h2>'+
+        g.items.map(function(item,i){
+          return '<div class="faq-item" id="faq-'+gi+'-'+i+'"><div class="faq-q" data-faq="faq-'+gi+'-'+i+'">'+E(item[0])+icon("i-plus",16,16)+'</div>'+
+            '<div class="faq-a"><p>'+item[1]+'</p></div></div>';
+        }).join("")+'</div>';
+    }).join("")+
+    '</div></div>' + D.footer());
+  $$(".faq-q").forEach(function(q){
+    q.addEventListener("click", function(){ q.closest(".faq-item").classList.toggle("open"); });
+  });
+  document.title = "FAQ — UK Computer Shop";
+}
+
+/* ------------------------------------------------ support hub */
+function support(D){
+  var cards = [
+    ["i-search","FAQ","Answers to the questions we hear most often, grouped by topic.", S.url("faq")],
+    ["i-truck","Delivery information","Options, prices, despatch cut-off and how long things take.", S.url("delivery")],
+    ["i-shield","Returns & refunds","Our 30-day window, how to start one, and what is not covered.", S.url("returns")],
+    ["i-wrench","Warranty information","What is covered on systems we build versus individual components.", S.url("warranty")],
+    ["i-card","Payment information","Accepted methods, 0% finance, and how VAT is shown.", S.url("paymentInfo")],
+    ["i-user","Contact us","Phone, email and a contact form for anything not covered here.", S.url("contact")]
+  ];
+  mount(D.header() + D.crumbs([{ label:"Home", href:S.url("home") }, { label:"Support" }]) +
+    '<div class="wrap"><div class="info-hero"><span class="eyebrow">Help centre</span>'+
+      '<h1>How can we help?</h1><p>Everything about ordering, delivery, returns and warranty in one place, plus a direct line to us for anything more specific.</p></div>'+
+    '<div class="support-grid">'+cards.map(function(c){
+      return '<a class="support-card" href="'+c[3]+'"><span class="ic">'+icon(c[0],20,20)+'</span><h3>'+E(c[1])+'</h3><p>'+E(c[2])+'</p><span>Read more →</span></a>';
+    }).join("")+'</div></div>' + D.footer());
+  document.title = "Support — UK Computer Shop";
+}
+
+
+/* ------------------------------------------------ delivery / returns / warranty / payment
+   Delivery pulls its options and prices straight from Shop.DELIVERY — the
+   same data checkout uses — so this page can never disagree with what a
+   customer is actually charged. */
+function delivery(D){
+  var rows = S.DELIVERY.map(function(m){
+    return '<tr><td>'+E(m.label)+'</td><td>'+E(m.note)+'</td><td>'+
+      (m.freeOver !== null ? M(m.price)+' (free over '+M(m.freeOver)+')' : M(m.price))+'</td></tr>';
+  }).join("");
+  mount(D.header() + D.crumbs([{ label:"Home", href:S.url("home") }, { label:"Support", href:S.url("support") }, { label:"Delivery information" }]) +
+    '<div class="wrap"><div class="info-hero"><span class="eyebrow">Delivery</span>'+
+      '<h1>Delivery information</h1><p>Every option we offer at checkout, what it costs, and where the cut-off times come from.</p></div>'+
+    '<div class="info-body">'+
+      '<h2>Delivery options</h2>'+
+      '<table class="info-table"><tr><th>Method</th><th>Typically</th><th>Price</th></tr>'+rows+'</table>'+
+      '<h2>Despatch cut-off</h2>'+
+      '<p>Orders placed before <strong>17:00, Monday to Friday</strong>, are despatched the same day for any item shown as in stock. Orders placed after the cut-off, or over a weekend or bank holiday, go out on the next working day.</p>'+
+      '<h2>Where we deliver</h2>'+
+      '<p>UK mainland addresses only at present. We are not currently able to deliver to the Scottish Highlands and Islands, Northern Ireland, the Channel Islands, or outside the UK — get in <a href="'+S.url("contact")+'">touch</a> before ordering if you are unsure whether your postcode is covered.</p>'+
+      '<h2>Large and heavy items</h2>'+
+      '<p>Complete systems, monitors and other bulky items are sent on a tracked courier service appropriate to their size and weight. You will receive tracking details by email once your order has despatched.</p>'+
+      '<h2>Collection</h2>'+
+      '<p>Every order can be collected free of charge from our <a href="'+S.url("stores")+'">Manchester workshop</a> instead of being delivered. Orders placed before 15:00 are usually ready the same day; we will email you as soon as yours is.</p>'+
+      '<div class="info-note"><b>Related:</b> see <a href="'+S.url("returns")+'">returns &amp; refunds</a> for what happens if a delivery arrives damaged.</div>'+
+    '</div></div>' + D.footer());
+  document.title = "Delivery information — UK Computer Shop";
+}
+
+function returns(D){
+  mount(D.header() + D.crumbs([{ label:"Home", href:S.url("home") }, { label:"Support", href:S.url("support") }, { label:"Returns & refunds" }]) +
+    '<div class="wrap"><div class="info-hero"><span class="eyebrow">Returns</span>'+
+      '<h1>Returns &amp; refunds</h1><p>How our 30-day window works, and how to start a return on an order you have already placed.</p></div>'+
+    '<div class="info-body">'+
+      '<h2>The 30-day window</h2>'+
+      '<p>Most items can be returned within 30 days of delivery, unused and in the condition you received them, for a full refund. This is in addition to your statutory rights under the Consumer Rights Act 2015 and the Consumer Contracts Regulations 2013 as a UK online shopper.</p>'+
+      '<h2>How to start a return</h2>'+
+      '<p>Go to <a href="'+S.url("account",{tab:"orders"})+'">My account → Orders</a>, open the order, and select \u201cRequest a return\u201d. Choose which items and a reason, and we will email a prepaid returns label once it is approved.</p>'+
+      '<h2>If something arrives faulty or damaged</h2>'+
+      '<p>Select \u201cArrived faulty or damaged\u201d as the reason and we will collect it, test it, and either repair, replace or refund it — carriage is free both ways in this case.</p>'+
+      '<h2>What can\'t be returned</h2>'+
+      '<ul>'+
+        '<li>Custom-built systems, once assembly has started, unless faulty</li>'+
+        '<li>Software licence keys and digital downloads, once activated</li>'+
+        '<li>Consumables such as thermal paste, once the seal is broken</li>'+
+        '<li>Items returned outside the 30-day window without a fault</li>'+
+      '</ul>'+
+      '<h2>Refund timing</h2>'+
+      '<p>Once we have received and checked a returned item, refunds are issued to the original payment method within 3–5 working days.</p>'+
+      '<div class="info-note"><b>Note:</b> this is a design prototype — starting a return here records a demo state in your browser rather than notifying a real returns team.</div>'+
+    '</div></div>' + D.footer());
+  document.title = "Returns & refunds — UK Computer Shop";
+}
+
+function warranty(D){
+  mount(D.header() + D.crumbs([{ label:"Home", href:S.url("home") }, { label:"Support", href:S.url("support") }, { label:"Warranty information" }]) +
+    '<div class="wrap"><div class="info-hero"><span class="eyebrow">Warranty</span>'+
+      '<h1>Warranty information</h1><p>What is covered depends on whether you bought a system we built or an individual component — here is the difference.</p></div>'+
+    '<div class="info-body">'+
+      '<h2>Systems we build</h2>'+
+      '<p>Every gaming PC, workstation or custom build assembled in our workshop carries a <strong>three-year collect-and-return warranty</strong>, covering workmanship and any component we fitted. If it develops a fault, we arrange collection, diagnose and repair it, and return it — at no cost to you within that period.</p>'+
+      '<h2>Individual components and peripherals</h2>'+
+      '<p>These carry whatever warranty the manufacturer offers, which we state on every product page under the <strong>Warranty</strong> field where the manufacturer specifies one. This commonly ranges from one year on accessories to a lifetime warranty on some memory and cooling products.</p>'+
+      '<h2>Laptops and pre-built computers from other manufacturers</h2>'+
+      '<p>Covered by the manufacturer\'s own warranty, which we will help you claim against if needed — get in <a href="'+S.url("contact")+'">touch</a> with your order reference.</p>'+
+      '<h2>What a warranty does not cover</h2>'+
+      '<ul>'+
+        '<li>Accidental damage, liquid damage, or damage from unauthorised repair attempts</li>'+
+        '<li>Normal wear and tear on consumable parts, such as fans reaching end of life</li>'+
+        '<li>Performance changes caused by manual overclocking beyond rated specifications</li>'+
+      '</ul>'+
+      '<h2>Making a claim</h2>'+
+      '<p>Start from <a href="'+S.url("account",{tab:"orders"})+'">My account → Orders</a> if the item is a system we built, or <a href="'+S.url("contact")+'">contact us</a> directly with your order reference for anything else.</p>'+
+    '</div></div>' + D.footer());
+  document.title = "Warranty information — UK Computer Shop";
+}
+
+function paymentInfo(D){
+  mount(D.header() + D.crumbs([{ label:"Home", href:S.url("home") }, { label:"Support", href:S.url("support") }, { label:"Payment information" }]) +
+    '<div class="wrap"><div class="info-hero"><span class="eyebrow">Payment</span>'+
+      '<h1>Payment information</h1><p>What we accept, how VAT is shown, and how the 0% finance option works.</p></div>'+
+    '<div class="info-body">'+
+      '<h2>Accepted payment methods</h2>'+
+      '<ul><li>Visa and Mastercard, debit or credit</li><li>American Express</li><li>PayPal</li><li>Klarna, including Pay in 3</li><li>0% finance on orders over £600 — see below</li></ul>'+
+      '<h2>0% finance</h2>'+
+      '<p>Available at checkout on orders over £600, spread over 12 months at no additional interest, subject to a standard credit check by our finance partner. Representative terms are shown at checkout before you confirm.</p>'+
+      '<h2>VAT</h2>'+
+      '<p>All prices shown on the site are inclusive of VAT at the UK standard rate. The VAT-exclusive figure is shown alongside the price on every product page, in your basket, and on your order confirmation, for business customers who need it for their own accounts.</p>'+
+      '<h2>Payment security</h2>'+
+      '<p>Card and finance payments are processed by our payment partners rather than handled directly on our own servers. We do not store full card numbers.</p>'+
+      '<div class="info-note"><b>Note:</b> this is a design prototype. The checkout payment step is a layout preview — no card details are collected and no payment is actually processed anywhere in this site.</div>'+
+    '</div></div>' + D.footer());
+  document.title = "Payment information — UK Computer Shop";
+}
+
+
+/* ------------------------------------------------ Terms, Privacy, Cookie Policy
+   These are the one category of content in this whole prototype that carries
+   real legal weight if anyone mistook it for the genuine article, so every
+   one of the three opens with an explicit, impossible-to-miss notice. The
+   substance below is a realistic UK e-commerce template — Consumer Rights
+   Act 2015, the 2013 distance-selling regulations, UK GDPR — not filler
+   text, but it has not been near a solicitor and must not go live as-is. */
+function legalNotice(){
+  return '<div class="info-note" style="border-color:var(--c-neg);background:color-mix(in srgb, var(--c-neg) 8%, var(--c-surface-2))">'+
+    '<b>This is placeholder text for design review.</b> It is a realistic template, not verified legal advice, and must be reviewed and approved by a qualified legal adviser before this site accepts a real order.</div>';
+}
+function legalPage(D, opts){
+  mount(D.header() + D.crumbs([{ label:"Home", href:S.url("home") }, { label:opts.title }]) +
+    '<div class="wrap"><div class="info-hero"><span class="eyebrow">Legal</span><h1>'+opts.title+'</h1>'+
+      '<p>'+opts.intro+'</p></div>'+
+    legalNotice()+
+    '<div class="legal-layout">'+
+      '<nav class="legal-toc"><div class="h">Contents</div>'+
+        opts.sections.map(function(sec){ return '<a href="#'+sec.id+'">'+sec.h+'</a>'; }).join("")+
+      '</nav>'+
+      '<div><p class="legal-updated">Last updated 1 August 2026 (template)</p>'+
+        opts.sections.map(function(sec){
+          return '<section id="'+sec.id+'"><h2>'+sec.h+'</h2>'+sec.body+'</section>';
+        }).join("")+
+      '</div>'+
+    '</div></div>' + D.footer());
+  document.title = opts.title + " — UK Computer Shop";
+}
+
+function terms(D){
+  legalPage(D, {
+    title: "Terms & Conditions",
+    intro: "The terms that apply when you buy from UK Computer Shop, in plain language wherever the law lets us.",
+    sections: [
+      { id:"who", h:"Who we are", body:
+        '<p>UK Computer Shop Ltd, company number 07234891, trading from Unit 7, Ardwick Green North, Manchester M12 6FZ. VAT registration GB 123 4567 89. These terms apply to any order placed through this website.</p>' },
+      { id:"contract", h:"Placing an order", body:
+        '<p>Adding an item to your basket is not an offer to buy — you make that offer when you complete checkout, and we accept it when we send order confirmation. We may decline an order, for example if a listed price or stock level was wrong, and if we do we will not take payment.</p>' },
+      { id:"pricing", h:"Pricing and payment", body:
+        '<p>All prices are shown in pounds sterling, inclusive of VAT unless stated otherwise. We take reasonable care to ensure prices are correct but errors can occur; if we find one after you have ordered, we will contact you before proceeding. Payment is taken at checkout via the methods described in our <a href="'+S.url("paymentInfo")+'">payment information</a>.</p>' },
+      { id:"delivery", h:"Delivery", body:
+        '<p>Estimated delivery times are given in good faith and are not guaranteed delivery dates. Risk in goods passes to you on delivery. Full detail is in our <a href="'+S.url("delivery")+'">delivery information</a>.</p>' },
+      { id:"cancellation", h:"Your right to cancel", body:
+        '<p>As a UK consumer buying online, you generally have 14 days from delivery to cancel your order under the Consumer Contracts (Information, Cancellation and Additional Charges) Regulations 2013, in addition to our own 30-day <a href="'+S.url("returns")+'">returns policy</a>, whichever gives you the longer period.</p>' },
+      { id:"warranty-liability", h:"Warranties and liability", body:
+        '<p>Nothing in these terms affects your statutory rights under the Consumer Rights Act 2015, including your right to goods that are of satisfactory quality, fit for purpose and as described. See our <a href="'+S.url("warranty")+'">warranty information</a> for what we additionally provide on systems we build.</p>'+
+        '<p>We are not liable for indirect or consequential loss, and our liability for any claim is limited to the amount you paid for the relevant order, except where liability cannot be limited by law (for example, death or personal injury caused by our negligence).</p>' },
+      { id:"ip", h:"Intellectual property", body:
+        '<p>The content of this site — text, images, logos and design — belongs to UK Computer Shop Ltd or its licensors and may not be reproduced without permission.</p>' },
+      { id:"privacy-ref", h:"Your data", body:
+        '<p>How we collect and use your information is set out in full in our <a href="'+S.url("privacy")+'">Privacy Policy</a>.</p>' },
+      { id:"law", h:"Governing law", body:
+        '<p>These terms are governed by the law of England and Wales, and any dispute will be handled by the courts of England and Wales.</p>' },
+      { id:"changes", h:"Changes to these terms", body:
+        '<p>We may update these terms from time to time; the version that applies to your order is the one in force at the time you placed it.</p>' }
+    ]
+  });
+}
+
+function privacy(D){
+  legalPage(D, {
+    title: "Privacy Policy",
+    intro: "What we collect when you use this site, why, and the rights you have over it under UK GDPR.",
+    sections: [
+      { id:"controller", h:"Who is responsible for your data", body:
+        '<p>UK Computer Shop Ltd, Unit 7, Ardwick Green North, Manchester M12 6FZ, is the data controller for information collected through this site.</p>' },
+      { id:"what", h:"What we collect", body:
+        '<ul><li>Account details: name, email, delivery and billing addresses, phone number</li>'+
+        '<li>Order history and basket contents</li><li>Payment confirmation from our payment partners — we do not store full card numbers</li>'+
+        '<li>Browsing activity on this site, such as recently viewed products and wishlist items, largely held in your browser rather than on our servers</li>'+
+        '<li>Communications you send us, for example through the <a href="'+S.url("contact")+'">contact form</a></li></ul>' },
+      { id:"why", h:"Why we use it", body:
+        '<p>To take and fulfil your orders, provide customer support, meet our legal and accounting obligations, and — only with your consent, as described in our <a href="'+S.url("cookiePolicy")+'">Cookie Policy</a> — to understand how the site is used and improve it.</p>' },
+      { id:"sharing", h:"Who we share it with", body:
+        '<p>Delivery carriers, to get your order to you; payment and finance partners, to process payment; and, where required, HMRC and other authorities. We do not sell personal data to third parties.</p>' },
+      { id:"retention", h:"How long we keep it", body:
+        '<p>Order and account records are kept for as long as needed to meet our legal, tax and warranty obligations, then deleted or anonymised.</p>' },
+      { id:"rights", h:"Your rights", body:
+        '<p>Under UK GDPR and the Data Protection Act 2018 you can ask to access, correct, delete, or receive a copy of your personal data, and object to or restrict some uses of it. Contact us via our <a href="'+S.url("contact")+'">contact page</a> to exercise any of these, or to complain to the Information Commissioner\'s Office if you are unhappy with how we have handled a request.</p>' },
+      { id:"cookies-ref", h:"Cookies", body:
+        '<p>Covered separately in our <a href="'+S.url("cookiePolicy")+'">Cookie Policy</a>.</p>' },
+      { id:"changes", h:"Changes to this policy", body:
+        '<p>We may update this policy from time to time; material changes will be reflected here with an updated date.</p>' }
+    ]
+  });
+}
+
+function cookiePolicy(D){
+  legalPage(D, {
+    title: "Cookie Policy",
+    intro: "What cookies this site uses, and how to control them.",
+    sections: [
+      { id:"what", h:"What cookies are", body:
+        '<p>Small text files stored in your browser that let a site remember information between visits — such as what is in your basket, or your saved wishlist.</p>' },
+      { id:"how", h:"How we use them", body:
+        '<p>This prototype stores its demo state — basket, wishlist, compare list, and your cookie choice itself — directly in your browser\'s local storage rather than in a traditional cookie, but it serves the same purpose and is covered by the same choice you make below.</p>' },
+      { id:"types", h:"Types of cookie we use", body:
+        '<table class="info-table"><tr><th>Type</th><th>Purpose</th><th>Can you opt out?</th></tr>'+
+        '<tr><td>Essential</td><td>Basket, checkout and account features working at all</td><td>No — the site cannot function without these</td></tr>'+
+        '<tr><td>Analytics</td><td>Understanding which pages and products are popular, to improve the site</td><td>Yes</td></tr>'+
+        '<tr><td>Marketing</td><td>Showing you more relevant offers, on this site or elsewhere</td><td>Yes</td></tr></table>' },
+      { id:"managing", h:"Managing your choice", body:
+        '<p>You can accept or reject non-essential cookies from the banner shown on your first visit, or clear your browser\'s site data at any time to reset your choice and be asked again.</p>' },
+      { id:"third-party", h:"Third-party cookies", body:
+        '<p>Our payment and delivery partners may set their own cookies when you reach the parts of checkout they are involved in — these are governed by their own cookie policies, not this one.</p>' },
+      { id:"changes", h:"Changes to this policy", body:
+        '<p>We may update this policy as the site changes; the version here always reflects current practice.</p>' }
+    ]
+  });
+}
+
 root.Commerce = { category:category, basket:basket, checkout:checkout, account:account, compare:compare,
   login:login, register:register, forgotPassword:forgotPassword,
-  orderDetails:orderDetails, orderCancel:orderCancel, orderReturn:orderReturn };
+  orderDetails:orderDetails, orderCancel:orderCancel, orderReturn:orderReturn,
+  about:about, contact:contact, stores:stores, faq:faq, support:support,
+  delivery:delivery, returns:returns, warranty:warranty, paymentInfo:paymentInfo,
+  terms:terms, privacy:privacy, cookiePolicy:cookiePolicy };
 })(window);

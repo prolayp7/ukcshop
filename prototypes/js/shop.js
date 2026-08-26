@@ -131,7 +131,10 @@ function url(kind, q){
   var file = { home:"", product:"-product", brand:"-brand", brands:"-brands",
                category:"-category", basket:"-basket", checkout:"-checkout", account:"-account", compare:"-compare",
                login:"-login", register:"-register", forgotPassword:"-forgot-password",
-               orderDetails:"-order-details", orderCancel:"-order-cancel", orderReturn:"-order-return" }[kind];
+               orderDetails:"-order-details", orderCancel:"-order-cancel", orderReturn:"-order-return",
+               about:"-about", contact:"-contact", stores:"-stores", faq:"-faq", support:"-support",
+               delivery:"-delivery", returns:"-returns", warranty:"-warranty", paymentInfo:"-payment-info",
+               terms:"-terms", privacy:"-privacy", cookiePolicy:"-cookie-policy" }[kind];
   var name = kind === "home" ? design + HOME_SUFFIX[design] : design + file;
   return name + ".html" + (s ? "?" + s : "");
 }
@@ -518,6 +521,42 @@ document.addEventListener("click", function(e){
   }
 });
 document.addEventListener("DOMContentLoaded", refreshBasketUI);
+
+/* Cookie consent — a real, working banner rather than a mockup screenshot,
+   since "does the consent flow actually gate anything" is exactly the kind
+   of thing a client review should be able to click through. Content pages
+   (Cookie Policy etc.) are being rolled out design by design, same as the
+   order pages; the "Manage preferences" link only appears once this design
+   has one to link to. */
+var CONTENT_PAGES_ROLLED_OUT = ["05"];
+function consentGiven(){ return lsGet("consent", null) !== null; }
+function injectConsentBanner(){
+  if (consentGiven() || document.getElementById("ukcs-consent")) return;
+  var css = document.createElement("style");
+  css.textContent =
+    "#ukcs-consent{position:fixed;left:16px;right:16px;bottom:16px;z-index:9997;background:#111;color:#fff;"+
+    "border-radius:12px;box-shadow:0 20px 50px -20px rgba(0,0,0,.55);padding:18px 20px;"+
+    "display:flex;align-items:center;gap:18px;font:14px/1.5 system-ui,sans-serif;max-width:820px;margin:0 auto;flex-wrap:wrap}"+
+    "#ukcs-consent p{margin:0;flex:1;min-width:220px;color:#d4d4d8}"+
+    "#ukcs-consent a{color:#fff;text-decoration:underline}"+
+    "#ukcs-consent .btns{display:flex;gap:8px;flex-wrap:wrap}"+
+    "#ukcs-consent button{border-radius:7px;padding:9px 16px;font-weight:700;font-size:13px;cursor:pointer;border:1px solid rgba(255,255,255,.3);background:none;color:#fff;font-family:inherit}"+
+    "#ukcs-consent button.accept{background:#fff;color:#111;border-color:#fff}";
+  document.head.appendChild(css);
+  var el = document.createElement("div");
+  el.id = "ukcs-consent";
+  var manage = CONTENT_PAGES_ROLLED_OUT.indexOf(design) > -1
+    ? ' <a href="' + url("cookiePolicy") + '">Manage preferences</a>.' : "";
+  el.innerHTML =
+    '<p>We use cookies to run this site and, with your permission, to understand how it is used.' + manage + '</p>' +
+    '<div class="btns"><button id="ukcs-consent-reject">Reject non-essential</button>' +
+    '<button class="accept" id="ukcs-consent-accept">Accept all</button></div>';
+  document.body.appendChild(el);
+  document.getElementById("ukcs-consent-accept").addEventListener("click", function(){ lsSet("consent", "all"); el.remove(); });
+  document.getElementById("ukcs-consent-reject").addEventListener("click", function(){ lsSet("consent", "essential"); el.remove(); });
+}
+document.addEventListener("DOMContentLoaded", injectConsentBanner);
+
 document.addEventListener("DOMContentLoaded", refreshWishlistUI);
 document.addEventListener("DOMContentLoaded", refreshCompareUI);
 
@@ -528,6 +567,7 @@ root.Shop = {
   money:money, exVat:exVat, stars:stars, esc:esc, uniq:uniq, param:param, url:url,
   stockText:stockText, design:design, tree:tree, countIn:countIn, CAT_ORDER:CAT_ORDER,
   Basket:Basket, refreshBasketUI:refreshBasketUI, flash:flash, DELIVERY:DELIVERY, VAT_RATE:VAT_RATE, orders:orders, ADDRESSES:ADDRESSES, OrderState:OrderState,
+  CONTENT_PAGES_ROLLED_OUT:CONTENT_PAGES_ROLLED_OUT,
   Wishlist:Wishlist, Compare:Compare, COMPARE_MAX:COMPARE_MAX, refreshWishlistUI:refreshWishlistUI, refreshCompareUI:refreshCompareUI
 };
 })(window);
