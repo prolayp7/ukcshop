@@ -760,7 +760,7 @@ function faq(D){
       return '<div class="faq-group"><h2>'+E(g.t)+'</h2>'+
         g.items.map(function(item,i){
           return '<div class="faq-item" id="faq-'+gi+'-'+i+'"><div class="faq-q" data-faq="faq-'+gi+'-'+i+'">'+E(item[0])+icon("i-plus",16,16)+'</div>'+
-            '<div class="faq-a"><p>'+item[1]+'</p></div></div>';
+            '<div class="faq-a"><div class="faq-a-inner"><p>'+item[1]+'</p></div></div></div>';
         }).join("")+'</div>';
     }).join("")+
     '</div></div>' + D.footer());
