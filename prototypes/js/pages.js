@@ -86,6 +86,41 @@ var Pages = {
     };
   },
 
+  orderDetails: function(){
+    var ref = S.param("ref");
+    var order = S.orders().filter(function(o){ return o.ref === ref; })[0];
+    if (!order) return notFound("Order");
+    var addr = S.ADDRESSES.filter(function(a){ return a.default; })[0] || S.ADDRESSES[0];
+    return {
+      order: order, address: addr, method: S.DELIVERY[1],
+      canCancel: order.status === "Processing",
+      canReturn: order.status === "Delivered" && !S.OrderState.get(order.ref).returnRequested,
+      crumbs: [ { label:"Home", href:S.url("home") }, { label:"My account", href:S.url("account",{tab:"orders"}) }, { label:order.ref } ]
+    };
+  },
+
+  orderCancel: function(){
+    var ref = S.param("ref");
+    var order = S.orders().filter(function(o){ return o.ref === ref; })[0];
+    if (!order) return notFound("Order");
+    return {
+      order: order, alreadyCancelled: S.OrderState.get(ref).cancelled,
+      crumbs: [ { label:"Home", href:S.url("home") }, { label:"My account", href:S.url("account",{tab:"orders"}) },
+                { label:order.ref, href:S.url("orderDetails",{ref:ref}) }, { label:"Cancel" } ]
+    };
+  },
+
+  orderReturn: function(){
+    var ref = S.param("ref");
+    var order = S.orders().filter(function(o){ return o.ref === ref; })[0];
+    if (!order) return notFound("Order");
+    return {
+      order: order, alreadyRequested: S.OrderState.get(ref).returnRequested,
+      crumbs: [ { label:"Home", href:S.url("home") }, { label:"My account", href:S.url("account",{tab:"orders"}) },
+                { label:order.ref, href:S.url("orderDetails",{ref:ref}) }, { label:"Return" } ]
+    };
+  },
+
   compare: function(){
     var products = S.Compare.products();
     return {

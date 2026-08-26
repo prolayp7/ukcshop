@@ -129,7 +129,9 @@ var design = (location.pathname.match(/(\d{2})-/) || [,"01"])[1];
 function url(kind, q){
   var s = Object.keys(q||{}).map(function(k){ return k + "=" + encodeURIComponent(q[k]); }).join("&");
   var file = { home:"", product:"-product", brand:"-brand", brands:"-brands",
-               category:"-category", basket:"-basket", checkout:"-checkout", account:"-account", compare:"-compare" }[kind];
+               category:"-category", basket:"-basket", checkout:"-checkout", account:"-account", compare:"-compare",
+               login:"-login", register:"-register", forgotPassword:"-forgot-password",
+               orderDetails:"-order-details", orderCancel:"-order-cancel", orderReturn:"-order-return" }[kind];
   var name = kind === "home" ? design + HOME_SUFFIX[design] : design + file;
   return name + ".html" + (s ? "?" + s : "");
 }
@@ -305,16 +307,36 @@ var Basket = {
 };
 
 /* A plausible order history so the account pages have something to show. */
+/* Cancel/return state a visitor sets during this demo — persisted so an order
+   page keeps reflecting the choice after Confirm, the same pattern already
+   used for the basket, wishlist and compare. */
+var OrderState = {
+  raw: function(){ return lsGet("orderstate", {}); },
+  save: function(v){ lsSet("orderstate", v); },
+  get: function(ref){ return OrderState.raw()[ref] || {}; },
+  cancel: function(ref, reason){
+    var s = OrderState.raw(); s[ref] = { cancelled:true, cancelReason: reason || null }; OrderState.save(s);
+  },
+  requestReturn: function(ref, itemIds, reason, note){
+    var s = OrderState.raw(); s[ref] = { returnRequested:true, returnItems:itemIds, returnReason:reason || null, returnNote:note || null };
+    OrderState.save(s);
+  }
+};
 function orders(){
   var pick = function(ids){ return ids.map(byId).filter(Boolean); };
   var mk = function(ref, daysAgo, status, ids, qtys){
     var items = pick(ids).map(function(p,i){ return { p:p, qty:(qtys && qtys[i]) || 1 }; });
     var goods = items.reduce(function(s,it){ return s + it.p.price * it.qty; }, 0);
     var d = new Date(2026, 7, 26); d.setDate(d.getDate() - daysAgo);
-    return { ref:ref, date:d.toISOString().slice(0,10), status:status, items:items,
+    var o = { ref:ref, date:d.toISOString().slice(0,10), status:status, items:items,
              goods:goods, shipping:goods >= 75 ? 0 : 4.95, total:goods + (goods >= 75 ? 0 : 4.95) };
+    var st = OrderState.get(ref);
+    if (st.cancelled) o.status = "Cancelled";
+    if (st.returnRequested) o.returnStatus = "Return requested";
+    return o;
   };
   return [
+    mk("UKCS-209930", 0,  "Processing",       [1], [1]),
     mk("UKCS-208841", 4,  "Out for delivery", [23, 29], [1, 2]),
     mk("UKCS-207115", 26, "Delivered",        [9, 17, 37]),
     mk("UKCS-204902", 91, "Delivered",        [52, 49], [2, 1])
@@ -505,7 +527,7 @@ root.Shop = {
   brands:brands, byBrand:byBrand, complement:COMPLEMENT, compatible:compatible,
   money:money, exVat:exVat, stars:stars, esc:esc, uniq:uniq, param:param, url:url,
   stockText:stockText, design:design, tree:tree, countIn:countIn, CAT_ORDER:CAT_ORDER,
-  Basket:Basket, refreshBasketUI:refreshBasketUI, flash:flash, DELIVERY:DELIVERY, VAT_RATE:VAT_RATE, orders:orders, ADDRESSES:ADDRESSES,
+  Basket:Basket, refreshBasketUI:refreshBasketUI, flash:flash, DELIVERY:DELIVERY, VAT_RATE:VAT_RATE, orders:orders, ADDRESSES:ADDRESSES, OrderState:OrderState,
   Wishlist:Wishlist, Compare:Compare, COMPARE_MAX:COMPARE_MAX, refreshWishlistUI:refreshWishlistUI, refreshCompareUI:refreshCompareUI
 };
 })(window);

@@ -56,7 +56,7 @@ function header(){
       '<div class="mast-act">'+
         '<a class="mact" href="'+S.url("account",{tab:"wishlist"})+'">'+ic("i-heart",21,21)+'<span class="pip" data-wishlist-count hidden>0</span>'+
           '<span><span class="lbl">Saved</span><span class="val">Wishlist</span></span></a>'+
-        '<a class="mact" href="'+S.url("account")+'">'+ic("i-user",21,21)+
+        '<a class="mact" href="'+S.url("login")+'">'+ic("i-user",21,21)+
           '<span><span class="lbl">Sign in</span><span class="val">Account</span></span></a>'+
         '<button class="mact" id="cartBtn">'+ic("i-bag",21,21)+'<span class="pip" data-basket-count hidden>0</span>'+
           '<span><span class="lbl">Basket</span><span class="val" data-basket-total>£0.00</span></span></button>'+

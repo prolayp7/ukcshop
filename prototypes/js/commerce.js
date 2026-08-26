@@ -4,6 +4,12 @@
 (function (root) {
 "use strict";
 var S = root.Shop, E = S.esc, M = S.money;
+/* Order Details/Cancel/Return pages exist only for the design(s) listed here.
+   Batch-2 built this for design 05 first; adding a design's number here (once
+   its 0X-order-*.html shells exist) is the entire "roll out" step for these
+   three pages — no logic changes needed. */
+var ORDER_PAGES_ROLLED_OUT = ["05"];
+function hasOrderPages(){ return ORDER_PAGES_ROLLED_OUT.indexOf(S.design) > -1; }
 var $ = function(s, r){ return (r||document).querySelector(s); };
 var $$ = function(s, r){ return [].slice.call((r||document).querySelectorAll(s)); };
 function mount(html){ document.getElementById("app").innerHTML = html; }
@@ -187,6 +193,8 @@ function checkout(D){
     $$('input[name="ship"]').forEach(function(r){
       r.addEventListener("change", function(){ S.Basket.method(r.value); render(); });
     });
+    var billSame = $("#billSame"), billFields = $("#billFields");
+    if (billSame) billSame.addEventListener("change", function(){ billFields.hidden = billSame.checked; });
     document.title = "Checkout — UK Computer Shop";
   }
   function deliveryStep(d){
@@ -196,6 +204,16 @@ function checkout(D){
           '<span><b>'+E(a.label)+'</b>'+E(a.name)+'<br>'+a.lines.map(E).join("<br>")+'<br>'+E(a.phone)+'</span></label>';
       }).join("")+'</div>'+
       '<button class="ck-ghost">+ Add a new address</button></section>'+
+      '<section class="ck-block"><h2>Billing address</h2>'+
+        '<label class="od-returnrow" style="margin-bottom:12px"><input type="checkbox" id="billSame" checked>'+
+          '<span class="ac-oiname">Same as delivery address</span></label>'+
+        '<div id="billFields" hidden>'+
+          '<div class="ck-two"><div class="ck-field"><label>Full name</label><input placeholder="Name on the invoice"></div>'+
+            '<div class="ck-field"><label>Company (optional)</label><input placeholder="For a VAT invoice"></div></div>'+
+          '<div class="ck-field"><label>Address line 1</label><input placeholder="Street address"></div>'+
+          '<div class="ck-two"><div class="ck-field"><label>Town / city</label><input></div>'+
+            '<div class="ck-field"><label>Postcode</label><input></div></div>'+
+        '</div></section>'+
       '<section class="ck-block"><h2>Delivery method</h2><div class="ck-ship">'+
         d.delivery.map(function(m){
           var free = m.freeOver !== null && d.t.goods >= m.freeOver;
@@ -305,16 +323,26 @@ function account(D){
   }
   function orderCard(o){
     if (!o) return '<p class="ac-none">No orders yet.</p>';
+    var statusCls = o.status === "Delivered" ? "done" : o.status === "Cancelled" ? "cancel" : "live";
+    var rolled = hasOrderPages();
+    var ref = rolled ? '<a href="'+S.url("orderDetails",{ref:o.ref})+'">'+E(o.ref)+'</a>' : E(o.ref);
+    var canCancel = rolled && o.status === "Processing";
+    var canReturn = rolled && o.status === "Delivered" && !S.OrderState.get(o.ref).returnRequested;
     return '<div class="ac-order"><div class="ac-orderhead">'+
-      '<div><b>'+E(o.ref)+'</b><span>Placed '+E(o.date)+'</span></div>'+
-      '<div class="ac-right"><span class="ac-status '+(o.status === "Delivered" ? "done" : "live")+'">'+E(o.status)+'</span>'+
+      '<div><b>'+ref+'</b><span>Placed '+E(o.date)+'</span></div>'+
+      '<div class="ac-right"><span class="ac-status '+statusCls+'">'+E(o.status)+'</span>'+
       '<b>'+M(o.total)+'</b></div></div>'+
+      (o.returnStatus ? '<div class="od-note" style="margin:0 16px 0">'+E(o.returnStatus)+'</div>' : "")+
       '<div class="ac-orderitems">'+o.items.map(function(it){
         return '<a class="ac-oi" href="'+S.url("product",{id:it.p.id})+'"><span>'+thumb(it.p,40,30)+'</span>'+
           '<span class="ac-oiname">'+E(it.p.name)+'<em>Qty '+it.qty+' · '+M(it.p.price)+'</em></span></a>';
       }).join("")+'</div>'+
-      '<div class="ac-orderacts"><button>Track parcel</button><button>Invoice (PDF)</button><button>Return an item</button>'+
-      '<button data-reorder="'+o.items.map(function(i){ return i.p.id + ":" + i.qty; }).join(",")+'">Buy it again</button></div></div>';
+      '<div class="ac-orderacts">'+
+        (rolled ? '<a href="'+S.url("orderDetails",{ref:o.ref})+'">Order details</a>' : "")+
+        '<button>Track parcel</button><button>Invoice (PDF)</button>'+
+        (canCancel ? '<a href="'+S.url("orderCancel",{ref:o.ref})+'">Cancel order</a>' : "")+
+        (canReturn ? '<a href="'+S.url("orderReturn",{ref:o.ref})+'">Return an item</a>' : (rolled ? "" : '<button>Return an item</button>'))+
+        '<button data-reorder="'+o.items.map(function(i){ return i.p.id + ":" + i.qty; }).join(",")+'">Buy it again</button></div></div>';
   }
   function wishView(d2, D2){
     if (!d2.wishlist.length)
@@ -416,5 +444,188 @@ function compare(D){
   render();
 }
 
-root.Commerce = { category:category, basket:basket, checkout:checkout, account:account, compare:compare };
+
+/* ------------------------------------------------ auth: login / register / forgotten password
+   All three are static in the sense the rest of this prototype already is —
+   no session is created and nothing is authenticated. Submitting shows the
+   same kind of confirmation used everywhere else (basket, checkout) and moves
+   on to where a successful attempt would actually land. */
+function login(D){
+  mount(D.header() + D.crumbs([{ label:"Home", href:S.url("home") }, { label:"Sign in" }]) +
+    '<div class="wrap"><div class="auth-wrap"><div class="auth-card">'+
+      '<h1>Sign in</h1><p class="auth-sub">Welcome back — enter your details to continue.</p>'+
+      '<form id="loginForm">'+
+        '<div class="ck-field"><label>Email address</label><input type="email" placeholder="you@example.com" required></div>'+
+        '<div class="ck-field"><label>Password</label><input type="password" placeholder="••••••••" required></div>'+
+        '<div class="auth-row"><label style="display:flex;align-items:center;gap:8px;color:var(--c-muted)"><input type="checkbox"> Remember me</label>'+
+          '<a class="auth-link" href="'+S.url("forgotPassword")+'">Forgotten your password?</a></div>'+
+        '<button class="bk-cta" type="submit" style="width:100%">Sign in</button>'+
+      '</form>'+
+      '<p class="auth-foot">New to UK Computer Shop? <a href="'+S.url("register")+'">Create an account</a></p>'+
+    '</div></div></div>' + D.footer());
+  var f = $("#loginForm");
+  if (f) f.addEventListener("submit", function(e){
+    e.preventDefault();
+    S.flash("Signed in — this is a design prototype, no account was created");
+    setTimeout(function(){ location.href = S.url("account"); }, 500);
+  });
+  document.title = "Sign in — UK Computer Shop";
+}
+
+function register(D){
+  mount(D.header() + D.crumbs([{ label:"Home", href:S.url("home") }, { label:"Create account" }]) +
+    '<div class="wrap"><div class="auth-wrap"><div class="auth-card">'+
+      '<h1>Create your account</h1><p class="auth-sub">Faster checkout, order tracking and a wishlist that remembers you.</p>'+
+      '<form id="registerForm">'+
+        '<div class="ck-two"><div class="ck-field"><label>First name</label><input placeholder="Jordan" required></div>'+
+          '<div class="ck-field"><label>Last name</label><input placeholder="Reid" required></div></div>'+
+        '<div class="ck-field"><label>Email address</label><input type="email" placeholder="you@example.com" required></div>'+
+        '<div class="ck-field"><label>Password</label><input type="password" placeholder="At least 8 characters" minlength="8" required></div>'+
+        '<label style="display:flex;align-items:flex-start;gap:9px;color:var(--c-muted);font-size:12.5px;margin-bottom:18px">'+
+          '<input type="checkbox" required style="margin-top:2px"> I agree to the <a class="auth-link" href="#">Terms</a> and <a class="auth-link" href="#">Privacy Policy</a></label>'+
+        '<button class="bk-cta" type="submit" style="width:100%">Create account</button>'+
+      '</form>'+
+      '<p class="auth-foot">Already have an account? <a href="'+S.url("login")+'">Sign in</a></p>'+
+    '</div></div></div>' + D.footer());
+  var f = $("#registerForm");
+  if (f) f.addEventListener("submit", function(e){
+    e.preventDefault();
+    S.flash("Account created — this is a design prototype, nothing was stored");
+    setTimeout(function(){ location.href = S.url("account"); }, 500);
+  });
+  document.title = "Create account — UK Computer Shop";
+}
+
+function forgotPassword(D){
+  mount(D.header() + D.crumbs([{ label:"Home", href:S.url("home") }, { label:"Forgotten password" }]) +
+    '<div class="wrap"><div class="auth-wrap"><div class="auth-card" id="fpCard">'+
+      '<h1>Forgotten your password?</h1><p class="auth-sub">Enter the email address on your account and we will send you a link to reset it.</p>'+
+      '<form id="fpForm">'+
+        '<div class="ck-field"><label>Email address</label><input type="email" id="fpEmail" placeholder="you@example.com" required></div>'+
+        '<button class="bk-cta" type="submit" style="width:100%">Send reset link</button>'+
+      '</form>'+
+      '<p class="auth-foot"><a href="'+S.url("login")+'">← Back to sign in</a></p>'+
+    '</div></div></div>' + D.footer());
+  var f = $("#fpForm");
+  if (f) f.addEventListener("submit", function(e){
+    e.preventDefault();
+    var email = $("#fpEmail").value || "that address";
+    $("#fpCard").innerHTML =
+      '<div class="auth-icon">'+icon("i-shield",34,34)+'</div>'+
+      '<h1>Check your inbox</h1>'+
+      '<p class="auth-sub">If an account exists for <b>'+E(email)+'</b>, we have sent a link to reset the password. It can take a few minutes to arrive.</p>'+
+      '<a class="bk-cta" href="'+S.url("login")+'" style="display:flex;justify-content:center">Back to sign in</a>';
+  });
+  document.title = "Forgotten password — UK Computer Shop";
+}
+
+/* ------------------------------------------------ order details / cancel / return */
+function orderDetails(D){
+  var d = Pages.orderDetails(); if (!d) return;
+  var o = d.order;
+  var statusCls = o.status === "Delivered" ? "done" : o.status === "Cancelled" ? "cancel" : "live";
+  mount(D.header() + D.crumbs(d.crumbs) +
+    '<div class="wrap"><div class="od-head"><div><h1>Order '+E(o.ref)+'</h1><p>Placed '+E(o.date)+'</p></div>'+
+      '<span class="ac-status '+statusCls+'">'+E(o.status)+'</span></div>'+
+      (o.returnStatus ? '<div class="od-note">'+E(o.returnStatus)+' — we will email you a returns label once it is approved.</div>' : "")+
+      '<div class="od-grid">'+
+        '<div><h4>Delivering to</h4><p>'+E(d.address.name)+'<br>'+d.address.lines.map(E).join("<br>")+'</p></div>'+
+        '<div><h4>Delivery method</h4><p>'+E(d.method.label)+'<br>'+E(d.method.note)+'</p></div>'+
+        '<div><h4>Payment</h4><p>Card ending 4242<br>Not collected in this prototype</p></div>'+
+      '</div>'+
+      '<h2 class="od-sub">Items</h2>'+
+      '<div class="od-items">'+o.items.map(function(it){
+        return '<a class="ac-oi" href="'+S.url("product",{id:it.p.id})+'" style="padding:12px 16px;border-bottom:1px solid var(--c-line)">'+
+          '<span>'+thumb(it.p,48,36)+'</span><span class="ac-oiname">'+E(it.p.name)+'<em>Qty '+it.qty+' · '+M(it.p.price)+' each</em></span>'+
+          '<b style="margin-left:auto;font-family:var(--c-num)">'+M(it.p.price*it.qty)+'</b></a>';
+      }).join("")+'</div>'+
+      '<div class="od-totals"><div class="bk-row"><span>Goods</span><b>'+M(o.goods)+'</b></div>'+
+        '<div class="bk-row"><span>Delivery</span><b>'+(o.shipping ? M(o.shipping) : "Free")+'</b></div>'+
+        '<div class="bk-row bk-total"><span>Total paid</span><b>'+M(o.total)+'</b></div></div>'+
+      '<div class="od-actions">'+
+        (d.canCancel ? '<a class="ck-next" href="'+S.url("orderCancel",{ref:o.ref})+'">Cancel this order</a>' : "")+
+        (d.canReturn ? '<a class="ck-next" href="'+S.url("orderReturn",{ref:o.ref})+'">Request a return</a>' : "")+
+        '<a class="ck-back" href="'+S.url("account",{tab:"orders"})+'">← Back to orders</a>'+
+      '</div></div>' + D.footer());
+  document.title = "Order " + o.ref + " — UK Computer Shop";
+}
+
+function orderCancel(D){
+  function render(){
+    var d = Pages.orderCancel(); if (!d) return;
+    var o = d.order;
+    if (d.alreadyCancelled){
+      mount(D.header() + D.crumbs(d.crumbs) +
+        '<div class="wrap"><div class="od-confirm">'+icon("i-shield",34,34)+
+        '<h1>Order already cancelled</h1><p>'+E(o.ref)+' was cancelled.</p>'+
+        '<a class="bk-cta" href="'+S.url("orderDetails",{ref:o.ref})+'" style="display:inline-flex;padding:12px 26px">View order</a></div></div>' + D.footer());
+      return;
+    }
+    mount(D.header() + D.crumbs(d.crumbs) +
+      '<div class="wrap"><div class="od-form"><h1>Cancel order '+E(o.ref)+'</h1>'+
+        '<p>This cannot be undone. Any payment taken would normally be refunded within 3–5 working days.</p>'+
+        '<div class="od-items">'+o.items.map(function(it){
+          return '<div class="ac-oi" style="padding:12px 16px;border-bottom:1px solid var(--c-line)"><span>'+thumb(it.p,44,32)+'</span>'+
+            '<span class="ac-oiname">'+E(it.p.name)+'<em>Qty '+it.qty+'</em></span></div>';
+        }).join("")+'</div>'+
+        '<div class="ck-field"><label>Reason (optional)</label><select id="cancelReason">'+
+          '<option value="">Choose a reason</option><option>Ordered by mistake</option>'+
+          '<option>Found it cheaper elsewhere</option><option>No longer needed</option>'+
+          '<option>Delivery is taking too long</option><option>Other</option></select></div>'+
+        '<div class="ck-actions"><a class="ck-back" href="'+S.url("orderDetails",{ref:o.ref})+'">← Keep my order</a>'+
+          '<button class="ck-next" id="confirmCancel" style="background:var(--c-neg)">Confirm cancellation</button></div>'+
+      '</div></div>' + D.footer());
+    $("#confirmCancel").addEventListener("click", function(){
+      S.OrderState.cancel(o.ref, $("#cancelReason").value || null);
+      S.flash("Order cancelled");
+      render();
+    });
+  }
+  render();
+  document.title = "Cancel order — UK Computer Shop";
+}
+
+function orderReturn(D){
+  function render(){
+    var d = Pages.orderReturn(); if (!d) return;
+    var o = d.order;
+    if (d.alreadyRequested){
+      mount(D.header() + D.crumbs(d.crumbs) +
+        '<div class="wrap"><div class="od-confirm">'+icon("i-shield",34,34)+
+        '<h1>Return already requested</h1><p>We are reviewing the request for '+E(o.ref)+'.</p>'+
+        '<a class="bk-cta" href="'+S.url("orderDetails",{ref:o.ref})+'" style="display:inline-flex;padding:12px 26px">View order</a></div></div>' + D.footer());
+      return;
+    }
+    mount(D.header() + D.crumbs(d.crumbs) +
+      '<div class="wrap"><div class="od-form"><h1>Return an item from '+E(o.ref)+'</h1>'+
+        '<p>Select what you would like to return. We will email a prepaid returns label once it is approved.</p>'+
+        '<div class="od-items" style="border:0;overflow:visible">'+o.items.map(function(it){
+          return '<label class="od-returnrow"><input type="checkbox" name="ritem" value="'+it.p.id+'" checked>'+
+            '<span>'+thumb(it.p,44,32)+'</span><span class="ac-oiname">'+E(it.p.name)+'<em>Qty '+it.qty+'</em></span></label>';
+        }).join("")+'</div>'+
+        '<div class="ck-field"><label>Reason</label><select id="returnReason" required>'+
+          '<option value="">Choose a reason</option><option>Arrived faulty or damaged</option>'+
+          '<option>Not as described</option><option>No longer needed</option>'+
+          '<option>Ordered the wrong item</option><option>Other</option></select></div>'+
+        '<div class="ck-field"><label>Anything we should know? (optional)</label><input id="returnNote" placeholder="A short note for our returns team"></div>'+
+        '<div class="ck-actions"><a class="ck-back" href="'+S.url("orderDetails",{ref:o.ref})+'">← Cancel</a>'+
+          '<button class="ck-next" id="confirmReturn">Submit return request</button></div>'+
+      '</div></div>' + D.footer());
+    $("#confirmReturn").addEventListener("click", function(){
+      var items = $$('input[name="ritem"]:checked').map(function(i){ return i.value; });
+      if (!items.length){ S.flash("Select at least one item to return"); return; }
+      var reason = $("#returnReason").value;
+      if (!reason){ S.flash("Choose a reason for the return"); return; }
+      S.OrderState.requestReturn(o.ref, items, reason, $("#returnNote").value || null);
+      S.flash("Return requested");
+      render();
+    });
+  }
+  render();
+  document.title = "Return request — UK Computer Shop";
+}
+
+root.Commerce = { category:category, basket:basket, checkout:checkout, account:account, compare:compare,
+  login:login, register:register, forgotPassword:forgotPassword,
+  orderDetails:orderDetails, orderCancel:orderCancel, orderReturn:orderReturn };
 })(window);
