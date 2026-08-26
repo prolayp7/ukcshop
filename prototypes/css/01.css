@@ -335,3 +335,10 @@ footer a:hover{color:#fff;text-decoration:underline}
 .azlist a span{color:#9aa5b4;font-size:12px}
 @media(max-width:1100px){.pd{grid-template-columns:1fr}.buybox{position:static}.bhero{grid-template-columns:1fr}.bgrid{grid-template-columns:1fr 1fr}.azlist{grid-template-columns:1fr 1fr}.rvsum{grid-template-columns:1fr}}
 @media(max-width:760px){.bgrid{grid-template-columns:1fr}.azlist{grid-template-columns:1fr}.azblock{grid-template-columns:1fr;gap:10px}.gal .main{height:230px}.pinfo h1{font-size:21px}.tabbar{overflow-x:auto}}
+
+/* tokens consumed by css/commerce.css */
+:root{--c-bg:var(--bg);--c-surface:#fff;--c-surface-2:#f5f8fb;--c-text:var(--ink);--c-muted:var(--body);
+ --c-line:var(--line);--c-line-strong:#c8d3e0;--c-accent:var(--blue);--c-accent-text:#fff;
+ --c-pos:var(--green);--c-warn:var(--amber);--c-neg:var(--deal);--c-fig:#5b7a99;
+ --c-radius:10px;--c-pill:99px;--c-border:1px solid var(--line);
+ --c-display:Inter,system-ui,sans-serif;--c-display-weight:800;--c-display-track:-.6px;--c-h1:28px;--c-num:Inter,system-ui,sans-serif}

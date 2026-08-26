@@ -16,10 +16,10 @@ function header(){
       '<input placeholder="Search '+S.all.length+' products — name, SKU, MPN, chipset, socket…"><span class="kbd">⌘K</span>'+
       '<button class="go" type="submit">SEARCH</button></form>'+
     '<div class="hact"><button class="ib">'+ic("i-scale",20,20)+'</button><button class="ib">'+ic("i-heart",20,20)+'</button>'+
-      '<button class="ib">'+ic("i-user",20,20)+'</button><a class="basket" href="#">'+ic("i-bag",19,19)+'<b>£1,489.97</b></a></div>'+
+      '<a class="ib" href="'+S.url("account")+'">'+ic("i-user",20,20)+'</a><a class="basket" href="'+S.url("basket")+'">'+ic("i-bag",19,19)+'<b data-basket-total>£0.00</b></a></div>'+
   '</div></header>'+
   '<nav><div class="wrap">'+
-    S.tree().map(function(t){ return '<a href="'+S.url("home")+'">'+E(t.category)+'</a>'; }).join("")+
+    S.tree().map(function(t){ return '<a href="'+S.url("category",{cat:t.category})+'">'+E(t.category)+'</a>'; }).join("")+
     '<a href="'+S.url("brands")+'">Brands</a>'+
     '<div class="r"><span>0% FINANCE</span><span>·</span><span>4.8★ TRUSTPILOT</span></div></div></nav>';
 }
@@ -27,7 +27,7 @@ function footer(){
   return '<footer><div class="wrap"><div class="fg">'+
     '<div><a class="logo" href="'+S.url("home")+'" style="margin-bottom:16px"><span class="mark">UK</span><span><b>UK COMPUTER SHOP</b><span class="mono">Performance division</span></span></a>'+
     '<p>Independent UK retailer since 2009. Warehouse, build room and test lab in Manchester.</p></div>'+
-    '<div><h4>SHOP</h4><ul>'+S.CAT_ORDER.slice(0,5).map(function(c){ return '<li><a href="'+S.url("home")+'">'+E(c)+'</a></li>'; }).join("")+'</ul></div>'+
+    '<div><h4>SHOP</h4><ul>'+S.CAT_ORDER.slice(0,5).map(function(c){ return '<li><a href="'+S.url("category",{cat:c})+'">'+E(c)+'</a></li>'; }).join("")+'</ul></div>'+
     '<div><h4>SYSTEMS</h4><ul><li><a href="#">Gaming PCs</a></li><li><a href="#">Workstations</a></li><li><a href="#">Configurator</a></li><li><a href="#">Trade-in</a></li></ul></div>'+
     '<div><h4>SUPPORT</h4><ul><li><a href="#">Track order</a></li><li><a href="#">Delivery &amp; returns</a></li><li><a href="#">Warranty / RMA</a></li><li><a href="#">Contact</a></li></ul></div>'+
     '<div><h4>COMPANY</h4><ul><li><a href="'+S.url("brands")+'">All brands</a></li><li><a href="#">About</a></li><li><a href="#">Test lab</a></li><li><a href="#">Terms</a></li></ul></div>'+
@@ -51,7 +51,7 @@ function card(p){
     '<div class="rate"><i>'+S.stars(p.rating)+'</i>'+p.rating+' · '+p.reviews.toLocaleString("en-GB")+'</div>'+
     '<div class="prow"><b>'+M(p.price)+'</b>'+(p.was ? '<s>'+M(p.was)+'</s><em>SAVE '+M(p.was-p.price)+'</em>' : "")+'</div>'+
     '<div class="avail" style="'+(st.cls==="in"?"":"color:"+(st.cls==="low"?"#ffb020":"var(--red)"))+'"><i style="background:currentColor"></i>'+E(st.text).toUpperCase()+'</div>'+
-    '<div class="crow"><a class="buy" href="#">ADD TO BASKET</a><a class="ghost" href="'+S.url("product",{id:p.id})+'">'+ic("i-arr",17,17)+'</a></div>'+
+    '<div class="crow"><a class="buy" href="#" data-add="'+p.id+'">ADD TO BASKET</a><a class="ghost" href="'+S.url("product",{id:p.id})+'">'+ic("i-arr",17,17)+'</a></div>'+
     '</div></article>';
 }
 function rail(eyebrow, title, sub, items, link){
@@ -97,8 +97,8 @@ function productPage(){
           '<div class="pr"><b>'+M(p.price)+'</b>'+(p.was ? '<s>'+M(p.was)+'</s><em>SAVE '+M(p.was-p.price)+'</em>' : "")+'</div>'+
           '<div class="ex">'+S.exVat(p.price)+' EX VAT · 0% FINANCE FROM '+M(p.price/12)+'/MO</div>'+
           '<div class="av '+st.cls+'"><i></i>'+E(st.text).toUpperCase()+'</div>'+
-          '<div class="buyrow"><div class="qty"><button type="button">−</button><input value="1"><button type="button">+</button></div>'+
-            '<a class="b1" href="#">'+(st.cls==="out"?"PRE-ORDER":"ADD TO BASKET")+'</a></div>'+
+          '<div class="buyrow"><div class="qty"><button type="button">−</button><input value="1" data-qty-input><button type="button">+</button></div>'+
+            '<a class="b1" href="#" data-add="'+p.id+'" data-qty="input">'+(st.cls==="out"?"PRE-ORDER":"ADD TO BASKET")+'</a></div>'+
           '<a class="b2" href="#" style="display:block;text-align:center;padding:11px">Add to wishlist</a>'+
           '<ul class="perks"><li>'+ic("i-truck",15,15)+'<span>Free next-day delivery, order before 17:00</span></li>'+
             '<li>'+ic("i-shield",15,15)+'<span>'+E(p.specs.Warranty || "Manufacturer warranty")+' · 30-day UK returns</span></li>'+
@@ -167,5 +167,7 @@ function brandsPage(){
     footer();
   document.title = "All brands — UK Computer Shop";
 }
-window.DesignB = { product:productPage, brand:brandPage, brands:brandsPage };
+window.DesignB = { product:productPage, brand:brandPage, brands:brandsPage,
+  parts:{ header:header, footer:footer, crumbs:crumbs, card:card, brandCard:brandCard,
+          section:function(t,n,i,l){ return rail(String(t).toUpperCase(), t, n, i, l); } } };
 })();

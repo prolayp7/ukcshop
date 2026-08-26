@@ -23,12 +23,12 @@ function header(){
       '<a class="tok" href="'+S.url("home")+'#q=price%3A%3C200"><b>price:</b>&lt;200</a>'+
       '<a class="tok" href="'+S.url("brands")+'" style="margin-left:auto;border-color:var(--ink)">All brands ↗</a></div></div>'+
     '<div class="hact"><button class="hbtn">'+ic("i-scale",16,16)+'Compare</button><button class="hbtn">'+ic("i-heart",16,16)+'</button>'+
-      '<button class="hbtn">'+ic("i-user",16,16)+'</button><a class="hbtn solid" href="#">'+ic("i-bag",16,16)+'£1,489.97</a></div>'+
+      '<a class="hbtn" href="'+S.url("account")+'">'+ic("i-user",16,16)+'</a><a class="hbtn solid" href="'+S.url("basket")+'">'+ic("i-bag",16,16)+'<span data-basket-total>£0.00</span></a></div>'+
   '</div></header>'+
   '<div class="tabs"><div class="wrap">'+
     '<a href="'+S.url("home")+'" style="padding:11px 15px;font-size:12.5px;font-weight:500;color:var(--body);border-left:1px solid var(--line);border-right:1px solid var(--line)">All <em style="font-style:normal;font-family:var(--mono);font-size:9.5px;color:var(--mute)">'+S.all.length+'</em></a>'+
     S.tree().map(function(t){
-      return '<a href="'+S.url("home")+'" style="padding:11px 15px;font-size:12.5px;font-weight:500;color:var(--body);border-right:1px solid var(--line);white-space:nowrap">'+E(t.category)+
+      return '<a href="'+S.url("category",{cat:t.category})+'" style="padding:11px 15px;font-size:12.5px;font-weight:500;color:var(--body);border-right:1px solid var(--line);white-space:nowrap">'+E(t.category)+
         ' <em style="font-style:normal;font-family:var(--mono);font-size:9.5px;color:var(--mute)">'+t.count+'</em></a>'; }).join("")+
     '<a href="'+S.url("brands")+'" style="padding:11px 15px;font-size:12.5px;font-weight:500;color:var(--blue);border-right:1px solid var(--line);white-space:nowrap">Brands <em style="font-style:normal;font-family:var(--mono);font-size:9.5px;color:var(--mute)">'+S.brands().length+'</em></a>'+
   '</div></div>';
@@ -60,7 +60,7 @@ function card(p){
     '<div class="rt"><i>'+S.stars(p.rating)+'</i> '+p.rating+' · '+p.reviews.toLocaleString("en-GB")+'</div>'+
     '<div class="pr"><b>'+M(p.price)+'</b>'+(p.was ? '<s>'+M(p.was)+'</s>' : "")+'</div>'+
     '<div class="av '+st.cls+'">'+E(st.text).toUpperCase()+'</div>'+
-    '<a class="go" href="'+S.url("product",{id:p.id})+'">View product</a></div></article>';
+    '<a class="go" href="#" data-add="'+p.id+'">Add to basket</a></div></article>';
 }
 function section(title, note, items, link){
   if (!items || !items.length) return "";
@@ -98,8 +98,8 @@ function productPage(){
         '<div class="ex">'+S.exVat(p.price)+' EX VAT</div>'+
         (p.was ? '<span class="save">SAVE '+M(p.was-p.price)+'</span>' : "")+
         '<div class="av '+st.cls+'"><i></i>'+E(st.text).toUpperCase()+'</div>'+
-        '<div class="qty"><button type="button">−</button><input value="1"><button type="button">+</button></div>'+
-        '<a class="addb" href="#">'+(st.cls==="out"?"Pre-order":"Add to basket")+'</a>'+
+        '<div class="qty"><button type="button">−</button><input value="1" data-qty-input><button type="button">+</button></div>'+
+        '<a class="addb" href="#" data-add="'+p.id+'" data-qty="input">'+(st.cls==="out"?"Pre-order":"Add to basket")+'</a>'+
         '<a class="qv" href="#" style="margin-top:6px;display:block">Add to compare</a>'+
         '<ul class="perks"><li>'+ic("i-truck",14,14)+'<span>Free next-day delivery over £75, cut-off 17:00</span></li>'+
           '<li>'+ic("i-shield",14,14)+'<span>'+E(p.specs.Warranty || "Manufacturer warranty")+' · 30-day returns</span></li>'+
@@ -224,5 +224,7 @@ function brandsPage(){
   draw();
   document.title = "All brands — UK Computer Shop";
 }
-window.DesignD = { product:productPage, brand:brandPage, brands:brandsPage };
+window.DesignD = { product:productPage, brand:brandPage, brands:brandsPage,
+  parts:{ header:header, footer:footer, crumbs:crumbs, card:card, brandRow:brandRow,
+          section:function(t,n,i,l){ return section(t,n,i,l); } } };
 })();

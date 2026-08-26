@@ -12,16 +12,16 @@ function header(){
   var mega = tree.slice(0,2).map(function(t){
     var cols = [], per = Math.ceil(t.subs.length/4);
     for (var i=0;i<t.subs.length;i+=per) cols.push(t.subs.slice(i,i+per));
-    return '<div class="has-mega"><a class="top" href="'+S.url("home")+'">'+E(t.category)+' '+ic("i-chev",14,14)+'</a>'+
+    return '<div class="has-mega"><a class="top" href="'+S.url("category",{cat:t.category})+'">'+E(t.category)+' '+ic("i-chev",14,14)+'</a>'+
       '<div class="mega"><div class="wrap"><div class="grid">'+
       cols.map(function(c,n){
         return '<div><h4>'+["Core","Storage","Power &amp; cases","Cooling"][n]+'</h4><ul>'+
-          c.map(function(s2){ return '<li><a href="'+S.url("home")+'">'+E(s2)+'</a></li>'; }).join("")+'</ul></div>';
+          c.map(function(s2){ return '<li><a href="'+S.url("category",{sub:s2})+'">'+E(s2)+'</a></li>'; }).join("")+'</ul></div>';
       }).join("")+
       '<div class="promo"><span>Build service</span><p>We\'ll assemble, cable-manage and stress-test your parts for £89.</p><a href="#">Learn more '+ic("i-arr",14,14)+'</a></div>'+
       '</div></div></div></div>';
   }).join("");
-  var rest = tree.slice(2).map(function(t){ return '<a class="top" href="'+S.url("home")+'">'+E(t.category)+'</a>'; }).join("");
+  var rest = tree.slice(2).map(function(t){ return '<a class="top" href="'+S.url("category",{cat:t.category})+'">'+E(t.category)+'</a>'; }).join("");
 
   return '<div class="util"><div class="wrap">'+
     '<a href="#">Track my order</a><a href="#">Business &amp; Education</a><a href="#">Trade accounts</a>'+
@@ -37,8 +37,8 @@ function header(){
       '<div class="hints"><b>Popular:</b><a href="#">RTX 5080</a><a href="#">DDR5 32GB</a><a href="#">9800X3D</a><a href="#">1440p 240Hz</a></div></div>'+
     '<div class="mast-actions">'+
       '<a class="act" href="#"><span class="ic">'+ic("i-heart",22,22)+'</span><span><span class="lbl">Saved</span><span class="val">Wishlist</span></span></a>'+
-      '<a class="act" href="#"><span class="ic">'+ic("i-user",22,22)+'</span><span><span class="lbl">Sign in</span><span class="val">My account</span></span></a>'+
-      '<a class="act" href="#"><span class="ic">'+ic("i-bag",22,22)+'<span class="badge">3</span></span><span><span class="lbl">Basket</span><span class="val">£1,489.97</span></span></a>'+
+      '<a class="act" href="'+S.url("account")+'"><span class="ic">'+ic("i-user",22,22)+'</span><span><span class="lbl">Sign in</span><span class="val">My account</span></span></a>'+
+      '<a class="act" href="'+S.url("basket")+'"><span class="ic">'+ic("i-bag",22,22)+'<span class="badge" data-basket-count hidden>0</span></span><span><span class="lbl">Basket</span><span class="val" data-basket-total>£0.00</span></span></a>'+
     '</div></div></header>'+
   '<nav class="nav"><div class="wrap">'+mega+rest+
     '<a class="top" href="'+S.url("brands")+'">Brands</a><a class="top hot" href="#">Deals</a>'+
@@ -50,7 +50,7 @@ function footer(){
     '<div><a class="logo" href="'+S.url("home")+'" style="margin-bottom:14px"><span class="mark">UK</span><span><b style="color:#fff">UK Computer Shop</b><span style="color:#7fa3c7">Components &amp; Systems</span></span></a>'+
     '<p style="margin:0 0 16px;max-width:300px">Independent UK retailer since 2009. Warehouse and workshop in Manchester, showroom open Mon–Sat.</p>'+
     '<div class="fnews"><input placeholder="Email address for deals"><button>Subscribe</button></div></div>'+
-    '<div><h4>Shop</h4><ul>'+S.CAT_ORDER.map(function(c){ return '<li><a href="'+S.url("home")+'">'+E(c)+'</a></li>'; }).join("")+'</ul></div>'+
+    '<div><h4>Shop</h4><ul>'+S.CAT_ORDER.map(function(c){ return '<li><a href="'+S.url("category",{cat:c})+'">'+E(c)+'</a></li>'; }).join("")+'</ul></div>'+
     '<div><h4>Services</h4><ul><li><a href="#">PC configurator</a></li><li><a href="#">Build &amp; test service</a></li><li><a href="#">Repairs &amp; upgrades</a></li><li><a href="#">Trade-in</a></li></ul></div>'+
     '<div><h4>Support</h4><ul><li><a href="#">Track my order</a></li><li><a href="#">Delivery &amp; returns</a></li><li><a href="#">Warranty &amp; RMA</a></li><li><a href="#">Contact us</a></li></ul></div>'+
     '<div><h4>Company</h4><ul><li><a href="'+S.url("brands")+'">All brands</a></li><li><a href="#">About us</a></li><li><a href="#">Reviews</a></li><li><a href="#">Terms &amp; conditions</a></li></ul></div>'+
@@ -81,7 +81,7 @@ function card(p){
       '<div class="price"><b>'+M(p.price)+'</b>'+(p.was ? '<s>'+M(p.was)+'</s><span class="save">-'+Math.round((p.was-p.price)/p.was*100)+'%</span>' : "")+'</div>'+
       '<div class="vat">'+S.exVat(p.price)+' ex. VAT</div>'+
       '<div class="stock"><i '+stockCls+'></i><span '+stockTxt+'>'+E(st.text)+'</span></div>'+
-      '<div class="pbtns"><a class="add" href="#">'+ic("i-bag",16,16)+'Add to basket</a>'+
+      '<div class="pbtns"><a class="add" href="#" data-add="'+p.id+'">'+ic("i-bag",16,16)+'Add to basket</a>'+
       '<a class="cmp" href="'+S.url("product",{id:p.id})+'" title="View">'+ic("i-scale",17,17)+'</a></div>'+
     '</div></article>';
 }
@@ -120,8 +120,8 @@ function productPage(){
         '<div class="price"><b>'+M(p.price)+'</b>'+(p.was ? '<s>'+M(p.was)+'</s>' : "")+'</div>'+
         '<div class="vat">'+S.exVat(p.price)+' ex. VAT'+(p.was ? ' · you save '+M(p.was-p.price) : "")+'</div>'+
         '<div class="stock"><i '+(st.cls==="in"?"":'style="background:var(--amber)"')+'></i><span '+(st.cls==="in"?"":'style="color:var(--amber)"')+'>'+E(st.text)+'</span></div>'+
-        '<div class="qty"><button type="button">−</button><input value="1"><button type="button">+</button></div>'+
-        '<a class="add" href="#">'+ic("i-bag",16,16)+(st.cls==="out"?"Pre-order":"Add to basket")+'</a>'+
+        '<div class="qty"><button type="button">−</button><input value="1" data-qty-input><button type="button">+</button></div>'+
+        '<a class="add" href="#" data-add="'+p.id+'" data-qty="input">'+ic("i-bag",16,16)+(st.cls==="out"?"Pre-order":"Add to basket")+'</a>'+
         '<a class="alt" href="#">Add to wishlist</a>'+
         '<ul class="perks">'+
           '<li>'+ic("i-truck",15,15)+'<span>Free next-day delivery, order before 17:00</span></li>'+
@@ -225,5 +225,7 @@ function brandsPage(){
   document.title = "All brands — UK Computer Shop";
 }
 
-window.DesignA = { product:productPage, brand:brandPage, brands:brandsPage };
+window.DesignA = { product:productPage, brand:brandPage, brands:brandsPage,
+  parts:{ header:header, footer:footer, crumbs:crumbs, card:card, brandCard:brandCard,
+          section:function(t,n,i,l){ return rail(t,n,i,l); } } };
 })();

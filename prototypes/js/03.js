@@ -10,10 +10,10 @@ function header(){
   '<header><div class="wrap"><div class="hrow">'+
     '<div class="hleft"><a href="#">Configurator</a><a href="#">Build service</a><a href="#">Business</a></div>'+
     '<a class="brand" href="'+S.url("home")+'"><b>UK Computer Shop</b><span>Est. 2009 · Manchester</span></a>'+
-    '<div class="hright"><a class="icb" href="#">'+ic("i-search",17,17)+'Search</a><a class="icb" href="#">'+ic("i-user",17,17)+'Account</a>'+
-    '<a class="icb" href="#">'+ic("i-bag",17,17)+'Basket<span class="n">3</span></a></div>'+
+    '<div class="hright"><a class="icb" href="#">'+ic("i-search",17,17)+'Search</a><a class="icb" href="'+S.url("account")+'">'+ic("i-user",17,17)+'Account</a>'+
+    '<a class="icb" href="'+S.url("basket")+'">'+ic("i-bag",17,17)+'Basket<span class="n" data-basket-count hidden>0</span></a></div>'+
   '</div><nav class="hnav">'+
-    S.tree().map(function(t){ return '<a href="'+S.url("home")+'">'+E(t.category)+'</a>'; }).join("")+
+    S.tree().map(function(t){ return '<a href="'+S.url("category",{cat:t.category})+'">'+E(t.category)+'</a>'; }).join("")+
     '<a href="'+S.url("brands")+'">Brands</a><a href="#" style="color:var(--clay)">Offers</a>'+
   '</nav></div>'+
   '<div class="sline"><div class="wrap"><form>'+ic("i-search",16,16)+
@@ -24,7 +24,7 @@ function header(){
 function footer(){
   return '<footer><div class="wrap"><div class="fg">'+
     '<div class="about"><b>UK Computer Shop</b><p>Independent retailer, workshop and showroom. Unit 7, Ardwick Green, Manchester M12. Open Monday to Saturday.</p></div>'+
-    '<div><h4>Shop</h4><ul>'+S.CAT_ORDER.slice(0,5).map(function(c){ return '<li><a href="'+S.url("home")+'">'+E(c)+'</a></li>'; }).join("")+'</ul></div>'+
+    '<div><h4>Shop</h4><ul>'+S.CAT_ORDER.slice(0,5).map(function(c){ return '<li><a href="'+S.url("category",{cat:c})+'">'+E(c)+'</a></li>'; }).join("")+'</ul></div>'+
     '<div><h4>Services</h4><ul><li><a href="#">Configurator</a></li><li><a href="#">Assembly</a></li><li><a href="#">Repairs</a></li><li><a href="#">Trade-in</a></li></ul></div>'+
     '<div><h4>Support</h4><ul><li><a href="#">Track an order</a></li><li><a href="#">Delivery &amp; returns</a></li><li><a href="#">Warranty</a></li><li><a href="#">Contact</a></li></ul></div>'+
     '<div><h4>Company</h4><ul><li><a href="'+S.url("brands")+'">All brands</a></li><li><a href="#">About</a></li><li><a href="#">The journal</a></li><li><a href="#">Terms</a></li></ul></div>'+
@@ -75,8 +75,8 @@ function productPage(){
         '<div class="pdprice"><b>'+M(p.price)+'</b>'+(p.was ? '<s>'+M(p.was)+'</s><span class="save">Save '+M(p.was-p.price)+'</span>' : "")+
           '<span class="ex">'+S.exVat(p.price)+' ex. VAT<br>0% finance from '+M(p.price/12)+'/month</span></div>'+
         '<div class="avail '+st.cls+'"><i></i>'+E(st.text)+'</div>'+
-        '<div class="pdbuy"><div class="qty"><button type="button">−</button><input value="1"><button type="button">+</button></div>'+
-          '<a class="btnbuy" href="#">'+(st.cls==="out"?"Pre-order":"Add to basket")+' '+ic("i-arr",15,15)+'</a></div>'+
+        '<div class="pdbuy"><div class="qty"><button type="button">−</button><input value="1" data-qty-input><button type="button">+</button></div>'+
+          '<a class="btnbuy" href="#" data-add="'+p.id+'" data-qty="input">'+(st.cls==="out"?"Pre-order":"Add to basket")+' '+ic("i-arr",15,15)+'</a></div>'+
         '<a class="btnalt" href="#">Add to wishlist</a>'+
         '<ul class="perks"><li>'+ic("i-truck",16,16)+'<span>Complimentary next-day delivery, ordered before 17:00.</span></li>'+
           '<li>'+ic("i-shield",16,16)+'<span>'+E(p.specs.Warranty || "Manufacturer warranty")+', with UK returns inside 30 days.</span></li>'+
@@ -144,5 +144,7 @@ function brandsPage(){
     footer();
   document.title = "All brands — UK Computer Shop";
 }
-window.DesignC = { product:productPage, brand:brandPage, brands:brandsPage };
+window.DesignC = { product:productPage, brand:brandPage, brands:brandsPage,
+  parts:{ header:header, footer:footer, crumbs:crumbs, card:card, brandCard:brandCard,
+          section:function(t,n,i,l){ return rail("Selected", t, n, i, l); } } };
 })();

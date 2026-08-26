@@ -409,3 +409,11 @@ footer a{color:var(--body)}footer a:hover{color:var(--ink);text-decoration:under
 .alpha a.dim{color:#cfcfc9;pointer-events:none}
 @media(max-width:1180px){.pd{grid-template-columns:1fr}.pdfig,.pdbuy{border-left:0;border-right:0;border-bottom:1px solid var(--line)}.pgrid4{grid-template-columns:1fr 1fr}.bhead{grid-template-columns:1fr}}
 @media(max-width:760px){.pgrid4{grid-template-columns:1fr}.idgrid{grid-template-columns:1fr 1fr}.btable thead{display:none}.btable tbody td{display:block;border-bottom:0}.btable tbody tr{display:block;border-bottom:1px solid var(--line)}}
+
+:root{--c-bg:var(--paper);--c-surface:var(--white);--c-surface-2:#fbfbf9;--c-text:var(--ink);--c-muted:var(--body);
+ --c-line:var(--line);--c-line-strong:var(--line2);--c-accent:var(--blue);--c-accent-text:#fff;
+ --c-pos:var(--green);--c-warn:var(--amber);--c-neg:var(--red);--c-fig:#3d4a5c;
+ --c-radius:0px;--c-pill:0px;--c-border:2px solid var(--ink);
+ --c-display:Archivo,system-ui,sans-serif;--c-display-weight:700;--c-display-track:-.5px;--c-h1:26px;--c-num:"IBM Plex Mono",monospace}
+.bk-line:hover,.ac-order:hover{box-shadow:4px 4px 0 var(--ink)}
+.cat-chip,.cat-sel,.ck-card,.bk-qty{border-radius:0}

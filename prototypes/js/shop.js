@@ -128,7 +128,8 @@ function param(k){ try { return new URLSearchParams(location.search).get(k); } c
 var design = (location.pathname.match(/(\d{2})-/) || [,"01"])[1];
 function url(kind, q){
   var s = Object.keys(q||{}).map(function(k){ return k + "=" + encodeURIComponent(q[k]); }).join("&");
-  var file = { home:"", product:"-product", brand:"-brand", brands:"-brands" }[kind];
+  var file = { home:"", product:"-product", brand:"-brand", brands:"-brands",
+               category:"-category", basket:"-basket", checkout:"-checkout", account:"-account" }[kind];
   var name = kind === "home" ? design + HOME_SUFFIX[design] : design + file;
   return name + ".html" + (s ? "?" + s : "");
 }
@@ -248,17 +249,132 @@ function tree(){
 }
 function countIn(sub){ return P.filter(function(p){ return p.subcategory === sub; }).length; }
 
+
+/* ---------------- basket, delivery and order state ----------------
+   Everything lives in localStorage. There is no server: these rules are here so
+   the four designs agree on totals rather than each inventing its own. */
+var VAT_RATE = 0.20;
+var DELIVERY = [
+  { id:"standard", label:"Standard delivery", note:"3–5 working days", price:2.95, freeOver:75 },
+  { id:"nextday",  label:"Next working day",  note:"Order before 17:00", price:4.95, freeOver:75 },
+  { id:"saturday", label:"Saturday delivery", note:"Before 13:00",       price:7.95, freeOver:null },
+  { id:"collect",  label:"Collect in store",  note:"Manchester, ready in 2 hours", price:0, freeOver:null }
+];
+function lsGet(k, d){ try { var v = JSON.parse(localStorage.getItem("ukcs."+k)); return v === null ? d : v; } catch(e){ return d; } }
+function lsSet(k, v){ try { localStorage.setItem("ukcs."+k, JSON.stringify(v)); } catch(e){} }
+
+var Basket = {
+  raw: function(){ return lsGet("basket2", []); },
+  save: function(v){ lsSet("basket2", v); },
+  count: function(){ return Basket.raw().reduce(function(n,l){ return n + l.qty; }, 0); },
+  add: function(id, qty){
+    var b = Basket.raw(), n = Number(qty) || 1, hit = null;
+    b.forEach(function(l){ if (l.id === Number(id)) hit = l; });
+    if (hit) hit.qty = Math.min(99, hit.qty + n); else b.push({ id:Number(id), qty:Math.min(99, n) });
+    Basket.save(b); return Basket.count();
+  },
+  setQty: function(id, qty){
+    var b = Basket.raw().map(function(l){ return l.id === Number(id) ? { id:l.id, qty:Math.max(0, Math.min(99, Number(qty)||0)) } : l; })
+                        .filter(function(l){ return l.qty > 0; });
+    Basket.save(b); return b;
+  },
+  remove: function(id){ Basket.save(Basket.raw().filter(function(l){ return l.id !== Number(id); })); },
+  clear: function(){ Basket.save([]); },
+  /* Drops any line whose product has vanished from the catalogue. */
+  lines: function(){
+    return Basket.raw().map(function(l){
+      var p = byId(l.id); return p ? { p:p, qty:l.qty, line:p.price * l.qty } : null;
+    }).filter(Boolean);
+  },
+  method: function(v){ if (v !== undefined) lsSet("delivery", v); return lsGet("delivery", "nextday"); },
+  totals: function(methodId){
+    var lines = Basket.lines();
+    var goods = lines.reduce(function(s,l){ return s + l.line; }, 0);
+    var saved = lines.reduce(function(s,l){ return s + (l.p.was ? (l.p.was - l.p.price) * l.qty : 0); }, 0);
+    var m = DELIVERY.filter(function(d){ return d.id === (methodId || Basket.method()); })[0] || DELIVERY[1];
+    var free = m.freeOver !== null && goods >= m.freeOver;
+    var ship = free ? 0 : m.price;
+    var total = goods + ship;
+    return {
+      lines:lines, count:lines.reduce(function(n,l){ return n + l.qty; }, 0),
+      goods:goods, saved:saved, method:m, shipping:ship, shippingFree:free,
+      toFreeDelivery: (m.freeOver !== null && goods < m.freeOver) ? m.freeOver - goods : 0,
+      total:total, exVat:total / (1 + VAT_RATE), vat:total - total / (1 + VAT_RATE)
+    };
+  }
+};
+
+/* A plausible order history so the account pages have something to show. */
+function orders(){
+  var pick = function(ids){ return ids.map(byId).filter(Boolean); };
+  var mk = function(ref, daysAgo, status, ids, qtys){
+    var items = pick(ids).map(function(p,i){ return { p:p, qty:(qtys && qtys[i]) || 1 }; });
+    var goods = items.reduce(function(s,it){ return s + it.p.price * it.qty; }, 0);
+    var d = new Date(2026, 7, 26); d.setDate(d.getDate() - daysAgo);
+    return { ref:ref, date:d.toISOString().slice(0,10), status:status, items:items,
+             goods:goods, shipping:goods >= 75 ? 0 : 4.95, total:goods + (goods >= 75 ? 0 : 4.95) };
+  };
+  return [
+    mk("UKCS-208841", 4,  "Out for delivery", [23, 29], [1, 2]),
+    mk("UKCS-207115", 26, "Delivered",        [9, 17, 37]),
+    mk("UKCS-204902", 91, "Delivered",        [52, 49], [2, 1])
+  ];
+}
+var ADDRESSES = [
+  { id:1, label:"Home", name:"P. Roy", lines:["14 Ardwick Green North","Manchester","M12 6FZ"], phone:"07700 900412", default:true },
+  { id:2, label:"Work", name:"P. Roy", lines:["Unit 7, Sharp Street","Manchester","M4 5DA"], phone:"0161 496 0112", default:false }
+];
+
 function stockText(p){
   if (p.stockStatus === "in")  return { cls:"in",  text:"In stock — " + p.stock + " available" };
   if (p.stockStatus === "low") return { cls:"low", text:"Low stock — " + p.stock + " remaining" };
   return { cls:"out", text:"Backorder — due in 7–10 days" };
 }
 
+
+/* Delegated so it works no matter when a design renders its markup.
+   Any element carrying data-add="<id>" becomes an add-to-basket control. */
+function refreshBasketUI(){
+  var t = Basket.totals();
+  [].forEach.call(document.querySelectorAll("[data-basket-total]"), function(el){ el.textContent = money(t.total); });
+  [].forEach.call(document.querySelectorAll("[data-basket-count]"), function(el){
+    el.textContent = t.count; el.hidden = !t.count;
+  });
+}
+function flash(msg){
+  var el = document.getElementById("ukcs-flash");
+  if (!el){
+    el = document.createElement("div"); el.id = "ukcs-flash";
+    el.style.cssText = "position:fixed;left:50%;bottom:26px;transform:translate(-50%,14px);z-index:9999;"+
+      "padding:12px 20px;font:600 13px/1 system-ui,sans-serif;border-radius:8px;opacity:0;transition:.2s;"+
+      "background:#111;color:#fff;box-shadow:0 10px 30px -10px rgba(0,0,0,.5);pointer-events:none;max-width:88vw";
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  requestAnimationFrame(function(){ el.style.opacity = "1"; el.style.transform = "translate(-50%,0)"; });
+  clearTimeout(flash._t);
+  flash._t = setTimeout(function(){ el.style.opacity = "0"; el.style.transform = "translate(-50%,14px)"; }, 1800);
+}
+document.addEventListener("click", function(e){
+  var b = e.target.closest("[data-add]");
+  if (!b) return;
+  e.preventDefault();
+  var p = byId(b.dataset.add); if (!p) return;
+  if (p.stockStatus === "backorder"){ flash("Backorder — we'll take payment when it ships"); }
+  var qtyEl = document.querySelector("[data-qty-input]");
+  var qty = b.dataset.qty === "input" && qtyEl ? (parseInt(qtyEl.value, 10) || 1) : 1;
+  Basket.add(p.id, qty);
+  refreshBasketUI();
+  flash("Added — " + (p.name.length > 42 ? p.name.slice(0,40) + "…" : p.name));
+});
+document.addEventListener("DOMContentLoaded", refreshBasketUI);
+
 root.Shop = {
   all:P, byId:byId, related:related, alsoBought:alsoBought, recommended:recommended,
   recent:recent, pushRecent:pushRecent, recentProducts:recentProducts,
   brands:brands, byBrand:byBrand, complement:COMPLEMENT, compatible:compatible,
   money:money, exVat:exVat, stars:stars, esc:esc, uniq:uniq, param:param, url:url,
-  stockText:stockText, design:design, tree:tree, countIn:countIn, CAT_ORDER:CAT_ORDER
+  stockText:stockText, design:design, tree:tree, countIn:countIn, CAT_ORDER:CAT_ORDER,
+  Basket:Basket, refreshBasketUI:refreshBasketUI, flash:flash, DELIVERY:DELIVERY, VAT_RATE:VAT_RATE, orders:orders, ADDRESSES:ADDRESSES
 };
 })(window);

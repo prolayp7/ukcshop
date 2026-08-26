@@ -325,3 +325,10 @@ footer p{color:var(--dim);font-size:13.5px;max-width:300px}
 .azlist a span{font-family:var(--mono);font-size:10px;color:var(--dim2)}
 @media(max-width:1080px){.pd,.bhero{grid-template-columns:1fr}.bgrid{grid-template-columns:1fr 1fr}.azlist{grid-template-columns:1fr 1fr}.rvsum{grid-template-columns:1fr}}
 @media(max-width:760px){.bgrid,.azlist{grid-template-columns:1fr}.azblock{grid-template-columns:1fr;gap:8px}.gal .main{height:250px}.pdinfo h1{font-size:25px}.bhero h1{font-size:29px}.bhero{padding:24px}.idgrid,.specgrid{grid-template-columns:1fr}.tabbar{flex-direction:column}}
+
+:root{--c-bg:var(--bg);--c-surface:var(--surf);--c-surface-2:var(--surf2);--c-text:var(--txt);--c-muted:var(--dim);
+ --c-line:var(--line);--c-line-strong:var(--line2);--c-accent:var(--lime);--c-accent-text:#0a0c11;
+ --c-pos:var(--lime);--c-warn:#ffb020;--c-neg:var(--red);--c-fig:#6b7a8f;
+ --c-radius:0px;--c-pill:0px;--c-border:1px solid var(--line);
+ --c-display:"Chakra Petch",sans-serif;--c-display-weight:700;--c-display-track:-.02em;--c-h1:32px;--c-num:"JetBrains Mono",monospace}
+.bk-cta,.ck-next,.cat-chip.on{clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,9px 100%,0 calc(100% - 9px))}

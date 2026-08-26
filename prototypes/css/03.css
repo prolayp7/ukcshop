@@ -273,3 +273,10 @@ footer .about p{color:var(--body);margin:0;max-width:290px}
 .azlist a span{color:var(--mute);font-size:11.5px}
 @media(max-width:1000px){.pd{grid-template-columns:1fr;gap:34px}.bhero{grid-template-columns:1fr;gap:30px}.bgrid{grid-template-columns:1fr 1fr}.azlist{grid-template-columns:1fr 1fr}.rvsum{grid-template-columns:1fr;gap:22px}}
 @media(max-width:760px){.bgrid,.azlist{grid-template-columns:1fr}.azblock{grid-template-columns:1fr;gap:10px}.pdinfo h1{font-size:29px}.bhero h1{font-size:36px}.spectable th{width:150px;font-size:10px}}
+
+:root{--c-bg:var(--paper);--c-surface:var(--paper);--c-surface-2:var(--paper2);--c-text:var(--ink);--c-muted:var(--body);
+ --c-line:var(--line);--c-line-strong:var(--line2);--c-accent:var(--accent);--c-accent-text:var(--paper);
+ --c-pos:var(--accent);--c-warn:var(--clay);--c-neg:var(--clay);--c-fig:#3a4a54;
+ --c-radius:0px;--c-pill:99px;--c-border:1px solid var(--line);
+ --c-display:"Instrument Serif",Georgia,serif;--c-display-weight:400;--c-display-track:-.02em;--c-h1:40px;--c-num:Inter,system-ui,sans-serif}
+.bk-sum h2,.ck-sum h2,.ac-blockhead h2,.ck-block h2{font-size:24px}
