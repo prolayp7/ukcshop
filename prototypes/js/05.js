@@ -181,9 +181,11 @@ function home(){
         '<h2>Shop by department</h2><p>Six departments, '+S.all.length+' lines, every one stock-checked this morning.</p></div>'+
         '<a class="more" href="'+S.url("brands")+'">All brands '+ic("i-arr",15,15)+'</a></div>'+
       '<div class="tiles">'+tree.map(function(t){
-        return '<a class="tile" href="'+S.url("category",{cat:t.category})+'">'+
-          '<span class="fig">'+ic(CAT_ICON[t.category]||"i-gpu",50,40)+'</span>'+
-          '<b>'+E(t.category)+'</b><span class="n">'+t.count+' products</span></a>'; }).join("")+'</div>'+
+        var seed = "ukcs-dept-"+t.category.toLowerCase().replace(/[^a-z]+/g,"-");
+        return '<a class="tile" href="'+S.url("category",{cat:t.category})+
+          '" style="background-image:url(https://picsum.photos/seed/'+seed+'/440/300)">'+
+          '<span class="fig">'+ic(CAT_ICON[t.category]||"i-gpu",20,16)+'</span>'+
+          '<span><b>'+E(t.category)+'</b><span class="n">'+t.count+' products</span></span></a>'; }).join("")+'</div>'+
     '</div></section>'+
 
     '<div class="wrap" id="deals"><div class="deal">'+
@@ -210,8 +212,7 @@ function home(){
         '<h2>We assemble it, then try to break it.</h2>'+
         '<p>Every system we build is cable-managed, BIOS-tuned and stress-tested for 48 hours before it is boxed. If it is going to fail, we would rather it failed here.</p>'+
         '<div class="cta"><a class="btn btn-ink" href="#">Open the configurator '+ic("i-arr",16,16)+'</a></div></div>'+
-      '<div class="fig"><svg viewBox="0 0 48 60" style="width:200px;height:250px"><use href="#i-pc"/></svg>'+
-        '<a class="play" href="#">'+ic("i-arr",15,15)+'Watch the build process</a></div>'+
+      '<div class="fig"><a class="play" href="#">'+ic("i-arr",15,15)+'Watch the build process</a></div>'+
     '</div></div></section>'+
 
     section("New arrivals", "Added to the catalogue in the last three weeks.", fresh,
@@ -295,7 +296,7 @@ function brandCard(b){
 function brandPage(){
   var d = Pages.brand(); if (!d) return; var b = d.b;
   document.getElementById("app").innerHTML = header() + crumbs(d.crumbs) +
-    '<div class="wrap"><div class="bhero">'+
+    '<div class="wrap"><div class="bhero" style="background-image:url(https://picsum.photos/seed/ukcs-brand-'+encodeURIComponent(b.brand.toLowerCase().replace(/[^a-z0-9]+/g,"-"))+'/1200/700)">'+
       '<div><div class="mark">'+E(b.brand.slice(0,2).toUpperCase())+'</div><h1>'+E(b.brand)+'</h1><p>'+E(b.note)+'</p></div>'+
       '<div class="bstats"><div><b>'+b.count+'</b><span>Products</span></div><div><b>'+b.rating.toFixed(1)+'</b><span>Avg rating</span></div>'+
       '<div><b>'+M(b.min).replace(".00","")+'</b><span>From</span></div><div><b>'+b.deals+'</b><span>On offer</span></div></div></div>'+
