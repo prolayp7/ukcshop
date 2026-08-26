@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UK Computer Shop — Prototype D: Spec Index</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/04.css">
+</head>
+<body>
+<script src="js/sprite.js"></script>
+
+<div class="sysbar"><div class="wrap">
+  <span class="dot"></span><span>Warehouse online</span>
+  <span>Despatch cut-off <b>17:00</b></span>
+  <span>Catalogue <b id="sysCount">—</b></span>
+  <span>Updated <b>08:42 today</b></span>
+  <div class="r"><a href="#">Trade portal</a><a href="#">API / feed</a><a href="#">Track order</a><a href="#">GBP · Inc VAT</a></div>
+</div></div>
+
+<header><div class="wrap">
+  <a class="logo" href="index.html"><span class="m">UK</span><span><b>COMPUTER SHOP</b><span>Component index</span></span></a>
+  <div class="qbox">
+    <form class="qtop" id="qform" autocomplete="off">
+      <span class="scope" id="scopeLbl">All categories <svg width="12" height="12"><use href="#i-chev"/></svg></span>
+      <input id="q" placeholder="Product name, SKU, MPN, EAN, brand, chipset, socket or specification…">
+      <button class="clr" id="qclear" type="button" title="Clear" hidden>&times;</button>
+      <button class="run" type="submit"><svg width="14" height="14"><use href="#i-search"/></svg>SEARCH</button>
+    </form>
+    <div class="qbot">
+      <span class="k">Try</span>
+      <button class="tok" data-q="socket:AM5"><b>socket:</b>AM5</button>
+      <button class="tok" data-q="mpn:AMD"><b>mpn:</b>AMD</button>
+      <button class="tok" data-q="vram:&gt;=16"><b>vram:</b>&gt;=16</button>
+      <button class="tok" data-q="brand:Corsair"><b>brand:</b>Corsair</button>
+      <button class="tok" data-q="price:&lt;200"><b>price:</b>&lt;200</button>
+      <button class="tok" data-q="stock:in"><b>stock:</b>in</button>
+      <button class="tok" data-q="refresh:&gt;=240 panel:OLED"><b>refresh:</b>&gt;=240 <b>panel:</b>OLED</button>
+      <button class="tok" id="helpTok" style="margin-left:auto;border-color:var(--ink)">Search syntax ↗</button>
+    </div>
+    <div class="sugg" id="sugg"></div>
+  </div>
+  <div class="hact">
+    <button class="hbtn" id="cmpBtn"><svg width="16" height="16"><use href="#i-scale"/></svg>Compare<span class="n" id="cmpN" hidden>0</span></button>
+    <button class="hbtn" id="wishBtn"><svg width="16" height="16"><use href="#i-heart"/></svg><span class="n" id="wishN" hidden>0</span></button>
+    <button class="hbtn"><svg width="16" height="16"><use href="#i-user"/></svg></button>
+    <button class="hbtn solid" id="basketBtn"><svg width="16" height="16"><use href="#i-bag"/></svg><span id="basketTotal">£0.00</span></button>
+  </div>
+</div></header>
+
+<div class="tabs"><div class="wrap" id="tabs"></div></div>
+
+<div class="wrap">
+  <div class="banner">
+    <div class="l">
+      <span class="badge">FLASH DEALS</span>
+      <div><h1>Midweek component clearance — up to 38% off</h1><p><b id="dealCount">—</b> lines reduced across the catalogue. Prices revert at midnight Sunday.</p></div>
+    </div>
+    <div class="cd" id="cd"><div><b>01</b><span>DAYS</span></div><div><b>08</b><span>HRS</span></div><div><b>42</b><span>MIN</span></div><div><b>19</b><span>SEC</span></div></div>
+  </div>
+
+  <div class="main">
+    <aside class="rail">
+      <h3>Refine <button id="clearAll">Clear all</button></h3>
+      <div id="facets"></div>
+    </aside>
+
+    <div class="res">
+      <div class="toolbar">
+        <span class="cnt" id="count">—</span>
+        <div class="chips" id="chips"></div>
+        <div class="rt">
+          <select class="sel" id="sort">
+            <option value="best">SORT: BEST SELLING</option>
+            <option value="price-asc">PRICE: LOW TO HIGH</option>
+            <option value="price-desc">PRICE: HIGH TO LOW</option>
+            <option value="rating">CUSTOMER RATING</option>
+            <option value="newest">NEWEST ARRIVALS</option>
+            <option value="discount">BIGGEST SAVING</option>
+            <option value="name">NAME A–Z</option>
+          </select>
+          <select class="sel" id="per"><option value="12">12 PER PAGE</option><option value="24">24 PER PAGE</option><option value="48">48 PER PAGE</option></select>
+          <span class="viewsw">
+            <button id="vList" class="on" title="List view"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+            <button id="vGrid" title="Grid view"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg></button>
+          </span>
+        </div>
+      </div>
+
+      <div class="rows" id="rows"></div>
+      <div class="loadwrap" id="loadwrap" hidden><button class="loadmore" id="loadmore">Load more</button></div>
+
+      <div class="recent" id="recent" hidden>
+        <div class="rh"><span>Recently viewed</span><button id="clearRecent">Clear</button></div>
+        <div class="rlist" id="rlist"></div>
+      </div>
+
+      <div class="dual">
+        <div class="blk"><h4>Can't find the part number?</h4><p>Paste a list of SKUs, MPNs or EANs and we'll build the basket for you — up to 500 lines at a time.</p><a class="go" href="#">Open bulk order pad <svg width="14" height="14"><use href="#i-arr"/></svg></a></div>
+        <div class="blk dark"><h4>Compatibility-checked configurator</h4><p>Socket, memory profile, case clearance and PSU headroom validated live as you add each component.</p><a class="go" href="#">Start a build <svg width="14" height="14"><use href="#i-arr"/></svg></a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer><div class="wrap">
+  <div class="fg2">
+    <div>
+      <a class="logo" href="index.html" style="display:inline-flex;margin-bottom:14px"><span class="m">UK</span><span><b>COMPUTER SHOP</b><span>Component index</span></span></a>
+      <p style="margin:0;color:var(--body);max-width:300px;font-size:13px">Independent UK retailer since 2009. Trade, education and public-sector accounts welcome, 30-day terms available.</p>
+    </div>
+    <div><h4>Catalogue</h4><ul id="fcats"></ul></div>
+    <div><h4>Tools</h4><ul><li><a href="#">Advanced search</a></li><li><a href="#">Bulk order pad</a></li><li><a href="#">Configurator</a></li><li><a href="#">Compare</a></li><li><a href="#">Product data feed</a></li></ul></div>
+    <div><h4>Support</h4><ul><li><a href="#">Track order</a></li><li><a href="#">Delivery &amp; returns</a></li><li><a href="#">Warranty / RMA</a></li><li><a href="#">Finance</a></li><li><a href="#">Contact</a></li></ul></div>
+    <div><h4>Company</h4><ul><li><a href="#">About</a></li><li><a href="#">Trade accounts</a></li><li><a href="#">Careers</a></li><li><a href="#">Terms</a></li><li><a href="#">Privacy</a></li></ul></div>
+  </div>
+  <div class="fbot"><span>© 2026 UK COMPUTER SHOP LTD · COMPANY 07234891 · VAT GB 123 4567 89</span><span>ALL PRICES INC. VAT UNLESS STATED · E&amp;OE</span></div>
+</div></footer>
+
+<div class="tray" id="tray"><div class="wrap">
+  <span class="mono">COMPARE</span>
+  <div class="slots" id="slots"></div>
+  <div class="go"><button class="a2" id="cmpClear">Clear</button><button class="a1" id="cmpOpen">Compare →</button></div>
+</div></div>
+
+<div class="modal" id="modal"><div class="panel" id="panel"></div></div>
+<div class="toast" id="toast"></div>
+
+<script src="data/products.js"></script>
+<script>
+(function(){
+"use strict";
+const DATA = window.PRODUCTS || [];
+const $ = (s,r) => (r||document).querySelector(s);
+const CAT_ORDER = ["PC Components","Computers","Laptops","Peripherals","Networking","Accessories"];
+
+/* ---------- helpers ---------- */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const money = n => "£" + n.toLocaleString("en-GB",{minimumFractionDigits:2,maximumFractionDigits:2});
+const exVat = n => money(n/1.2);
+const stars = r => "★★★★★".slice(0,Math.round(r)) + "☆☆☆☆☆".slice(0,5-Math.round(r));
+const uniq = a => [...new Set(a)];
+
+DATA.forEach(p => {
+  p._hay = [p.name,p.brand,p.sku,p.mpn,p.ean,p.category,p.subcategory,
+            Object.values(p.specs).join(" ")].join(" ").toLowerCase();
+  p._disc = p.was ? (p.was - p.price) / p.was : 0;
+});
+
+/* ---------- searchable field map ---------- */
+const NUM = v => typeof v === "number";
+const F = {
+  name:      p => p.name,
+  brand:     p => p.brand,
+  sku:       p => p.sku,
+  mpn:       p => p.mpn,
+  ean:       p => p.ean,
+  category:  p => p.category,
+  cat:       p => p.category,
+  subcategory:p => p.subcategory,
+  sub:       p => p.subcategory,
+  type:      p => p.subcategory,
+  price:     p => p.price,
+  rating:    p => p.rating,
+  reviews:   p => p.reviews,
+  stock:     p => p.stockStatus === "in" ? "in-stock" : p.stockStatus,
+  spec:      p => Object.values(p.specs).join(" "),
+  vram:      p => p.attrs.vram,
+  socket:    p => p.attrs.socket,
+  chipset:   p => p.attrs.chipset,
+  memtype:   p => p.attrs.memtype,
+  memory:    p => p.attrs.memtype,
+  capacity:  p => p.attrs.capacity_gb,
+  cores:     p => p.attrs.cores,
+  speed:     p => p.attrs.speed,
+  wattage:   p => p.attrs.wattage,
+  watts:     p => p.attrs.wattage,
+  efficiency:p => p.attrs.efficiency,
+  panel:     p => p.attrs.panel,
+  refresh:   p => p.attrs.refresh,
+  size:      p => p.attrs.size_in,
+  resolution:p => p.attrs.resolution,
+  interface: p => p.attrs.interface,
+  form:      p => p.attrs.form_factor,
+  os:        p => p.attrs.os,
+  gpu:       p => p.attrs.gpu_brand,
+  wireless:  p => p.attrs.wireless
+};
+const HELP_KEYS = [
+  ["brand:","brand:Corsair","Exact or partial brand name"],
+  ["sku: / mpn: / ean:","mpn:AMD-1F2","Identifier lookup, partial allowed"],
+  ["cat: / type:","type:Monitors","Category or sub-category"],
+  ["price:","price:&lt;200, price:100-500","Operators &lt; &gt; &lt;= &gt;= or a range"],
+  ["vram:","vram:&gt;=16","GPU memory in GB"],
+  ["socket: / chipset:","socket:AM5","CPU socket, board chipset"],
+  ["capacity:","capacity:&gt;=2000","Memory or drive capacity in GB"],
+  ["wattage:","wattage:&gt;=850","PSU output"],
+  ["refresh: / panel: / size:","refresh:&gt;=240 panel:OLED","Monitor attributes"],
+  ["rating:","rating:&gt;=4.8","Customer rating"],
+  ["stock:","stock:in, stock:low","Availability"],
+  ["spec:","spec:&quot;PCIe 5.0&quot;","Free text across the spec sheet"]
+];
+
+function parseQuery(str){
+  const toks = [], words = [];
+  const parts = String(str).match(/(?:[a-z_]+:)?(?:"[^"]*"|\S+)/gi) || [];
+  parts.forEach(raw => {
+    const m = raw.match(/^([a-z_]+):(.*)$/i);
+    if (m && F[m[1].toLowerCase()]) {
+      let v = m[2].replace(/^"|"$/g,"");
+      let op = "=";
+      const o = v.match(/^(>=|<=|>|<)/);
+      if (o) { op = o[1]; v = v.slice(o[1].length); }
+      else if (/^-?[\d.]+-[\d.]+$/.test(v)) op = "range";
+      toks.push({ key:m[1].toLowerCase(), op, val:v.replace(/[£,]/g,"") });
+    } else {
+      words.push(raw.replace(/^"|"$/g,"").toLowerCase());
+    }
+  });
+  return { toks, words };
+}
+
+function tokenMatch(p, t){
+  const v = F[t.key](p);
+  if (v === undefined || v === null) return false;
+  if (NUM(v)) {
+    if (t.op === "range") { const [a,b] = t.val.split("-").map(Number); return v >= a && v <= b; }
+    const n = parseFloat(t.val);
+    if (isNaN(n)) return false;
+    if (t.op === ">=") return v >= n;
+    if (t.op === "<=") return v <= n;
+    if (t.op === ">")  return v >  n;
+    if (t.op === "<")  return v <  n;
+    return v === n;
+  }
+  return String(v).toLowerCase().includes(t.val.toLowerCase());
+}
+
+/* ---------- state ---------- */
+const S = {
+  q:"", cat:"All", sel:{}, pmin:null, pmax:null,
+  sort:"best", per:12, view:"list", page:1,
+  compare:[], wish:[], basket:[], recent:[], open:{}, expand:{}
+};
+const LS = { get(k,d){ try { return JSON.parse(localStorage.getItem("ukcs."+k)) ?? d; } catch(e){ return d; } },
+             set(k,v){ try { localStorage.setItem("ukcs."+k, JSON.stringify(v)); } catch(e){} } };
+S.wish = LS.get("wish", []); S.basket = LS.get("basket", []); S.recent = LS.get("recent", []);
+
+/* ---------- filtering ---------- */
+function base(){
+  const { toks, words } = parseQuery(S.q);
+  return DATA.filter(p => {
+    if (S.cat !== "All" && p.category !== S.cat) return false;
+    for (const t of toks) if (!tokenMatch(p, t)) return false;
+    for (const w of words) if (!p._hay.includes(w)) return false;
+    return true;
+  });
+}
+function passFacet(p, key, set){
+  if (key === "subcategory") return set.has(p.subcategory);
+  if (key === "brand")       return set.has(p.brand);
+  if (key === "stock")       return set.has(p.stockStatus);
+  if (key === "rating")      return p.rating >= Math.min(...[...set].map(Number));
+  const a = p.attrs[key.slice(2)];
+  return a !== undefined && set.has(String(a));
+}
+function applyFacets(list, skip){
+  return list.filter(p => {
+    for (const k in S.sel) {
+      if (k === skip) continue;
+      const s = S.sel[k];
+      if (s && s.size && !passFacet(p, k, s)) return false;
+    }
+    if (skip !== "price") {
+      if (S.pmin != null && p.price < S.pmin) return false;
+      if (S.pmax != null && p.price > S.pmax) return false;
+    }
+    return true;
+  });
+}
+const SORTS = {
+  "best":      (a,b) => b.sold - a.sold,
+  "price-asc": (a,b) => a.price - b.price,
+  "price-desc":(a,b) => b.price - a.price,
+  "rating":    (a,b) => b.rating - a.rating || b.reviews - a.reviews,
+  "newest":    (a,b) => (a.added < b.added ? 1 : a.added > b.added ? -1 : 0),
+  "discount":  (a,b) => b._disc - a._disc,
+  "name":      (a,b) => a.name.localeCompare(b.name)
+};
+function results(){ return applyFacets(base(), null).sort(SORTS[S.sort]); }
+
+/* ---------- facet definitions ---------- */
+const ATTR_LABEL = { gpu_brand:"GPU brand", vram:"GPU memory (GB)", socket:"Socket", chipset:"Chipset",
+  memtype:"Memory type", capacity_gb:"Capacity (GB)", speed:"Memory speed (MT/s)", interface:"Interface",
+  wattage:"PSU wattage", efficiency:"80 PLUS rating", modular:"Modularity", panel:"Panel type",
+  refresh:"Refresh rate (Hz)", size_in:"Screen size (in)", resolution:"Resolution",
+  form_factor:"Form factor", cooler_type:"Cooler type", cores:"CPU cores", wireless:"Wireless", os:"Operating system" };
+const ATTR_ORDER = Object.keys(ATTR_LABEL);
+const MAX_ATTR_FACETS = 7;
+const NUM_ATTR = new Set(["vram","capacity_gb","speed","wattage","refresh","size_in","cores"]);
+const STOCK_LABEL = { in:"In stock — despatch today", low:"Low stock", backorder:"Pre-order / backorder" };
+
+function facetList(cands){
+  const out = [
+    { key:"subcategory", label:"Category", kind:"check", values:uniq(cands.map(p=>p.subcategory)).sort() },
+    { key:"price", label:"Price", kind:"price" },
+    { key:"brand", label:"Brand", kind:"check", values:uniq(cands.map(p=>p.brand)).sort() }
+  ];
+  const seen = {}, cover = {};
+  cands.forEach(p => {
+    for (const k in p.attrs) {
+      (seen[k] = seen[k] || new Set()).add(String(p.attrs[k]));
+      cover[k] = (cover[k] || 0) + 1;
+    }
+  });
+  // Only surface an attribute the current result set actually cares about: it must
+  // describe a decent share of the candidates, and the rail keeps the best few.
+  const floor = Math.max(3, cands.length * 0.12);
+  const keep = ATTR_ORDER
+    .filter(k => seen[k] && seen[k].size > 1 && cover[k] >= floor)
+    .sort((a,b) => cover[b] - cover[a])
+    .slice(0, MAX_ATTR_FACETS);
+  ATTR_ORDER.filter(k => keep.includes(k)).forEach(k => {
+    const vals = [...seen[k]];
+    vals.sort(NUM_ATTR.has(k) ? (a,b) => parseFloat(a) - parseFloat(b) : (a,b) => a.localeCompare(b));
+    out.push({ key:"a:"+k, label:ATTR_LABEL[k], kind:"pill", values:vals });
+  });
+  out.push({ key:"stock", label:"Availability", kind:"check", values:["in","low","backorder"], labels:STOCK_LABEL });
+  out.push({ key:"rating", label:"Customer rating", kind:"check",
+             values:["4.8","4.5","4"], labels:{ "4.8":"4.8 and up", "4.5":"4.5 and up", "4":"4.0 and up" }, radio:true });
+  for (const k in S.sel) {
+    if (!S.sel[k].size || out.some(f => f.key === k) || !k.startsWith("a:")) continue;
+    const a = k.slice(2), vals = uniq(cands.map(p => p.attrs[a]).filter(v => v !== undefined).map(String));
+    out.push({ key:k, label:ATTR_LABEL[a] || a, kind:"pill", values:uniq([...vals, ...S.sel[k]]) });
+  }
+  return out.filter(f => f.kind === "price" || (f.values && f.values.length > 1));
+}
+
+/* ---------- rendering ---------- */
+function renderTabs(){
+  const counts = {};
+  DATA.forEach(p => counts[p.category] = (counts[p.category]||0) + 1);
+  const html = ['<button data-cat="All" class="'+(S.cat==="All"?"on":"")+'">All <em>'+DATA.length+'</em></button>']
+    .concat(CAT_ORDER.filter(c=>counts[c]).map(c =>
+      '<button data-cat="'+esc(c)+'" class="'+(S.cat===c?"on":"")+'">'+esc(c)+' <em>'+counts[c]+'</em></button>'));
+  html.push('<a href="04-brands.html" style="padding:11px 15px;font-size:12.5px;font-weight:500;color:var(--blue);border-right:1px solid var(--line);white-space:nowrap;display:flex;align-items:center;gap:8px">Brands <em style="font-style:normal;font-family:var(--mono);font-size:9.5px;color:var(--mute)">53</em></a>');
+  $("#tabs").innerHTML = html.join("");
+  $("#fcats").innerHTML = CAT_ORDER.filter(c=>counts[c])
+    .map(c => '<li><a href="#" data-cat="'+esc(c)+'">'+esc(c)+'</a></li>').join("");
+}
+
+function renderFacets(){
+  const cands = base();
+  const facets = facetList(cands);
+  const html = facets.map(f => {
+    const shut = S.open[f.key] === false ? " shut" : "";
+    let body = "";
+    if (f.kind === "price") {
+      const prices = cands.map(p=>p.price);
+      const lo = prices.length ? Math.floor(Math.min(...prices)) : 0;
+      const hi = prices.length ? Math.ceil(Math.max(...prices)) : 0;
+      body = '<div class="range"><input id="pmin" placeholder="'+lo+'" value="'+(S.pmin??"")+'">'+
+             '<input id="pmax" placeholder="'+hi+'" value="'+(S.pmax??"")+'">'+
+             '<button class="go" id="papply">GO</button></div>';
+    } else {
+      const pool = applyFacets(cands, f.key);
+      const cnt = {};
+      pool.forEach(p => {
+        let v;
+        if (f.key === "subcategory") v = p.subcategory;
+        else if (f.key === "brand") v = p.brand;
+        else if (f.key === "stock") v = p.stockStatus;
+        else if (f.key === "rating") return;
+        else v = p.attrs[f.key.slice(2)];
+        if (v !== undefined) cnt[String(v)] = (cnt[String(v)]||0) + 1;
+      });
+      if (f.key === "rating") f.values.forEach(v => cnt[v] = pool.filter(p => p.rating >= Number(v)).length);
+      const sel = S.sel[f.key] || new Set();
+      let vals = f.values.slice();
+      if (f.kind === "check" && !f.radio)
+        vals.sort((a,b) => (sel.has(b)-sel.has(a)) || ((cnt[b]||0)-(cnt[a]||0)) || a.localeCompare(b));
+      const limit = S.expand[f.key] ? vals.length : (f.kind === "pill" ? 14 : 6);
+      const shown = vals.slice(0, limit);
+      body = shown.map(v => {
+        const c = cnt[v] || 0, on = sel.has(v), off = !c && !on ? " off" : "";
+        const label = (f.labels && f.labels[v]) || v;
+        if (f.kind === "pill")
+          return '<span class="'+(on?"on":"")+off+'" data-f="'+f.key+'" data-v="'+esc(v)+'" title="'+c+' products">'+esc(label)+'</span>';
+        return '<label class="opt'+off+'" data-f="'+f.key+'" data-v="'+esc(v)+'">'+
+               '<span class="bx'+(on?" on":"")+'"></span><span class="nm">'+esc(label)+'</span><span class="c">'+c+'</span></label>';
+      }).join("");
+      if (f.kind === "pill") body = '<div class="pill">'+body+'</div>';
+      if (vals.length > limit || S.expand[f.key])
+        body += '<button class="more" data-more="'+f.key+'">'+(S.expand[f.key] ? "Show fewer" : "+ "+(vals.length-limit)+" more")+'</button>';
+    }
+    return '<div class="fg'+shut+'" data-fg="'+f.key+'"><div class="t" data-toggle="'+f.key+'">'+esc(f.label)+
+           ' <svg width="13" height="13"><use href="#i-chev"/></svg></div><div class="fgb">'+body+'</div></div>';
+  });
+  $("#facets").innerHTML = html.join("");
+}
+
+function stockLine(p){
+  if (p.stockStatus === "in")  return '<span class="ok"><i></i>In stock — '+p.stock+' units, despatch today</span>';
+  if (p.stockStatus === "low") return '<span class="lo">● Low stock — '+p.stock+' remaining</span>';
+  return '<span class="no">● Backorder — due in 7–10 days</span>';
+}
+function rowHTML(p){
+  const keys = Object.keys(p.specs).slice(0,4);
+  const cells = keys.map(k => '<div><span>'+esc(k)+'</span><b title="'+esc(p.specs[k])+'">'+esc(p.specs[k])+'</b></div>').join("");
+  const rib = p.was ? '<span class="rib">-'+Math.round(p._disc*100)+'%</span>'
+                    : (p.isNew ? '<span class="rib new">NEW</span>' : "");
+  const inCmp = S.compare.includes(p.id), inWish = S.wish.includes(p.id);
+  return '<article class="row" data-id="'+p.id+'">'+
+    '<div class="sel-col">'+
+      '<span class="bx2'+(inCmp?" on":"")+'" data-act="cmp" title="Add to compare"></span>'+
+      '<button class="ic'+(inWish?" on":"")+'" data-act="wish" title="Wishlist"><svg width="16" height="16"><use href="#i-heart"/></svg></button>'+
+    '</div>'+
+    '<div class="fig">'+rib+'<svg viewBox="0 0 64 44" width="120" height="86" style="width:118px;height:auto"><use href="#'+p.icon+'"/></svg></div>'+
+    '<div class="info">'+
+      '<div class="idl"><span>BRAND <a href="04-brand.html?b='+encodeURIComponent(p.brand)+'"><b>'+esc(p.brand)+'</b></a></span><span>SKU <b>'+esc(p.sku)+'</b></span>'+
+      '<span>MPN <b>'+esc(p.mpn)+'</b></span><span>EAN <b>'+esc(p.ean)+'</b></span></div>'+
+      '<h3><a href="04-product.html?id='+p.id+'">'+esc(p.name)+'</a></h3>'+
+      '<div class="stab">'+cells+'</div>'+
+      '<div class="metar"><span class="st">'+stars(p.rating)+' <span style="color:var(--body)">'+p.rating+' · '+p.reviews.toLocaleString("en-GB")+' reviews</span></span>'+
+      stockLine(p)+'<span>'+esc(p.subcategory)+'</span></div>'+
+    '</div>'+
+    '<div class="buy"><div class="pr"><b>'+money(p.price)+'</b>'+
+      (p.was ? '<s>was '+money(p.was)+'</s>' : "")+
+      '<span class="ex">'+exVat(p.price)+' EX VAT</span>'+
+      (p.was ? '<span class="save">SAVE '+money(p.was-p.price)+'</span>' : "")+'</div>'+
+      '<div class="btns"><button class="addb" data-act="add"'+(p.stockStatus==="backorder"?" disabled":"")+'>'+
+      (p.stockStatus==="backorder"?"Backorder":"Add to basket")+'</button>'+
+      '<button class="qv" data-act="qv">Quick view</button>'+
+      '<a class="qv" href="04-product.html?id='+p.id+'">Full details</a></div></div>'+
+  '</article>';
+}
+
+function renderChips(){
+  const out = [];
+  if (S.cat !== "All") out.push({ t:S.cat.toUpperCase(), k:"cat" });
+  if (S.q.trim()) out.push({ t:'"'+S.q.trim()+'"', k:"q" });
+  for (const k in S.sel) (S.sel[k]||new Set()).forEach(v => {
+    const lbl = k === "stock" ? STOCK_LABEL[v] : (k === "rating" ? v+"★ and up" : v);
+    out.push({ t:String(lbl).toUpperCase(), k:k, v:v });
+  });
+  if (S.pmin != null || S.pmax != null)
+    out.push({ t:(S.pmin!=null?"£"+S.pmin:"£0")+"–"+(S.pmax!=null?"£"+S.pmax:"ANY"), k:"price" });
+  $("#chips").innerHTML = out.map(c =>
+    '<span class="chip" data-k="'+c.k+'" data-v="'+esc(c.v||"")+'">'+esc(c.t)+' <button>×</button></span>').join("") +
+    (out.length > 1 ? '<span class="chip clear" data-k="all">CLEAR ALL</span>' : "");
+}
+
+function render(){
+  renderTabs(); renderFacets(); renderChips();
+  const r = results();
+  const show = r.slice(0, S.page * S.per);
+  $("#count").innerHTML = r.length
+    ? 'SHOWING <b>1–'+show.length+'</b> OF <b>'+r.length.toLocaleString("en-GB")+'</b>'
+    : 'NO MATCHES';
+  const rows = $("#rows");
+  rows.className = "rows" + (S.view === "grid" ? " grid" : "");
+  if (!r.length) {
+    rows.className = "rows";
+    rows.innerHTML = '<div class="empty"><svg width="34" height="34" style="margin:0 auto;color:var(--mute)"><use href="#i-search"/></svg>'+
+      '<h3>Nothing matches that combination</h3><p>Try removing a filter, or widen the price range.</p>'+
+      '<button class="rst" data-k="all">Clear all filters</button></div>';
+  } else {
+    rows.innerHTML = show.map(rowHTML).join("");
+  }
+  $("#loadwrap").hidden = show.length >= r.length;
+  $("#loadmore").textContent = "Load more — " + Math.min(S.per, r.length - show.length) + " of " + (r.length - show.length) + " remaining";
+  renderTray(); renderRecent();
+  $("#cmpN").hidden = !S.compare.length; $("#cmpN").textContent = S.compare.length;
+  $("#wishN").hidden = !S.wish.length;   $("#wishN").textContent = S.wish.length;
+  const total = S.basket.reduce((s,id) => s + (DATA.find(p=>p.id===id)?.price || 0), 0);
+  $("#basketTotal").textContent = money(total);
+  syncHash();
+}
+
+/* ---------- compare tray ---------- */
+function renderTray(){
+  const t = $("#tray");
+  t.classList.toggle("on", S.compare.length > 0);
+  const slots = S.compare.map(id => {
+    const p = DATA.find(x => x.id === id);
+    return '<div class="full"><b>'+esc(p.name)+'</b><button data-rm="'+id+'">×</button></div>';
+  });
+  while (slots.length < 4) slots.push('<div>Add another…</div>');
+  $("#slots").innerHTML = slots.join("");
+  $("#cmpOpen").textContent = "Compare " + S.compare.length + (S.compare.length === 1 ? " item →" : " items →");
+  $("#cmpOpen").disabled = S.compare.length < 2;
+  $("#cmpOpen").style.opacity = S.compare.length < 2 ? .45 : 1;
+}
+function renderRecent(){
+  const el = $("#recent");
+  el.hidden = !S.recent.length;
+  $("#rlist").innerHTML = S.recent.map(id => {
+    const p = DATA.find(x => x.id === id); if (!p) return "";
+    return '<div class="ri" data-id="'+p.id+'"><span class="ic"><svg viewBox="0 0 64 44" style="width:30px;height:24px"><use href="#'+p.icon+'"/></svg></span>'+
+           '<span><b>'+esc(p.name)+'</b><span>'+money(p.price)+'</span></span></div>';
+  }).join("");
+}
+
+/* ---------- modals ---------- */
+function openModal(html){ $("#panel").innerHTML = html; $("#modal").classList.add("on"); document.body.classList.add("lock"); }
+function closeModal(){ $("#modal").classList.remove("on"); document.body.classList.remove("lock"); }
+function quickView(id){
+  const p = DATA.find(x => x.id === id); if (!p) return;
+  S.recent = [id, ...S.recent.filter(x => x !== id)].slice(0,8); LS.set("recent", S.recent);
+  const rows = Object.entries(p.specs).map(([k,v]) => '<tr><th>'+esc(k)+'</th><td>'+esc(v)+'</td></tr>').join("");
+  openModal('<div class="ph"><span>Quick view · '+esc(p.subcategory)+'</span><button data-close>&times;</button></div>'+
+    '<div class="pbody"><div class="qvgrid"><div class="qvfig"><svg viewBox="0 0 64 44" style="width:100%;height:auto;max-height:200px"><use href="#'+p.icon+'"/></svg></div>'+
+    '<div><h2>'+esc(p.name)+'</h2>'+
+    '<div class="qvid"><span>BRAND <b>'+esc(p.brand)+'</b></span><span>SKU <b>'+esc(p.sku)+'</b></span><span>MPN <b>'+esc(p.mpn)+'</b></span><span>EAN <b>'+esc(p.ean)+'</b></span></div>'+
+    '<div class="qvprice"><b>'+money(p.price)+'</b>'+(p.was?'<s>was '+money(p.was)+'</s><span class="save">SAVE '+money(p.was-p.price)+'</span>':"")+'</div>'+
+    '<div style="font-family:var(--mono);font-size:10px;color:var(--mute);letter-spacing:.06em">'+exVat(p.price)+' EX VAT</div>'+
+    '<div class="metar" style="margin-top:12px"><span class="st">'+stars(p.rating)+' <span style="color:var(--body)">'+p.rating+' · '+p.reviews.toLocaleString("en-GB")+' reviews</span></span>'+stockLine(p)+'</div>'+
+    '<table class="spectab">'+rows+'</table>'+
+    '<div class="qvact"><button class="addb" data-act="add" data-id="'+p.id+'"'+(p.stockStatus==="backorder"?" disabled":"")+'>Add to basket</button>'+
+    '<button class="qv" data-act="cmp" data-id="'+p.id+'" style="padding:13px 20px">'+(S.compare.includes(p.id)?"In compare":"Compare")+'</button>'+
+    '<button class="qv" data-act="wish" data-id="'+p.id+'" style="padding:13px 20px">'+(S.wish.includes(p.id)?"Saved":"Wishlist")+'</button>'+
+    '<a class="qv" href="04-product.html?id='+p.id+'" style="padding:13px 20px">Full details →</a></div>'+
+    '</div></div></div>');
+  renderRecent();
+}
+function compareView(){
+  const ps = S.compare.map(id => DATA.find(x => x.id === id)).filter(Boolean);
+  if (ps.length < 2) return;
+  const keys = uniq(ps.flatMap(p => Object.keys(p.specs)));
+  const head = '<tr><th style="width:180px"></th>' + ps.map(p =>
+    '<th><span class="b">'+esc(p.brand)+'</span>'+esc(p.name)+'</th>').join("") + '</tr>';
+  const priceRow = '<tr><th>Price inc. VAT</th>' + ps.map(p =>
+    '<td class="pcell">'+money(p.price)+(p.was?' <s style="font-size:11px;color:var(--mute)">'+money(p.was)+'</s>':"")+'</td>').join("") + '</tr>';
+  const metaRows = [
+    ["Rating", p => stars(p.rating)+" "+p.rating+" ("+p.reviews+")"],
+    ["Availability", p => p.stockStatus === "in" ? "In stock ("+p.stock+")" : p.stockStatus === "low" ? "Low stock ("+p.stock+")" : "Backorder"],
+    ["SKU", p => p.sku], ["MPN", p => p.mpn]
+  ].map(([k,fn]) => {
+    const vals = ps.map(fn);
+    const diff = uniq(vals).length > 1;
+    return '<tr><th>'+k+'</th>' + vals.map(v => '<td'+(diff?' class="diff"':"")+'>'+esc(v)+'</td>').join("") + '</tr>';
+  }).join("");
+  const specRows = keys.map(k => {
+    const vals = ps.map(p => p.specs[k] || "—");
+    const diff = uniq(vals).length > 1;
+    return '<tr><th>'+esc(k)+'</th>' + vals.map(v => '<td'+(diff?' class="diff"':"")+'>'+esc(v)+'</td>').join("") + '</tr>';
+  }).join("");
+  openModal('<div class="ph"><span>Comparing '+ps.length+' products · differences highlighted</span><button data-close>&times;</button></div>'+
+    '<div class="pbody" style="overflow-x:auto"><table class="cmptab"><thead>'+head+'</thead><tbody>'+priceRow+metaRows+specRows+'</tbody></table></div>');
+}
+function helpView(){
+  openModal('<div class="ph"><span>Advanced search syntax</span><button data-close>&times;</button></div>'+
+    '<div class="pbody"><p style="margin:0 0 16px;color:var(--body)">Combine as many keys as you like — they narrow together. Anything that is not a key is matched as free text across the name, brand, identifiers and full spec sheet.</p>'+
+    '<table class="spectab"><tr><th>Key</th><td><b>Example</b></td><td><b>Matches</b></td></tr>'+
+    HELP_KEYS.map(([k,e,d]) => '<tr><th>'+k+'</th><td style="font-family:var(--mono);font-size:12px">'+e+'</td><td>'+d+'</td></tr>').join("")+
+    '</table></div>');
+}
+
+/* ---------- suggestions ---------- */
+let hi = -1;
+function suggest(){
+  const q = $("#q").value.trim().toLowerCase();
+  const box = $("#sugg");
+  if (q.length < 2) { box.classList.remove("on"); return; }
+  const mark = s => esc(s).replace(new RegExp("("+q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")","ig"), "<mark>$1</mark>");
+  const prods = DATA.filter(p => p._hay.includes(q)).sort(SORTS.best).slice(0,6);
+  const brands = uniq(DATA.map(p => p.brand)).filter(b => b.toLowerCase().includes(q)).slice(0,3);
+  const subs = uniq(DATA.map(p => p.subcategory)).filter(c => c.toLowerCase().includes(q)).slice(0,3);
+  let h = "";
+  if (prods.length) h += '<div class="sh">Products</div>' + prods.map(p =>
+    '<div class="si" data-sug="p" data-id="'+p.id+'"><span class="ic"><svg viewBox="0 0 64 44" style="width:32px;height:24px"><use href="#'+p.icon+'"/></svg></span>'+
+    '<span class="tx"><b>'+mark(p.name)+'</b><span>'+mark(p.sku)+' · '+mark(p.mpn)+'</span></span><span class="pr">'+money(p.price)+'</span></div>').join("");
+  if (brands.length) h += '<div class="sh">Brands</div>' + brands.map(b =>
+    '<div class="si" data-sug="b" data-v="'+esc(b)+'"><span class="ic"><svg width="16" height="16"><use href="#i-search"/></svg></span><span class="tx"><b>'+mark(b)+'</b><span>brand:'+esc(b)+'</span></span></div>').join("");
+  if (subs.length) h += '<div class="sh">Categories</div>' + subs.map(c =>
+    '<div class="si" data-sug="c" data-v="'+esc(c)+'"><span class="ic"><svg width="16" height="16"><use href="#i-search"/></svg></span><span class="tx"><b>'+mark(c)+'</b><span>type:'+esc(c)+'</span></span></div>').join("");
+  if (!h) h = '<div class="sh">No suggestions — press Enter to search anyway</div>';
+  box.innerHTML = h; box.classList.add("on"); hi = -1;
+}
+function closeSugg(){ $("#sugg").classList.remove("on"); hi = -1; }
+
+/* ---------- url state ---------- */
+function syncHash(){
+  const u = new URLSearchParams();
+  if (S.q) u.set("q", S.q);
+  if (S.cat !== "All") u.set("cat", S.cat);
+  if (S.sort !== "best") u.set("sort", S.sort);
+  if (S.view !== "list") u.set("view", S.view);
+  if (S.pmin != null) u.set("min", S.pmin);
+  if (S.pmax != null) u.set("max", S.pmax);
+  for (const k in S.sel) if (S.sel[k] && S.sel[k].size) u.set("f_"+k, [...S.sel[k]].join("|"));
+  const s = u.toString();
+  history.replaceState(null, "", s ? "#"+s : location.pathname);
+}
+function readHash(){
+  const u = new URLSearchParams(location.hash.slice(1));
+  S.q = u.get("q") || ""; S.cat = u.get("cat") || "All";
+  S.sort = u.get("sort") || "best"; S.view = u.get("view") || "list";
+  S.pmin = u.get("min") ? Number(u.get("min")) : null;
+  S.pmax = u.get("max") ? Number(u.get("max")) : null;
+  S.sel = {};
+  for (const [k,v] of u) if (k.startsWith("f_")) S.sel[k.slice(2)] = new Set(v.split("|"));
+  $("#q").value = S.q; $("#sort").value = S.sort;
+  $("#vList").classList.toggle("on", S.view === "list");
+  $("#vGrid").classList.toggle("on", S.view === "grid");
+}
+
+/* ---------- toast ---------- */
+let tt;
+function toast(msg){ const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(tt); tt = setTimeout(()=>t.classList.remove("on"), 1900); }
+
+/* ---------- events ---------- */
+$("#qform").addEventListener("submit", e => { e.preventDefault(); S.q = $("#q").value; S.page = 1; closeSugg(); render(); });
+$("#q").addEventListener("input", () => { $("#qclear").hidden = !$("#q").value; suggest(); });
+$("#q").addEventListener("keydown", e => {
+  const items = [...$("#sugg").querySelectorAll(".si")];
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    if (!items.length) return; e.preventDefault();
+    hi = (hi + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+    items.forEach((el,i) => el.classList.toggle("hi", i === hi));
+    items[hi].scrollIntoView({ block:"nearest" });
+  } else if (e.key === "Enter" && hi > -1 && items[hi]) { e.preventDefault(); items[hi].click(); }
+  else if (e.key === "Escape") closeSugg();
+});
+$("#qclear").addEventListener("click", () => { $("#q").value = ""; S.q = ""; S.page = 1; $("#qclear").hidden = true; closeSugg(); render(); });
+document.addEventListener("click", e => { if (!e.target.closest(".qbox")) closeSugg(); });
+$("#sugg").addEventListener("click", e => {
+  const si = e.target.closest(".si"); if (!si) return;
+  if (si.dataset.sug === "p") { closeSugg(); quickView(Number(si.dataset.id)); return; }
+  S.q = (si.dataset.sug === "b" ? "brand:" : "type:") + '"' + si.dataset.v + '"';
+  $("#q").value = S.q; S.page = 1; closeSugg(); render();
+});
+$("#helpTok").addEventListener("click", helpView);
+document.querySelectorAll(".tok[data-q]").forEach(b => b.addEventListener("click", () => {
+  S.q = b.dataset.q; $("#q").value = S.q; S.page = 1; $("#qclear").hidden = false; render();
+}));
+$("#tabs").addEventListener("click", e => {
+  const b = e.target.closest("button[data-cat]"); if (!b) return;
+  S.cat = b.dataset.cat; S.sel = {}; S.page = 1; render();
+  $("#scopeLbl").firstChild.nodeValue = (S.cat === "All" ? "All categories" : S.cat) + " ";
+});
+$("#fcats").addEventListener("click", e => {
+  const a = e.target.closest("a[data-cat]"); if (!a) return; e.preventDefault();
+  S.cat = a.dataset.cat; S.sel = {}; S.page = 1; render(); window.scrollTo({ top:0, behavior:"smooth" });
+});
+$("#facets").addEventListener("click", e => {
+  const t = e.target.closest("[data-toggle]");
+  if (t) { const k = t.dataset.toggle; S.open[k] = S.open[k] === false; t.closest(".fg").classList.toggle("shut", S.open[k] === false); return; }
+  const more = e.target.closest("[data-more]");
+  if (more) { S.expand[more.dataset.more] = !S.expand[more.dataset.more]; renderFacets(); return; }
+  if (e.target.id === "papply") {
+    const a = parseFloat($("#pmin").value), b = parseFloat($("#pmax").value);
+    S.pmin = isNaN(a) ? null : a; S.pmax = isNaN(b) ? null : b; S.page = 1; render(); return;
+  }
+  const el = e.target.closest("[data-f]"); if (!el) return;
+  e.preventDefault();
+  const k = el.dataset.f, v = el.dataset.v;
+  const set = S.sel[k] = S.sel[k] || new Set();
+  if (k === "rating") { const had = set.has(v); set.clear(); if (!had) set.add(v); }
+  else set.has(v) ? set.delete(v) : set.add(v);
+  if (!set.size) delete S.sel[k];
+  S.page = 1; render();
+});
+$("#facets").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.matches("#pmin,#pmax")) { e.preventDefault(); $("#papply").click(); } });
+function resetAll(){ S.sel = {}; S.q = ""; S.cat = "All"; S.pmin = S.pmax = null; $("#q").value = ""; $("#qclear").hidden = true; S.page = 1; render(); }
+$("#chips").addEventListener("click", e => {
+  const c = e.target.closest(".chip"); if (!c) return;
+  const k = c.dataset.k;
+  if (k === "all") return resetAll();
+  else if (k === "cat") S.cat = "All";
+  else if (k === "q") { S.q = ""; $("#q").value = ""; }
+  else if (k === "price") { S.pmin = S.pmax = null; }
+  else { const set = S.sel[k]; if (set) { set.delete(c.dataset.v); if (!set.size) delete S.sel[k]; } }
+  S.page = 1; render();
+});
+$("#clearAll").addEventListener("click", () => { S.sel = {}; S.pmin = S.pmax = null; S.page = 1; render(); });
+$("#sort").addEventListener("change", e => { S.sort = e.target.value; S.page = 1; render(); });
+$("#per").addEventListener("change", e => { S.per = Number(e.target.value); S.page = 1; render(); });
+$("#vList").addEventListener("click", () => { S.view = "list"; $("#vList").classList.add("on"); $("#vGrid").classList.remove("on"); render(); });
+$("#vGrid").addEventListener("click", () => { S.view = "grid"; $("#vGrid").classList.add("on"); $("#vList").classList.remove("on"); render(); });
+$("#loadmore").addEventListener("click", () => { S.page++; render(); });
+
+function act(action, id){
+  const p = DATA.find(x => x.id === id); if (!p) return;
+  if (action === "cmp") {
+    if (S.compare.includes(id)) { S.compare = S.compare.filter(x => x !== id); toast("Removed from compare"); }
+    else if (S.compare.length >= 4) { toast("Compare holds four products"); }
+    else { S.compare.push(id); toast("Added to compare"); }
+  } else if (action === "wish") {
+    S.wish = S.wish.includes(id) ? S.wish.filter(x => x !== id) : [...S.wish, id];
+    LS.set("wish", S.wish); toast(S.wish.includes(id) ? "Saved to wishlist" : "Removed from wishlist");
+  } else if (action === "add") {
+    if (p.stockStatus === "backorder") return;
+    S.basket.push(id); LS.set("basket", S.basket); toast("Added — " + p.name.slice(0,38));
+  } else if (action === "qv") { quickView(id); return; }
+  render();
+}
+$("#rows").addEventListener("click", e => {
+  if (e.target.closest(".rst")) { resetAll(); return; }
+  const el = e.target.closest("[data-act]"); if (!el) return;
+  e.preventDefault();
+  act(el.dataset.act, Number(el.closest(".row").dataset.id));
+});
+$("#rlist").addEventListener("click", e => { const r = e.target.closest(".ri"); if (r) quickView(Number(r.dataset.id)); });
+$("#clearRecent").addEventListener("click", () => { S.recent = []; LS.set("recent", []); renderRecent(); });
+$("#panel").addEventListener("click", e => {
+  if (e.target.closest("[data-close]")) return closeModal();
+  const el = e.target.closest("[data-act][data-id]"); if (!el) return;
+  act(el.dataset.act, Number(el.dataset.id));
+  if (el.dataset.act !== "qv") quickView(Number(el.dataset.id));
+});
+$("#modal").addEventListener("click", e => { if (e.target.id === "modal") closeModal(); });
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeModal();
+  if ((e.metaKey || e.ctrlKey) && e.key === "k") { e.preventDefault(); $("#q").focus(); $("#q").select(); }
+});
+$("#slots").addEventListener("click", e => {
+  const b = e.target.closest("[data-rm]"); if (!b) return;
+  S.compare = S.compare.filter(x => x !== Number(b.dataset.rm)); render();
+});
+$("#cmpClear").addEventListener("click", () => { S.compare = []; render(); });
+$("#cmpOpen").addEventListener("click", compareView);
+$("#cmpBtn").addEventListener("click", () => S.compare.length >= 2 ? compareView() : toast("Tick two or more products to compare"));
+$("#wishBtn").addEventListener("click", () => toast(S.wish.length ? S.wish.length + " items saved" : "Wishlist is empty"));
+$("#basketBtn").addEventListener("click", () => toast(S.basket.length ? S.basket.length + " items in basket" : "Basket is empty"));
+
+/* ---------- countdown ---------- */
+(function tick(){
+  const now = new Date();
+  const end = new Date(now); end.setDate(now.getDate() + ((7 - now.getDay()) % 7 || 7)); end.setHours(0,0,0,0);
+  let s = Math.max(0, Math.floor((end - now) / 1000));
+  const d = Math.floor(s/86400); s -= d*86400;
+  const h = Math.floor(s/3600);  s -= h*3600;
+  const m = Math.floor(s/60);    s -= m*60;
+  const pad = n => String(n).padStart(2,"0");
+  const b = $("#cd").querySelectorAll("b");
+  b[0].textContent = pad(d); b[1].textContent = pad(h); b[2].textContent = pad(m); b[3].textContent = pad(s);
+  setTimeout(tick, 1000);
+})();
+
+/* ---------- boot ---------- */
+$("#sysCount").textContent = DATA.length.toLocaleString("en-GB") + " SKU";
+$("#dealCount").textContent = DATA.filter(p => p.was).length;
+readHash();
+$("#qclear").hidden = !$("#q").value;
+$("#scopeLbl").firstChild.nodeValue = (S.cat === "All" ? "All categories" : S.cat) + " ";
+render();
+})();
+</script>
+</body></html>

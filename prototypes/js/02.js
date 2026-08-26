@@ -1,0 +1,171 @@
+/* Design B — Overdrive. */
+(function(){
+"use strict";
+var S = Shop, E = S.esc, M = S.money;
+function ic(id,w,h){ return '<svg width="'+w+'" height="'+(h||w)+'"><use href="#'+id+'"/></svg>'; }
+function icv(id,w,h){ return '<svg viewBox="0 0 64 44" style="width:'+w+'px;height:'+h+'px"><use href="#'+id+'"/></svg>'; }
+
+function header(){
+  return '<div class="tick"><div class="wrap"><span class="pulse" style="flex:none"></span>'+
+    '<span>LIVE STOCK</span><b>RTX 5080</b><span class="up">▲ 24 IN</span><b>9800X3D</b><span class="up">▲ 61 IN</span>'+
+    '<b>DDR5 6000 CL30</b><span class="up">▲ 140 IN</span><b>RTX 5090</b><span class="dn">▼ 0 — BACKORDER</span>'+
+    '<span style="margin-left:auto">DESPATCH CUT-OFF 17:00 · NEXT DAY UK</span></div></div>'+
+  '<header><div class="wrap">'+
+    '<a class="logo" href="'+S.url("home")+'"><span class="mark">UK</span><span><b>UK COMPUTER SHOP</b><span class="mono">Performance division</span></span></a>'+
+    '<form class="sbar" role="search">'+ic("i-search",17,17)+
+      '<input placeholder="Search '+S.all.length+' products — name, SKU, MPN, chipset, socket…"><span class="kbd">⌘K</span>'+
+      '<button class="go" type="submit">SEARCH</button></form>'+
+    '<div class="hact"><button class="ib">'+ic("i-scale",20,20)+'</button><button class="ib">'+ic("i-heart",20,20)+'</button>'+
+      '<button class="ib">'+ic("i-user",20,20)+'</button><a class="basket" href="#">'+ic("i-bag",19,19)+'<b>£1,489.97</b></a></div>'+
+  '</div></header>'+
+  '<nav><div class="wrap">'+
+    S.tree().map(function(t){ return '<a href="'+S.url("home")+'">'+E(t.category)+'</a>'; }).join("")+
+    '<a href="'+S.url("brands")+'">Brands</a>'+
+    '<div class="r"><span>0% FINANCE</span><span>·</span><span>4.8★ TRUSTPILOT</span></div></div></nav>';
+}
+function footer(){
+  return '<footer><div class="wrap"><div class="fg">'+
+    '<div><a class="logo" href="'+S.url("home")+'" style="margin-bottom:16px"><span class="mark">UK</span><span><b>UK COMPUTER SHOP</b><span class="mono">Performance division</span></span></a>'+
+    '<p>Independent UK retailer since 2009. Warehouse, build room and test lab in Manchester.</p></div>'+
+    '<div><h4>SHOP</h4><ul>'+S.CAT_ORDER.slice(0,5).map(function(c){ return '<li><a href="'+S.url("home")+'">'+E(c)+'</a></li>'; }).join("")+'</ul></div>'+
+    '<div><h4>SYSTEMS</h4><ul><li><a href="#">Gaming PCs</a></li><li><a href="#">Workstations</a></li><li><a href="#">Configurator</a></li><li><a href="#">Trade-in</a></li></ul></div>'+
+    '<div><h4>SUPPORT</h4><ul><li><a href="#">Track order</a></li><li><a href="#">Delivery &amp; returns</a></li><li><a href="#">Warranty / RMA</a></li><li><a href="#">Contact</a></li></ul></div>'+
+    '<div><h4>COMPANY</h4><ul><li><a href="'+S.url("brands")+'">All brands</a></li><li><a href="#">About</a></li><li><a href="#">Test lab</a></li><li><a href="#">Terms</a></li></ul></div>'+
+    '</div><div class="fb"><span>© 2026 UK COMPUTER SHOP LTD · VAT GB 123 4567 89</span><span>ALL PRICES INC. VAT · E&amp;OE</span></div></div></footer>';
+}
+function crumbs(list){
+  return '<div class="wrap"><nav class="crumb">'+list.map(function(c,i){
+    var last = i === list.length-1;
+    return (i ? '<span style="color:#2f3846">/</span>' : "") + (last ? '<b>'+E(c.label)+'</b>' : '<a href="'+c.href+'">'+E(c.label)+'</a>');
+  }).join("")+'</nav></div>';
+}
+function card(p){
+  var st = S.stockText(p), keys = Object.keys(p.specs).slice(0,4);
+  return '<article class="card">'+
+    '<div class="tags">'+(p.was ? '<span class="tg">-'+Math.round((p.was-p.price)/p.was*100)+'%</span>' : "")+(p.isNew ? '<span class="tg v">NEW</span>' : "")+'</div>'+
+    '<button class="fav">'+ic("i-heart",18,18)+'</button>'+
+    '<a class="im" href="'+S.url("product",{id:p.id})+'">'+icv(p.icon,150,104)+'</a>'+
+    '<div class="bd"><div class="mrow"><a href="'+S.url("brand",{b:p.brand})+'" style="color:var(--lime)">'+E(p.brand).toUpperCase()+'</a><span>'+E(p.sku)+'</span></div>'+
+    '<h3><a href="'+S.url("product",{id:p.id})+'">'+E(p.name)+'</a></h3>'+
+    '<div class="kv">'+keys.map(function(k){ return '<div><span>'+E(k).toUpperCase()+'</span><b>'+E(p.specs[k])+'</b></div>'; }).join("")+'</div>'+
+    '<div class="rate"><i>'+S.stars(p.rating)+'</i>'+p.rating+' · '+p.reviews.toLocaleString("en-GB")+'</div>'+
+    '<div class="prow"><b>'+M(p.price)+'</b>'+(p.was ? '<s>'+M(p.was)+'</s><em>SAVE '+M(p.was-p.price)+'</em>' : "")+'</div>'+
+    '<div class="avail" style="'+(st.cls==="in"?"":"color:"+(st.cls==="low"?"#ffb020":"var(--red)"))+'"><i style="background:currentColor"></i>'+E(st.text).toUpperCase()+'</div>'+
+    '<div class="crow"><a class="buy" href="#">ADD TO BASKET</a><a class="ghost" href="'+S.url("product",{id:p.id})+'">'+ic("i-arr",17,17)+'</a></div>'+
+    '</div></article>';
+}
+function rail(eyebrow, title, sub, items, link){
+  if (!items || !items.length) return "";
+  return '<section style="padding-top:0"><div class="wrap"><div class="shead"><div><div class="mono">'+E(eyebrow)+'</div><h2>'+E(title)+'</h2>'+
+    (sub ? '<p>'+E(sub)+'</p>' : "")+'</div>'+(link ? '<a href="'+link.href+'">'+E(link.label).toUpperCase()+' '+ic("i-arr",15,15)+'</a>' : "")+'</div>'+
+    '<div class="pgrid">'+items.map(card).join("")+'</div></div></section>';
+}
+
+function productPage(){
+  var d = Pages.product(); if (!d) return;
+  var p = d.p, st = S.stockText(p), keys = Object.keys(p.specs), dist = [72,19,6,2,1];
+  var revs = [
+    { who:"Daniel H.", v:1, r:5, t:"Dropped straight in, no fuss", b:"Ordered Tuesday afternoon, here Wednesday morning. Idles silently and the packaging was genuinely good — double boxed with foam ends." },
+    { who:"Priya S.",  v:1, r:5, t:"Exactly as specified", b:"The spec sheet on the listing matched the product to the letter, which is more than I can say for the marketplace I used before." },
+    { who:"Mark T.",   v:0, r:4, t:"Very good, one small niggle", b:"No complaints about performance. Would have liked the older mounting bracket in the box, but that is on the manufacturer." }
+  ];
+  document.getElementById("app").innerHTML = header() + crumbs(d.crumbs) +
+    '<div class="wrap"><div class="pd">'+
+      '<div class="pdmain"><div class="gal">'+
+        '<div class="tagrow">'+(p.was ? '<span class="tg" style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;padding:4px 8px;background:var(--lime);color:#0a0c11;font-weight:700">-'+Math.round((p.was-p.price)/p.was*100)+'%</span>' : "")+'</div>'+
+        '<div class="main"><svg viewBox="0 0 64 44" style="width:330px;height:250px"><use href="#'+p.icon+'"/></svg></div>'+
+        '<div class="thumbs"><span class="on">'+icv(p.icon,48,36)+'</span><span>'+icv(p.icon,48,36)+'</span><span>'+icv(p.icon,48,36)+'</span><span>'+icv(p.icon,48,36)+'</span></div>'+
+      '</div>'+
+      '<div class="tabbar"><button class="on" data-tab="spec">SPECIFICATION</button><button data-tab="reviews">REVIEWS</button><button data-tab="delivery">DELIVERY</button></div>'+
+      '<div class="tabpane on" id="spec"><table class="spectable">'+
+        keys.map(function(k){ return '<tr><th>'+E(k)+'</th><td>'+E(p.specs[k])+'</td></tr>'; }).join("")+
+        '<tr><th>Brand</th><td><a href="'+S.url("brand",{b:p.brand})+'" style="color:var(--lime)">'+E(p.brand)+'</a></td></tr></table></div>'+
+      '<div class="tabpane" id="reviews"><div class="rvsum"><div class="rvbig"><b>'+p.rating+'</b><i>'+S.stars(p.rating)+'</i><span>'+p.reviews.toLocaleString("en-GB")+' REVIEWS</span></div>'+
+        '<div class="rvbars">'+dist.map(function(v,i){ return '<div><span>'+(5-i)+' STAR</span><span class="bar"><i style="width:'+v+'%"></i></span><span>'+v+'%</span></div>'; }).join("")+'</div></div>'+
+        revs.map(function(r){ return '<div class="rv"><div class="top"><span class="who">'+E(r.who)+(r.v?'<em>VERIFIED</em>':"")+'</span><span class="date">MARCH 2026</span></div>'+
+          '<div style="margin-bottom:6px"><i>'+S.stars(r.r)+'</i> <b style="font-size:13px">'+E(r.t)+'</b></div><p>'+E(r.b)+'</p></div>'; }).join("")+'</div>'+
+      '<div class="tabpane" id="delivery"><p style="margin:0 0 12px;font-size:13.5px;color:var(--dim)">Free next-day delivery over £75, despatched same day when ordered before 17:00 Monday to Friday. Saturday delivery £7.95 at checkout.</p>'+
+        '<p style="margin:0;font-size:13.5px;color:var(--dim)">Returns within 30 days in original packaging. Faulty items go through our RMA process — we collect, test and replace, carriage free both ways.</p></div>'+
+      '</div>'+
+      '<div class="pdinfo">'+
+        '<div class="top"><a href="'+S.url("brand",{b:p.brand})+'">'+E(p.brand).toUpperCase()+'</a><span class="mono" style="color:var(--dim2)">'+E(p.subcategory).toUpperCase()+'</span></div>'+
+        '<h1>'+E(p.name)+'</h1>'+
+        '<div class="rate"><i>'+S.stars(p.rating)+'</i>'+p.rating+' · '+p.reviews.toLocaleString("en-GB")+' reviews · '+p.sold.toLocaleString("en-GB")+' sold</div>'+
+        '<div class="idgrid"><div><span>SKU</span><b>'+E(p.sku)+'</b></div><div><span>MPN</span><b>'+E(p.mpn)+'</b></div><div><span>EAN</span><b>'+E(p.ean)+'</b></div></div>'+
+        '<div class="specgrid">'+keys.slice(0,6).map(function(k){ return '<div><span>'+E(k).toUpperCase()+'</span><b>'+E(p.specs[k])+'</b></div>'; }).join("")+'</div>'+
+        '<div class="buyblk">'+
+          '<div class="pr"><b>'+M(p.price)+'</b>'+(p.was ? '<s>'+M(p.was)+'</s><em>SAVE '+M(p.was-p.price)+'</em>' : "")+'</div>'+
+          '<div class="ex">'+S.exVat(p.price)+' EX VAT · 0% FINANCE FROM '+M(p.price/12)+'/MO</div>'+
+          '<div class="av '+st.cls+'"><i></i>'+E(st.text).toUpperCase()+'</div>'+
+          '<div class="buyrow"><div class="qty"><button type="button">−</button><input value="1"><button type="button">+</button></div>'+
+            '<a class="b1" href="#">'+(st.cls==="out"?"PRE-ORDER":"ADD TO BASKET")+'</a></div>'+
+          '<a class="b2" href="#" style="display:block;text-align:center;padding:11px">Add to wishlist</a>'+
+          '<ul class="perks"><li>'+ic("i-truck",15,15)+'<span>Free next-day delivery, order before 17:00</span></li>'+
+            '<li>'+ic("i-shield",15,15)+'<span>'+E(p.specs.Warranty || "Manufacturer warranty")+' · 30-day UK returns</span></li>'+
+            '<li>'+ic("i-wrench",15,15)+'<span>Fitting available at our Manchester workshop</span></li></ul>'+
+        '</div>'+
+      '</div>'+
+    '</div></div>'+
+    rail("ALTERNATIVES", "Related products", "Other options on the same shelf, at a similar price.", d.related, { href:S.url("home"), label:"All "+p.subcategory })+
+    rail("COMPLETE THE BUILD", "Frequently bought together", "Compatibility-checked against this part — socket, memory profile and PSU headroom.", d.alsoBought)+
+    rail("FOR YOU", "Recommended", d.recentlyViewed.length ? "Based on what you have been looking at." : "Popular right now across the catalogue.", d.recommended)+
+    (d.recentlyViewed.length ? rail("HISTORY", "Recently viewed", null, d.recentlyViewed.slice(0,4)) : "")+
+    footer();
+  wireTabs(); document.title = p.name + " — UK Computer Shop";
+}
+function wireTabs(){
+  document.querySelectorAll(".tabbar button").forEach(function(b){
+    b.addEventListener("click", function(){
+      document.querySelectorAll(".tabbar button").forEach(function(x){ x.classList.remove("on"); });
+      document.querySelectorAll(".tabpane").forEach(function(x){ x.classList.remove("on"); });
+      b.classList.add("on"); document.getElementById(b.dataset.tab).classList.add("on");
+    });
+  });
+  document.querySelectorAll(".qty button").forEach(function(b){
+    b.addEventListener("click", function(){
+      var i = document.querySelector(".qty input");
+      i.value = Math.max(1, (+i.value||1) + (b.textContent === "+" ? 1 : -1));
+    });
+  });
+}
+function brandCard(b){
+  return '<a class="bcard" href="'+S.url("brand",{b:b.brand})+'"><span class="mark">'+E(b.brand.slice(0,2).toUpperCase())+'</span>'+
+    '<h3>'+E(b.brand)+'</h3><p>'+E(b.note.length>96 ? b.note.slice(0,94)+"…" : b.note)+'</p>'+
+    '<span class="meta"><span><b>'+b.count+'</b> LINES</span><span><b>'+b.rating.toFixed(1)+'</b>★</span><span>FROM <b>'+M(b.min).replace(".00","")+'</b></span></span></a>';
+}
+function brandPage(){
+  var d = Pages.brand(); if (!d) return; var b = d.b;
+  document.getElementById("app").innerHTML = header() + crumbs(d.crumbs) +
+    '<div class="wrap"><div class="bhero">'+
+      '<div><div class="mark">'+E(b.brand.slice(0,2).toUpperCase())+'</div><h1>'+E(b.brand)+'</h1><p>'+E(b.note)+'</p></div>'+
+      '<div class="bstats"><div><b>'+b.count+'</b><span>PRODUCTS</span></div><div><b>'+b.rating.toFixed(1)+'</b><span>AVG RATING</span></div>'+
+      '<div><b>'+M(b.min).replace(".00","")+'</b><span>FROM</span></div><div><b>'+b.deals+'</b><span>ON OFFER</span></div></div></div>'+
+      '<div class="bchips"><a class="on" href="#">ALL '+b.count+'</a>'+d.subcats.map(function(s2){ return '<a href="#">'+E(s2).toUpperCase()+'<span>'+d.bySub[s2].length+'</span></a>'; }).join("")+'</div></div>'+
+    rail("BEST SELLERS", b.brand + " — moving fastest", "Ranked by units shipped over the last 90 days.", d.items.slice(0,4))+
+    (d.deals.length ? rail("REDUCED", "Current " + b.brand + " offers", "Reduced until Sunday midnight.", d.deals) : "")+
+    (d.newest.length ? rail("JUST IN", "New from " + b.brand, "Most recently added to the catalogue.", d.newest) : "")+
+    rail("FOR YOU", "Recommended", "Pairs well with " + b.brand + " hardware.", d.recommended)+
+    '<section style="padding-top:0"><div class="wrap"><div class="shead"><div><div class="mono">ALTERNATIVES</div><h2>Other brands to consider</h2>'+
+      '<p>Stocked in the same categories as '+E(b.brand)+'.</p></div><a href="'+S.url("brands")+'">ALL BRANDS '+ic("i-arr",15,15)+'</a></div>'+
+      '<div class="bgrid">'+d.siblings.slice(0,4).map(brandCard).join("")+'</div></div></section>'+
+    footer();
+  document.title = b.brand + " — UK Computer Shop";
+}
+function brandsPage(){
+  var d = Pages.brands();
+  document.getElementById("app").innerHTML = header() + crumbs(d.crumbs) +
+    '<div class="wrap"><div class="shead" style="margin-top:8px"><div><div class="mono">MANUFACTURERS</div><h2>All brands</h2>'+
+      '<p>'+d.all.length+' manufacturers, '+d.totalProducts.toLocaleString("en-GB")+' products. Every brand page carries live stock, current offers and new arrivals.</p></div></div>'+
+      '<div class="alpha">'+"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(function(L){
+        return d.letters[L] ? '<a href="#L'+L+'">'+L+'</a>' : '<a class="dim">'+L+'</a>'; }).join("")+'</div>'+
+      '<div class="bgrid" style="margin-bottom:26px">'+d.featured.map(brandCard).join("")+'</div>'+
+      d.keys.map(function(L){
+        return '<div class="azblock" id="L'+L+'"><div class="L">'+L+'</div><div class="azlist">'+
+          d.letters[L].map(function(b){ return '<a href="'+S.url("brand",{b:b.brand})+'">'+E(b.brand)+'<span>'+b.count+'</span></a>'; }).join("")+'</div></div>';
+      }).join("")+'</div>'+
+    rail("FOR YOU", "Recommended", "Popular across the brands you have been browsing.", d.recommended)+
+    footer();
+  document.title = "All brands — UK Computer Shop";
+}
+window.DesignB = { product:productPage, brand:brandPage, brands:brandsPage };
+})();

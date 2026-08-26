@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UK Computer Shop — Design Prototypes</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0e1116;color:#e9edf3;font-family:Inter,system-ui,sans-serif;line-height:1.6}
+a{color:inherit;text-decoration:none}
+.w{width:min(1180px,100% - 40px);margin:0 auto}
+header{padding:64px 0 40px;border-bottom:1px solid #222a35}
+.k{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#7d8a9c;font-weight:600}
+h1{font-size:44px;line-height:1.05;letter-spacing:-1.5px;margin:14px 0 12px;font-weight:800}
+header p{color:#96a2b3;max-width:640px;margin:0;font-size:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:40px 0 70px}
+.c{cursor:pointer;border:1px solid #222a35;border-radius:14px;overflow:hidden;background:#141920;transition:.18s;display:flex;flex-direction:column}
+.c:hover{border-color:#3b4757;transform:translateY(-3px)}
+.sw{height:9px;display:flex}
+.sw i{flex:1}
+.cb{padding:26px}
+.c .n{font-size:11px;letter-spacing:.2em;color:#7d8a9c;font-weight:700}
+.c h2{margin:10px 0 6px;font-size:24px;letter-spacing:-.5px}
+.c .tag{display:inline-block;font-size:12px;font-weight:600;padding:4px 10px;border-radius:99px;margin-bottom:14px}
+.c p{color:#96a2b3;font-size:14.5px;margin:0 0 18px}
+.c ul{margin:0 0 22px;padding:0;list-style:none;display:grid;gap:8px;font-size:13.5px;color:#b6c1cf}
+.c li{display:flex;gap:10px}
+.c li::before{content:"—";color:#5b6878}
+.c .open{display:inline-flex;align-items:center;gap:9px;background:#e9edf3;color:#0e1116;padding:11px 20px;border-radius:9px;font-weight:700;font-size:14px;margin-top:auto;align-self:flex-start}
+.pages{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.pages a{font-size:12.5px;color:#96a2b3;border:1px solid #2a3340;border-radius:7px;padding:6px 12px;position:relative;z-index:2}
+.pages a:hover{border-color:#5b6878;color:#e9edf3;background:#1a212b}
+.c .open:hover{background:#fff}
+footer{border-top:1px solid #222a35;padding:26px 0 60px;color:#6f7c8d;font-size:13.5px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}h1{font-size:32px}}
+code{font-family:ui-monospace,SFMono-Regular,monospace;font-size:.9em;background:#1c222b;padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+<header><div class="w">
+  <div class="k">UK Computer Shop · Phase 1</div>
+  <h1>Four design directions for the storefront</h1>
+  <p>Each direction now covers four page types — home, product detail, brand and the brand directory — all built from the same catalogue data, so the comparison stays about design language and information density rather than content. Pick one, or tell me which parts of each to merge.</p>
+</div></header>
+
+<div class="w"><div class="grid">
+
+  <div class="c" data-href="01-highstreet.html">
+    <div class="sw"><i style="background:#0a2540"></i><i style="background:#0b64d6"></i><i style="background:#ff8a00"></i><i style="background:#d3223a"></i><i style="background:#f4f6f9"></i></div>
+    <div class="cb">
+      <div class="n">DIRECTION A</div><h2>Highstreet</h2>
+      <span class="tag" style="background:#10233a;color:#7fb2f0">Mainstream UK e-tail · widest appeal</span>
+      <p>The familiar Scan / Overclockers / Currys shape, executed cleanly. Optimised for shoppers who already know how to buy from a big retailer.</p>
+      <ul><li>Mega-menu navigation with promo panels</li><li>Scoped search with category dropdown</li><li>Hero carousel plus two promo cards</li><li>Dense 4-up product cards with specs, stock and VAT lines</li><li>Trust bar, countdown deals band, brand wall</li></ul>
+      <span class="open">Open home page →</span><span class="pages"><a href="01-product.html?id=1">Product</a><a href="01-brand.html?b=Corsair">Brand</a><a href="01-brands.html">All brands</a></span>
+    </div>
+  </div>
+
+  <div class="c" data-href="02-overdrive.html">
+    <div class="sw"><i style="background:#08090c"></i><i style="background:#d4ff3f"></i><i style="background:#8b5cff"></i><i style="background:#3fe0ff"></i><i style="background:#151a22"></i></div>
+    <div class="cb">
+      <div class="n">DIRECTION B</div><h2>Overdrive</h2>
+      <span class="tag" style="background:#1e2410;color:#d4ff3f">Dark performance · gaming-first</span>
+      <p>Built for the enthusiast who buys on frame rates. Live stock ticker, benchmark bars, and three pre-built tiers as the primary conversion path.</p>
+      <ul><li>Live stock/price ticker across the top</li><li>Benchmark panel as the hero product proof</li><li>Three-tier rig picker with monthly finance</li><li>Spec-matrix product cards, clipped/angular UI</li><li>Compare counter built into the header</li></ul>
+      <span class="open">Open home page →</span><span class="pages"><a href="02-product.html?id=1">Product</a><a href="02-brand.html?b=Corsair">Brand</a><a href="02-brands.html">All brands</a></span>
+    </div>
+  </div>
+
+  <div class="c" data-href="03-atelier.html">
+    <div class="sw"><i style="background:#faf8f5"></i><i style="background:#17140f"></i><i style="background:#1e4d5c"></i><i style="background:#b8542f"></i><i style="background:#e2dcd2"></i></div>
+    <div class="cb">
+      <div class="n">DIRECTION C</div><h2>Atelier</h2>
+      <span class="tag" style="background:#2a1f16;color:#e0a97f">Editorial premium · trust &amp; margin</span>
+      <p>Positions the shop as specialists rather than a price-comparison stop. Serif display type, generous space, guides from the workshop bench.</p>
+      <ul><li>Centred wordmark with a calm secondary nav</li><li>Always-visible single-line search bar</li><li>Dark product-of-the-month spotlight with spec table</li><li>Quiet product grid — one clear price, no shouting</li><li>Journal/guides section supporting SEO and expertise</li></ul>
+      <span class="open">Open home page →</span><span class="pages"><a href="03-product.html?id=1">Product</a><a href="03-brand.html?b=Corsair">Brand</a><a href="03-brands.html">All brands</a></span>
+    </div>
+  </div>
+
+  <div class="c" data-href="04-spec-index.html">
+    <div class="sw"><i style="background:#f2f2ef"></i><i style="background:#0d0d0d"></i><i style="background:#2438e0"></i><i style="background:#c2650a"></i><i style="background:#fff"></i></div>
+    <div class="cb">
+      <div class="n">DIRECTION D</div><h2>Spec Index</h2>
+      <span class="tag" style="background:#111a3a;color:#8f9bfa">Search-first utility · live prototype</span>
+      <p>Treats the home page as the catalogue. The advanced search and filter requirements are the interface rather than a page you navigate to. <b style="color:#e9edf3">This one is wired up</b> — it runs against 104 dummy products.</p>
+      <ul><li>Token search — <code>socket:AM5</code>, <code>price:&lt;200</code>, <code>vram:&gt;=16</code></li><li>Facet rail built from the data, with live counts</li><li>Autocomplete, sorting, compare table, quick view</li><li>Filters are encoded in the URL, so a search is shareable</li><li>Zero dependencies — one JSON file and ~600 lines of vanilla JS</li></ul>
+      <span class="open">Open home page →</span><span class="pages"><a href="04-product.html?id=1">Product</a><a href="04-brand.html?b=Corsair">Brand</a><a href="04-brands.html">All brands</a></span>
+    </div>
+  </div>
+
+</div></div>
+
+<footer><div class="w">All four designs share one dummy catalogue (<code>data/products.js</code>, 104 products) and one set of recommendation rules (<code>js/shop.js</code>), so the comparison stays about design rather than content. Product, brand and brand-directory pages are generated from that data in every design. No build step, no framework. Pricing, stock and review figures are invented.</div></footer>
+<script>
+document.querySelectorAll('.c[data-href]').forEach(function(c){
+  c.addEventListener('click', function(e){ if (!e.target.closest('a')) location.href = c.dataset.href; });
+});
+</script>
+</body></html>
