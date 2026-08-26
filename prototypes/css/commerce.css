@@ -205,3 +205,29 @@
   .cat-sel{flex:1}
   .ck-doneacts{flex-direction:column}
 }
+
+/* Comparison results — new page type, same --c-* tokens as basket/checkout/account. */
+.cmp-empty{border:1px dashed var(--c-line-strong);background:var(--c-surface);border-radius:var(--c-radius);padding:70px 24px;text-align:center;color:var(--c-muted)}
+.cmp-empty svg{margin:0 auto 16px;color:var(--c-muted)}
+.cmp-empty h3{margin:0 0 8px;font-family:var(--c-display);font-size:22px;color:var(--c-text);font-weight:var(--c-display-weight)}
+.cmp-empty p{margin:0 0 22px;max-width:46ch;margin-inline:auto}
+.cmp-head{padding:10px 0 20px}
+.cmp-head h1{margin:0 0 6px;font-family:var(--c-display);font-size:var(--c-h1);font-weight:var(--c-display-weight);letter-spacing:var(--c-display-track);color:var(--c-text)}
+.cmp-head p{margin:0;color:var(--c-muted);font-size:13.5px}
+.cmp-scroll{overflow-x:auto;padding-bottom:6px}
+.cmp-table{border-collapse:collapse;width:100%;min-width:640px}
+.cmp-table th,.cmp-table td{border:var(--c-border);padding:12px 16px;text-align:left;font-size:13.5px;vertical-align:top;background:var(--c-surface)}
+.cmp-table thead th{background:var(--c-surface-2);vertical-align:top}
+.cmp-table tbody th{font-size:12px;color:var(--c-muted);font-weight:600;white-space:nowrap;background:var(--c-surface-2)}
+.cmp-table td.cmp-diff{background:color-mix(in srgb, var(--c-accent) 10%, var(--c-surface))}
+.cmp-card{position:relative;display:flex;flex-direction:column;gap:8px;min-width:150px;padding-right:20px}
+.cmp-rm{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:99px;background:var(--c-surface-2);border:1px solid var(--c-line-strong);color:var(--c-muted);font-size:14px;line-height:1;cursor:pointer}
+.cmp-rm:hover{background:var(--c-neg);color:#fff;border-color:var(--c-neg)}
+.cmp-fig{display:grid;place-items:center;background:var(--c-surface-2);border-radius:var(--c-radius);height:70px;color:var(--c-fig)}
+.cmp-name{font-weight:600;font-size:13.5px;color:var(--c-text);line-height:1.35}
+.cmp-name:hover{color:var(--c-accent)}
+.cmp-brand{font-size:11px;color:var(--c-muted);text-transform:uppercase;letter-spacing:.06em}
+.cmp-price{font-family:var(--c-num);font-size:16px}
+.cmp-na{color:var(--c-muted)}
+.cmp-actions{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 0 30px;flex-wrap:wrap}
+@media(max-width:760px){.cmp-card{min-width:130px}}

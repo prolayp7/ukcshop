@@ -86,6 +86,17 @@ var Pages = {
     };
   },
 
+  compare: function(){
+    var products = S.Compare.products();
+    return {
+      products: products,
+      empty: products.length === 0,
+      needsMore: products.length === 1,
+      recommended: S.recommended(4, products.map(function(x){ return x.id; })),
+      crumbs: [ { label:"Home", href:S.url("home") }, { label:"Compare" } ]
+    };
+  },
+
   product: function(){
     var id = S.param("id");
     /* No id at all is a legitimate entry point (demo default); a bad id is not —

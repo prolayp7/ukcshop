@@ -35,7 +35,12 @@ window.PRODUCTS = [
    "vram": 16,
    "gpu_brand": "NVIDIA",
    "memtype": "GDDR7"
-  }
+  },
+  "inBox": [
+   "Graphics card",
+   "Power cable adapter",
+   "Quick start guide"
+  ]
  },
  {
   "id": 2,
@@ -70,7 +75,12 @@ window.PRODUCTS = [
    "vram": 16,
    "gpu_brand": "NVIDIA",
    "memtype": "GDDR7"
-  }
+  },
+  "inBox": [
+   "Graphics card",
+   "Power cable adapter",
+   "Quick start guide"
+  ]
  },
  {
   "id": 3,
@@ -105,7 +115,12 @@ window.PRODUCTS = [
    "vram": 32,
    "gpu_brand": "NVIDIA",
    "memtype": "GDDR7"
-  }
+  },
+  "inBox": [
+   "Graphics card",
+   "Power cable adapter",
+   "Quick start guide"
+  ]
  },
  {
   "id": 4,
@@ -140,7 +155,12 @@ window.PRODUCTS = [
    "vram": 16,
    "gpu_brand": "NVIDIA",
    "memtype": "GDDR7"
-  }
+  },
+  "inBox": [
+   "Graphics card",
+   "Power cable adapter",
+   "Quick start guide"
+  ]
  },
  {
   "id": 5,
@@ -175,7 +195,12 @@ window.PRODUCTS = [
    "vram": 16,
    "gpu_brand": "AMD",
    "memtype": "GDDR6"
-  }
+  },
+  "inBox": [
+   "Graphics card",
+   "Power cable adapter",
+   "Quick start guide"
+  ]
  },
  {
   "id": 6,
@@ -210,7 +235,12 @@ window.PRODUCTS = [
    "vram": 16,
    "gpu_brand": "AMD",
    "memtype": "GDDR6"
-  }
+  },
+  "inBox": [
+   "Graphics card",
+   "Power cable adapter",
+   "Quick start guide"
+  ]
  },
  {
   "id": 7,
@@ -245,7 +275,12 @@ window.PRODUCTS = [
    "vram": 12,
    "gpu_brand": "NVIDIA",
    "memtype": "GDDR7"
-  }
+  },
+  "inBox": [
+   "Graphics card",
+   "Power cable adapter",
+   "Quick start guide"
+  ]
  },
  {
   "id": 8,
@@ -280,7 +315,12 @@ window.PRODUCTS = [
    "vram": 12,
    "gpu_brand": "Intel",
    "memtype": "GDDR6"
-  }
+  },
+  "inBox": [
+   "Graphics card",
+   "Power cable adapter",
+   "Quick start guide"
+  ]
  },
  {
   "id": 9,
@@ -314,7 +354,12 @@ window.PRODUCTS = [
   "attrs": {
    "socket": "AM5",
    "cores": 8
-  }
+  },
+  "inBox": [
+   "Processor",
+   "Protective case",
+   "Quick start guide"
+  ]
  },
  {
   "id": 10,
@@ -348,7 +393,12 @@ window.PRODUCTS = [
   "attrs": {
    "socket": "AM5",
    "cores": 16
-  }
+  },
+  "inBox": [
+   "Processor",
+   "Protective case",
+   "Quick start guide"
+  ]
  },
  {
   "id": 11,
@@ -382,7 +432,12 @@ window.PRODUCTS = [
   "attrs": {
    "socket": "AM5",
    "cores": 6
-  }
+  },
+  "inBox": [
+   "Processor",
+   "Protective case",
+   "Quick start guide"
+  ]
  },
  {
   "id": 12,
@@ -416,7 +471,12 @@ window.PRODUCTS = [
   "attrs": {
    "socket": "AM5",
    "cores": 8
-  }
+  },
+  "inBox": [
+   "Processor",
+   "Protective case",
+   "Quick start guide"
+  ]
  },
  {
   "id": 13,
@@ -450,7 +510,12 @@ window.PRODUCTS = [
   "attrs": {
    "socket": "LGA1851",
    "cores": 24
-  }
+  },
+  "inBox": [
+   "Processor",
+   "Protective case",
+   "Quick start guide"
+  ]
  },
  {
   "id": 14,
@@ -484,7 +549,12 @@ window.PRODUCTS = [
   "attrs": {
    "socket": "LGA1851",
    "cores": 20
-  }
+  },
+  "inBox": [
+   "Processor",
+   "Protective case",
+   "Quick start guide"
+  ]
  },
  {
   "id": 15,
@@ -518,7 +588,12 @@ window.PRODUCTS = [
   "attrs": {
    "socket": "LGA1700",
    "cores": 14
-  }
+  },
+  "inBox": [
+   "Processor",
+   "Protective case",
+   "Quick start guide"
+  ]
  },
  {
   "id": 16,
@@ -552,7 +627,12 @@ window.PRODUCTS = [
   "attrs": {
    "socket": "AM4",
    "cores": 6
-  }
+  },
+  "inBox": [
+   "Processor",
+   "Protective case",
+   "Quick start guide"
+  ]
  },
  {
   "id": 17,
@@ -588,7 +668,14 @@ window.PRODUCTS = [
    "chipset": "B850",
    "form_factor": "ATX",
    "memtype": "DDR5"
-  }
+  },
+  "inBox": [
+   "Motherboard",
+   "SATA cables",
+   "I/O shield",
+   "Driver disc / download card",
+   "User manual"
+  ]
  },
  {
   "id": 18,
@@ -624,7 +711,14 @@ window.PRODUCTS = [
    "chipset": "X870",
    "form_factor": "ATX",
    "memtype": "DDR5"
-  }
+  },
+  "inBox": [
+   "Motherboard",
+   "SATA cables",
+   "I/O shield",
+   "Driver disc / download card",
+   "User manual"
+  ]
  },
  {
   "id": 19,
@@ -660,7 +754,14 @@ window.PRODUCTS = [
    "chipset": "B650",
    "form_factor": "Micro-ATX",
    "memtype": "DDR5"
-  }
+  },
+  "inBox": [
+   "Motherboard",
+   "SATA cables",
+   "I/O shield",
+   "Driver disc / download card",
+   "User manual"
+  ]
  },
  {
   "id": 20,
@@ -696,7 +797,14 @@ window.PRODUCTS = [
    "chipset": "Z890",
    "form_factor": "ATX",
    "memtype": "DDR5"
-  }
+  },
+  "inBox": [
+   "Motherboard",
+   "SATA cables",
+   "I/O shield",
+   "Driver disc / download card",
+   "User manual"
+  ]
  },
  {
   "id": 21,
@@ -732,7 +840,14 @@ window.PRODUCTS = [
    "chipset": "X870",
    "form_factor": "Mini-ITX",
    "memtype": "DDR5"
-  }
+  },
+  "inBox": [
+   "Motherboard",
+   "SATA cables",
+   "I/O shield",
+   "Driver disc / download card",
+   "User manual"
+  ]
  },
  {
   "id": 22,
@@ -768,7 +883,14 @@ window.PRODUCTS = [
    "chipset": "B760",
    "form_factor": "Micro-ATX",
    "memtype": "DDR4"
-  }
+  },
+  "inBox": [
+   "Motherboard",
+   "SATA cables",
+   "I/O shield",
+   "Driver disc / download card",
+   "User manual"
+  ]
  },
  {
   "id": 23,
@@ -803,7 +925,11 @@ window.PRODUCTS = [
    "memtype": "DDR5",
    "capacity_gb": 32,
    "speed": 6000
-  }
+  },
+  "inBox": [
+   "Memory module(s)",
+   "Warranty card"
+  ]
  },
  {
   "id": 24,
@@ -838,7 +964,11 @@ window.PRODUCTS = [
    "memtype": "DDR5",
    "capacity_gb": 64,
    "speed": 6000
-  }
+  },
+  "inBox": [
+   "Memory module(s)",
+   "Warranty card"
+  ]
  },
  {
   "id": 25,
@@ -873,7 +1003,11 @@ window.PRODUCTS = [
    "memtype": "DDR5",
    "capacity_gb": 16,
    "speed": 5600
-  }
+  },
+  "inBox": [
+   "Memory module(s)",
+   "Warranty card"
+  ]
  },
  {
   "id": 26,
@@ -908,7 +1042,11 @@ window.PRODUCTS = [
    "memtype": "DDR4",
    "capacity_gb": 32,
    "speed": 3600
-  }
+  },
+  "inBox": [
+   "Memory module(s)",
+   "Warranty card"
+  ]
  },
  {
   "id": 27,
@@ -943,7 +1081,11 @@ window.PRODUCTS = [
    "memtype": "DDR5",
    "capacity_gb": 96,
    "speed": 6400
-  }
+  },
+  "inBox": [
+   "Memory module(s)",
+   "Warranty card"
+  ]
  },
  {
   "id": 28,
@@ -978,7 +1120,11 @@ window.PRODUCTS = [
    "memtype": "DDR5",
    "capacity_gb": 32,
    "speed": 6400
-  }
+  },
+  "inBox": [
+   "Memory module(s)",
+   "Warranty card"
+  ]
  },
  {
   "id": 29,
@@ -1012,7 +1158,11 @@ window.PRODUCTS = [
   "attrs": {
    "capacity_gb": 2000,
    "interface": "NVMe"
-  }
+  },
+  "inBox": [
+   "Solid state drive",
+   "Mounting screw (M.2) or bracket (2.5in)"
+  ]
  },
  {
   "id": 30,
@@ -1046,7 +1196,11 @@ window.PRODUCTS = [
   "attrs": {
    "capacity_gb": 1000,
    "interface": "NVMe"
-  }
+  },
+  "inBox": [
+   "Solid state drive",
+   "Mounting screw (M.2) or bracket (2.5in)"
+  ]
  },
  {
   "id": 31,
@@ -1080,7 +1234,11 @@ window.PRODUCTS = [
   "attrs": {
    "capacity_gb": 4000,
    "interface": "NVMe"
-  }
+  },
+  "inBox": [
+   "Solid state drive",
+   "Mounting screw (M.2) or bracket (2.5in)"
+  ]
  },
  {
   "id": 32,
@@ -1114,7 +1272,11 @@ window.PRODUCTS = [
   "attrs": {
    "capacity_gb": 1000,
    "interface": "SATA"
-  }
+  },
+  "inBox": [
+   "Solid state drive",
+   "Mounting screw (M.2) or bracket (2.5in)"
+  ]
  },
  {
   "id": 33,
@@ -1148,7 +1310,11 @@ window.PRODUCTS = [
   "attrs": {
    "capacity_gb": 500,
    "interface": "NVMe"
-  }
+  },
+  "inBox": [
+   "Solid state drive",
+   "Mounting screw (M.2) or bracket (2.5in)"
+  ]
  },
  {
   "id": 34,
@@ -1182,7 +1348,11 @@ window.PRODUCTS = [
   "attrs": {
    "capacity_gb": 4000,
    "interface": "SATA"
-  }
+  },
+  "inBox": [
+   "Hard drive",
+   "Mounting screws"
+  ]
  },
  {
   "id": 35,
@@ -1216,7 +1386,11 @@ window.PRODUCTS = [
   "attrs": {
    "capacity_gb": 8000,
    "interface": "SATA"
-  }
+  },
+  "inBox": [
+   "Hard drive",
+   "Mounting screws"
+  ]
  },
  {
   "id": 36,
@@ -1250,7 +1424,11 @@ window.PRODUCTS = [
   "attrs": {
    "capacity_gb": 12000,
    "interface": "SATA"
-  }
+  },
+  "inBox": [
+   "Hard drive",
+   "Mounting screws"
+  ]
  },
  {
   "id": 37,
@@ -1285,7 +1463,14 @@ window.PRODUCTS = [
    "wattage": 850,
    "efficiency": "80 PLUS Gold",
    "modular": "Fully modular"
-  }
+  },
+  "inBox": [
+   "Power supply unit",
+   "Modular cable set",
+   "AC power cable",
+   "Mounting screws",
+   "User manual"
+  ]
  },
  {
   "id": 38,
@@ -1320,7 +1505,14 @@ window.PRODUCTS = [
    "wattage": 650,
    "efficiency": "80 PLUS Gold",
    "modular": "Fully modular"
-  }
+  },
+  "inBox": [
+   "Power supply unit",
+   "Modular cable set",
+   "AC power cable",
+   "Mounting screws",
+   "User manual"
+  ]
  },
  {
   "id": 39,
@@ -1355,7 +1547,14 @@ window.PRODUCTS = [
    "wattage": 1200,
    "efficiency": "80 PLUS Gold",
    "modular": "Fully modular"
-  }
+  },
+  "inBox": [
+   "Power supply unit",
+   "Modular cable set",
+   "AC power cable",
+   "Mounting screws",
+   "User manual"
+  ]
  },
  {
   "id": 40,
@@ -1390,7 +1589,14 @@ window.PRODUCTS = [
    "wattage": 550,
    "efficiency": "80 PLUS Bronze",
    "modular": "Non-modular"
-  }
+  },
+  "inBox": [
+   "Power supply unit",
+   "Modular cable set",
+   "AC power cable",
+   "Mounting screws",
+   "User manual"
+  ]
  },
  {
   "id": 41,
@@ -1425,7 +1631,14 @@ window.PRODUCTS = [
    "wattage": 1000,
    "efficiency": "80 PLUS Platinum",
    "modular": "Fully modular"
-  }
+  },
+  "inBox": [
+   "Power supply unit",
+   "Modular cable set",
+   "AC power cable",
+   "Mounting screws",
+   "User manual"
+  ]
  },
  {
   "id": 42,
@@ -1458,7 +1671,12 @@ window.PRODUCTS = [
   },
   "attrs": {
    "form_factor": "ATX Mid Tower"
-  }
+  },
+  "inBox": [
+   "Case",
+   "Accessory box (screws, standoffs, cable ties)",
+   "User manual"
+  ]
  },
  {
   "id": 43,
@@ -1491,7 +1709,12 @@ window.PRODUCTS = [
   },
   "attrs": {
    "form_factor": "ATX Mid Tower"
-  }
+  },
+  "inBox": [
+   "Case",
+   "Accessory box (screws, standoffs, cable ties)",
+   "User manual"
+  ]
  },
  {
   "id": 44,
@@ -1524,7 +1747,12 @@ window.PRODUCTS = [
   },
   "attrs": {
    "form_factor": "ATX Mid Tower"
-  }
+  },
+  "inBox": [
+   "Case",
+   "Accessory box (screws, standoffs, cable ties)",
+   "User manual"
+  ]
  },
  {
   "id": 45,
@@ -1557,7 +1785,12 @@ window.PRODUCTS = [
   },
   "attrs": {
    "form_factor": "Micro-ATX Tower"
-  }
+  },
+  "inBox": [
+   "Case",
+   "Accessory box (screws, standoffs, cable ties)",
+   "User manual"
+  ]
  },
  {
   "id": 46,
@@ -1590,7 +1823,13 @@ window.PRODUCTS = [
   },
   "attrs": {
    "cooler_type": "Air"
-  }
+  },
+  "inBox": [
+   "Cooler unit",
+   "Mounting bracket for supported sockets",
+   "Thermal paste",
+   "User manual"
+  ]
  },
  {
   "id": 47,
@@ -1623,7 +1862,13 @@ window.PRODUCTS = [
   },
   "attrs": {
    "cooler_type": "Liquid"
-  }
+  },
+  "inBox": [
+   "Cooler unit",
+   "Mounting bracket for supported sockets",
+   "Thermal paste",
+   "User manual"
+  ]
  },
  {
   "id": 48,
@@ -1656,7 +1901,13 @@ window.PRODUCTS = [
   },
   "attrs": {
    "cooler_type": "Air"
-  }
+  },
+  "inBox": [
+   "Cooler unit",
+   "Mounting bracket for supported sockets",
+   "Thermal paste",
+   "User manual"
+  ]
  },
  {
   "id": 49,
@@ -1687,7 +1938,12 @@ window.PRODUCTS = [
    "Connector": "4-pin PWM",
    "Warranty": "6 years"
   },
-  "attrs": {}
+  "attrs": {},
+  "inBox": [
+   "Fan(s)",
+   "Mounting screws",
+   "Extension cable"
+  ]
  },
  {
   "id": 50,
@@ -1718,7 +1974,12 @@ window.PRODUCTS = [
    "Connector": "Daisy-chain, 4-pin PWM",
    "Warranty": "1 year"
   },
-  "attrs": {}
+  "attrs": {},
+  "inBox": [
+   "Fan(s)",
+   "Mounting screws",
+   "Extension cable"
+  ]
  },
  {
   "id": 51,
@@ -1749,7 +2010,11 @@ window.PRODUCTS = [
    "Use case": "CPU, GPU",
    "Warranty": "n/a"
   },
-  "attrs": {}
+  "attrs": {},
+  "inBox": [
+   "Syringe of thermal compound",
+   "Spreader tool"
+  ]
  },
  {
   "id": 52,
@@ -1780,7 +2045,11 @@ window.PRODUCTS = [
    "Use case": "CPU, GPU, consoles",
    "Warranty": "n/a"
   },
-  "attrs": {}
+  "attrs": {},
+  "inBox": [
+   "Syringe of thermal compound",
+   "Spreader tool"
+  ]
  },
  {
   "id": 53,
@@ -1814,7 +2083,12 @@ window.PRODUCTS = [
   "attrs": {
    "os": "Windows 11 Home",
    "capacity_gb": 32
-  }
+  },
+  "inBox": [
+   "Pre-built PC",
+   "Power cable",
+   "Quick start guide"
+  ]
  },
  {
   "id": 54,
@@ -1848,7 +2122,12 @@ window.PRODUCTS = [
   "attrs": {
    "os": "Windows 11 Home",
    "capacity_gb": 16
-  }
+  },
+  "inBox": [
+   "Pre-built PC",
+   "Power cable",
+   "Quick start guide"
+  ]
  },
  {
   "id": 55,
@@ -1882,7 +2161,12 @@ window.PRODUCTS = [
   "attrs": {
    "os": "Windows 11 Pro",
    "capacity_gb": 64
-  }
+  },
+  "inBox": [
+   "Pre-built PC",
+   "Power cable",
+   "Quick start guide"
+  ]
  },
  {
   "id": 56,
@@ -1916,7 +2200,12 @@ window.PRODUCTS = [
   "attrs": {
    "os": "Windows 11 Pro",
    "capacity_gb": 16
-  }
+  },
+  "inBox": [
+   "Pre-built PC",
+   "Power cable",
+   "Quick start guide"
+  ]
  },
  {
   "id": 57,
@@ -1950,7 +2239,12 @@ window.PRODUCTS = [
   "attrs": {
    "os": "Windows 11 Pro",
    "capacity_gb": 32
-  }
+  },
+  "inBox": [
+   "Pre-built PC",
+   "Power cable",
+   "Quick start guide"
+  ]
  },
  {
   "id": 58,
@@ -1984,7 +2278,12 @@ window.PRODUCTS = [
   "attrs": {
    "os": "Windows 11 Pro for Workstations",
    "capacity_gb": 128
-  }
+  },
+  "inBox": [
+   "Pre-built workstation",
+   "Power cable",
+   "Quick start guide"
+  ]
  },
  {
   "id": 59,
@@ -2018,7 +2317,13 @@ window.PRODUCTS = [
   "attrs": {
    "os": "Windows 11 Pro",
    "capacity_gb": 32
-  }
+  },
+  "inBox": [
+   "Mini PC",
+   "Power adapter",
+   "VESA mounting bracket",
+   "Quick start guide"
+  ]
  },
  {
   "id": 60,
@@ -2051,7 +2356,13 @@ window.PRODUCTS = [
   },
   "attrs": {
    "os": "Not included"
-  }
+  },
+  "inBox": [
+   "Mini PC",
+   "Power adapter",
+   "VESA mounting bracket",
+   "Quick start guide"
+  ]
  },
  {
   "id": 61,
@@ -2085,7 +2396,13 @@ window.PRODUCTS = [
   "attrs": {
    "os": "Windows 11 Home",
    "capacity_gb": 16
-  }
+  },
+  "inBox": [
+   "All-in-one PC",
+   "Keyboard and mouse",
+   "Power cable",
+   "Quick start guide"
+  ]
  },
  {
   "id": 62,
@@ -2119,7 +2436,12 @@ window.PRODUCTS = [
   "attrs": {
    "os": "Windows 11 Pro",
    "capacity_gb": 16
-  }
+  },
+  "inBox": [
+   "Refurbished PC",
+   "Power cable",
+   "Refurbishment test report"
+  ]
  },
  {
   "id": 63,
@@ -2153,7 +2475,12 @@ window.PRODUCTS = [
   "attrs": {
    "os": "Windows 11 Home",
    "capacity_gb": 32
-  }
+  },
+  "inBox": [
+   "Laptop",
+   "Power adapter",
+   "Quick start guide"
+  ]
  },
  {
   "id": 64,
@@ -2187,7 +2514,12 @@ window.PRODUCTS = [
   "attrs": {
    "os": "Windows 11 Home",
    "capacity_gb": 32
-  }
+  },
+  "inBox": [
+   "Laptop",
+   "Power adapter",
+   "Quick start guide"
+  ]
  },
  {
   "id": 65,
@@ -2221,7 +2553,12 @@ window.PRODUCTS = [
   "attrs": {
    "os": "Windows 11 Home",
    "capacity_gb": 16
-  }
+  },
+  "inBox": [
+   "Laptop",
+   "Power adapter",
+   "Quick start guide"
+  ]
  },
  {
   "id": 66,
@@ -2255,7 +2592,12 @@ window.PRODUCTS = [
   "attrs": {
    "os": "Windows 11 Pro",
    "capacity_gb": 16
-  }
+  },
+  "inBox": [
+   "Laptop",
+   "Power adapter",
+   "Quick start guide"
+  ]
  },
  {
   "id": 67,
@@ -2289,7 +2631,12 @@ window.PRODUCTS = [
   "attrs": {
    "os": "Windows 11 Pro",
    "capacity_gb": 32
-  }
+  },
+  "inBox": [
+   "Laptop",
+   "Power adapter",
+   "Quick start guide"
+  ]
  },
  {
   "id": 68,
@@ -2323,7 +2670,12 @@ window.PRODUCTS = [
   "attrs": {
    "os": "Windows 11 Home",
    "capacity_gb": 16
-  }
+  },
+  "inBox": [
+   "Laptop",
+   "Power adapter",
+   "Quick start guide"
+  ]
  },
  {
   "id": 69,
@@ -2357,7 +2709,12 @@ window.PRODUCTS = [
   "attrs": {
    "os": "Windows 11 Home",
    "capacity_gb": 16
-  }
+  },
+  "inBox": [
+   "Laptop",
+   "Power adapter",
+   "Quick start guide"
+  ]
  },
  {
   "id": 70,
@@ -2391,7 +2748,12 @@ window.PRODUCTS = [
   "attrs": {
    "os": "Windows 11 Pro",
    "capacity_gb": 16
-  }
+  },
+  "inBox": [
+   "Laptop",
+   "Power adapter",
+   "Refurbishment test report"
+  ]
  },
  {
   "id": 71,
@@ -2427,7 +2789,13 @@ window.PRODUCTS = [
    "refresh": 240,
    "size_in": 27.0,
    "resolution": "2560 x 1440"
-  }
+  },
+  "inBox": [
+   "Monitor",
+   "Stand and base",
+   "Power cable",
+   "HDMI or DisplayPort cable"
+  ]
  },
  {
   "id": 72,
@@ -2463,7 +2831,13 @@ window.PRODUCTS = [
    "refresh": 120,
    "size_in": 27.0,
    "resolution": "2560 x 1440"
-  }
+  },
+  "inBox": [
+   "Monitor",
+   "Stand and base",
+   "Power cable",
+   "HDMI or DisplayPort cable"
+  ]
  },
  {
   "id": 73,
@@ -2499,7 +2873,13 @@ window.PRODUCTS = [
    "refresh": 240,
    "size_in": 49.0,
    "resolution": "5120 x 1440"
-  }
+  },
+  "inBox": [
+   "Monitor",
+   "Stand and base",
+   "Power cable",
+   "HDMI or DisplayPort cable"
+  ]
  },
  {
   "id": 74,
@@ -2535,7 +2915,13 @@ window.PRODUCTS = [
    "refresh": 180,
    "size_in": 23.8,
    "resolution": "1920 x 1080"
-  }
+  },
+  "inBox": [
+   "Monitor",
+   "Stand and base",
+   "Power cable",
+   "HDMI or DisplayPort cable"
+  ]
  },
  {
   "id": 75,
@@ -2571,7 +2957,13 @@ window.PRODUCTS = [
    "refresh": 60,
    "size_in": 27.0,
    "resolution": "3840 x 2160"
-  }
+  },
+  "inBox": [
+   "Monitor",
+   "Stand and base",
+   "Power cable",
+   "HDMI or DisplayPort cable"
+  ]
  },
  {
   "id": 76,
@@ -2607,7 +2999,13 @@ window.PRODUCTS = [
    "refresh": 240,
    "size_in": 31.5,
    "resolution": "3840 x 2160"
-  }
+  },
+  "inBox": [
+   "Monitor",
+   "Stand and base",
+   "Power cable",
+   "HDMI or DisplayPort cable"
+  ]
  },
  {
   "id": 77,
@@ -2640,7 +3038,12 @@ window.PRODUCTS = [
   },
   "attrs": {
    "wireless": "Yes"
-  }
+  },
+  "inBox": [
+   "Keyboard",
+   "USB-C or wireless dongle cable",
+   "Keycap puller (where applicable)"
+  ]
  },
  {
   "id": 78,
@@ -2673,7 +3076,12 @@ window.PRODUCTS = [
   },
   "attrs": {
    "wireless": "Yes"
-  }
+  },
+  "inBox": [
+   "Keyboard",
+   "USB-C or wireless dongle cable",
+   "Keycap puller (where applicable)"
+  ]
  },
  {
   "id": 79,
@@ -2706,7 +3114,12 @@ window.PRODUCTS = [
   },
   "attrs": {
    "wireless": "No"
-  }
+  },
+  "inBox": [
+   "Keyboard",
+   "USB-C or wireless dongle cable",
+   "Keycap puller (where applicable)"
+  ]
  },
  {
   "id": 80,
@@ -2739,7 +3152,12 @@ window.PRODUCTS = [
   },
   "attrs": {
    "wireless": "Yes"
-  }
+  },
+  "inBox": [
+   "Mouse",
+   "USB-C charging/wireless cable",
+   "Extra grip tape (where applicable)"
+  ]
  },
  {
   "id": 81,
@@ -2772,7 +3190,12 @@ window.PRODUCTS = [
   },
   "attrs": {
    "wireless": "Yes"
-  }
+  },
+  "inBox": [
+   "Mouse",
+   "USB-C charging/wireless cable",
+   "Extra grip tape (where applicable)"
+  ]
  },
  {
   "id": 82,
@@ -2805,7 +3228,12 @@ window.PRODUCTS = [
   },
   "attrs": {
    "wireless": "Yes"
-  }
+  },
+  "inBox": [
+   "Mouse",
+   "USB-C charging/wireless cable",
+   "Extra grip tape (where applicable)"
+  ]
  },
  {
   "id": 83,
@@ -2838,7 +3266,12 @@ window.PRODUCTS = [
   },
   "attrs": {
    "wireless": "Yes"
-  }
+  },
+  "inBox": [
+   "Headset",
+   "Detachable microphone (where applicable)",
+   "USB or 3.5mm cable"
+  ]
  },
  {
   "id": 84,
@@ -2871,7 +3304,12 @@ window.PRODUCTS = [
   },
   "attrs": {
    "wireless": "No"
-  }
+  },
+  "inBox": [
+   "Headset",
+   "Detachable microphone (where applicable)",
+   "USB or 3.5mm cable"
+  ]
  },
  {
   "id": 85,
@@ -2902,7 +3340,12 @@ window.PRODUCTS = [
    "Connection": "USB-C",
    "Certification": "Zoom, Teams"
   },
-  "attrs": {}
+  "attrs": {},
+  "inBox": [
+   "Webcam",
+   "USB-C cable",
+   "Mounting clip"
+  ]
  },
  {
   "id": 86,
@@ -2933,7 +3376,12 @@ window.PRODUCTS = [
    "Connection": "USB-C",
    "Certification": "OBS, Streamlabs"
   },
-  "attrs": {}
+  "attrs": {},
+  "inBox": [
+   "Webcam",
+   "USB-C cable",
+   "Mounting clip"
+  ]
  },
  {
   "id": 87,
@@ -2964,7 +3412,12 @@ window.PRODUCTS = [
    "Aux in": "3.5 mm",
    "Power source": "USB-C"
   },
-  "attrs": {}
+  "attrs": {},
+  "inBox": [
+   "Speaker unit(s)",
+   "Power cable",
+   "Aux cable"
+  ]
  },
  {
   "id": 88,
@@ -2995,7 +3448,12 @@ window.PRODUCTS = [
    "Dimensions": "118 x 84 x 21 mm",
    "Weight": "290 g"
   },
-  "attrs": {}
+  "attrs": {},
+  "inBox": [
+   "Device",
+   "USB cable",
+   "Quick start guide"
+  ]
  },
  {
   "id": 89,
@@ -3026,7 +3484,13 @@ window.PRODUCTS = [
    "Antennas": "4 external",
    "Security": "AiProtection Pro"
   },
-  "attrs": {}
+  "attrs": {},
+  "inBox": [
+   "Router",
+   "Power adapter",
+   "Ethernet cable",
+   "Quick start guide"
+  ]
  },
  {
   "id": 90,
@@ -3057,7 +3521,13 @@ window.PRODUCTS = [
    "Antennas": "4 external",
    "Security": "HomeShield"
   },
-  "attrs": {}
+  "attrs": {},
+  "inBox": [
+   "Router",
+   "Power adapter",
+   "Ethernet cable",
+   "Quick start guide"
+  ]
  },
  {
   "id": 91,
@@ -3088,7 +3558,12 @@ window.PRODUCTS = [
    "Clients": "300+ concurrent",
    "Management": "UniFi Network"
   },
-  "attrs": {}
+  "attrs": {},
+  "inBox": [
+   "Access point",
+   "PoE injector or power adapter",
+   "Mounting bracket"
+  ]
  },
  {
   "id": 92,
@@ -3119,7 +3594,12 @@ window.PRODUCTS = [
    "Power": "External adapter",
    "Warranty": "Lifetime"
   },
-  "attrs": {}
+  "attrs": {},
+  "inBox": [
+   "Switch",
+   "Power adapter",
+   "Mounting brackets"
+  ]
  },
  {
   "id": 93,
@@ -3150,7 +3630,12 @@ window.PRODUCTS = [
    "Power": "Internal",
    "Warranty": "3 years"
   },
-  "attrs": {}
+  "attrs": {},
+  "inBox": [
+   "Switch",
+   "Power adapter",
+   "Mounting brackets"
+  ]
  },
  {
   "id": 94,
@@ -3181,7 +3666,12 @@ window.PRODUCTS = [
    "Security": "WPA3",
    "Warranty": "2 years"
   },
-  "attrs": {}
+  "attrs": {},
+  "inBox": [
+   "Adapter",
+   "USB extension cable (where applicable)",
+   "Driver disc / download card"
+  ]
  },
  {
   "id": 95,
@@ -3212,7 +3702,10 @@ window.PRODUCTS = [
    "Jacket": "LSZH",
    "Colour": "Blue"
   },
-  "attrs": {}
+  "attrs": {},
+  "inBox": [
+   "Cable"
+  ]
  },
  {
   "id": 96,
@@ -3243,7 +3736,12 @@ window.PRODUCTS = [
    "Audio": "In / out 3.5mm",
    "SD reader": "UHS-II"
   },
-  "attrs": {}
+  "attrs": {},
+  "inBox": [
+   "Dock",
+   "Power adapter",
+   "Host cable"
+  ]
  },
  {
   "id": 97,
@@ -3274,7 +3772,12 @@ window.PRODUCTS = [
    "Audio": "Combo jack",
    "SD reader": "No"
   },
-  "attrs": {}
+  "attrs": {},
+  "inBox": [
+   "Dock",
+   "Power adapter",
+   "Host cable"
+  ]
  },
  {
   "id": 98,
@@ -3305,7 +3808,11 @@ window.PRODUCTS = [
    "Audio": "3.5mm combo",
    "SD reader": "SD + microSD"
   },
-  "attrs": {}
+  "attrs": {},
+  "inBox": [
+   "Hub",
+   "USB-C cable"
+  ]
  },
  {
   "id": 99,
@@ -3336,7 +3843,11 @@ window.PRODUCTS = [
    "Weight": "200 g",
    "Warranty": "2 years"
   },
-  "attrs": {}
+  "attrs": {},
+  "inBox": [
+   "Charger",
+   "Region power plug"
+  ]
  },
  {
   "id": 100,
@@ -3367,7 +3878,10 @@ window.PRODUCTS = [
    "Jacket": "Braided nylon",
    "Warranty": "2 years"
   },
-  "attrs": {}
+  "attrs": {},
+  "inBox": [
+   "Cable"
+  ]
  },
  {
   "id": 101,
@@ -3398,7 +3912,10 @@ window.PRODUCTS = [
    "Colour": "Black",
    "Warranty": "2 years"
   },
-  "attrs": {}
+  "attrs": {},
+  "inBox": [
+   "Cable"
+  ]
  },
  {
   "id": 102,
@@ -3429,7 +3946,10 @@ window.PRODUCTS = [
    "Operating system": "Windows, macOS, ChromeOS",
    "Warranty": "3 years"
   },
-  "attrs": {}
+  "attrs": {},
+  "inBox": [
+   "Adapter"
+  ]
  },
  {
   "id": 103,
@@ -3460,7 +3980,12 @@ window.PRODUCTS = [
    "Weight": "70 g",
    "Warranty": "2 years"
   },
-  "attrs": {}
+  "attrs": {},
+  "inBox": [
+   "Enclosure or backplane",
+   "Cable",
+   "Mounting screws"
+  ]
  },
  {
   "id": 104,
@@ -3491,6 +4016,11 @@ window.PRODUCTS = [
    "Hot-swap": "Yes",
    "Warranty": "3 years"
   },
-  "attrs": {}
+  "attrs": {},
+  "inBox": [
+   "Enclosure or backplane",
+   "Cable",
+   "Mounting screws"
+  ]
  }
 ];

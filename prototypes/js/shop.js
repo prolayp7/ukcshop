@@ -129,7 +129,7 @@ var design = (location.pathname.match(/(\d{2})-/) || [,"01"])[1];
 function url(kind, q){
   var s = Object.keys(q||{}).map(function(k){ return k + "=" + encodeURIComponent(q[k]); }).join("&");
   var file = { home:"", product:"-product", brand:"-brand", brands:"-brands",
-               category:"-category", basket:"-basket", checkout:"-checkout", account:"-account" }[kind];
+               category:"-category", basket:"-basket", checkout:"-checkout", account:"-account", compare:"-compare" }[kind];
   var name = kind === "home" ? design + HOME_SUFFIX[design] : design + file;
   return name + ".html" + (s ? "?" + s : "");
 }
@@ -355,6 +355,103 @@ function flash(msg){
   clearTimeout(flash._t);
   flash._t = setTimeout(function(){ el.style.opacity = "0"; el.style.transform = "translate(-50%,14px)"; }, 1800);
 }
+
+/* ---------------- wishlist and compare ----------------
+   Both persist to localStorage under the same keys account.html already
+   reads (S.wish / S.compare style keys), so wiring these up here makes every
+   design's account page and D's home page agree — nobody has to re-solve
+   this per design later. */
+var Wishlist = {
+  raw: function(){ return lsGet("wish", []); },
+  save: function(v){ lsSet("wish", v); },
+  has: function(id){ return Wishlist.raw().indexOf(Number(id)) > -1; },
+  toggle: function(id){
+    id = Number(id);
+    var arr = Wishlist.raw(), i = arr.indexOf(id);
+    if (i > -1) arr.splice(i, 1); else arr.push(id);
+    Wishlist.save(arr);
+    return Wishlist.has(id);
+  },
+  count: function(){ return Wishlist.raw().length; },
+  products: function(){ return Wishlist.raw().map(byId).filter(Boolean); }
+};
+var COMPARE_MAX = 4;
+var Compare = {
+  raw: function(){ return lsGet("compare", []); },
+  save: function(v){ lsSet("compare", v); },
+  has: function(id){ return Compare.raw().indexOf(Number(id)) > -1; },
+  toggle: function(id){
+    id = Number(id);
+    var arr = Compare.raw(), i = arr.indexOf(id);
+    if (i > -1) { arr.splice(i, 1); Compare.save(arr); return { added:false, full:false }; }
+    if (arr.length >= COMPARE_MAX) return { added:false, full:true };
+    arr.push(id); Compare.save(arr); return { added:true, full:false };
+  },
+  remove: function(id){ Compare.save(Compare.raw().filter(function(x){ return x !== Number(id); })); },
+  clear: function(){ Compare.save([]); },
+  count: function(){ return Compare.raw().length; },
+  products: function(){ return Compare.raw().map(byId).filter(Boolean); }
+};
+function refreshWishlistUI(){
+  var n = Wishlist.count();
+  [].forEach.call(document.querySelectorAll("[data-wishlist-count]"), function(el){ el.textContent = n; el.hidden = !n; });
+  [].forEach.call(document.querySelectorAll("[data-wish]"), function(el){
+    var on = Wishlist.has(el.dataset.wish);
+    el.classList.toggle("on", on);
+    el.setAttribute("aria-pressed", on ? "true" : "false");
+    var lbl = el.querySelector("[data-wish-label]");
+    if (lbl) lbl.textContent = on ? "Saved" : "Wishlist";
+  });
+}
+/* A floating tray that shows itself on any page once something is queued for
+   compare — self-contained (styles inlined) so it works before a design's own
+   stylesheet has to know anything about it. */
+function ensureCompareTray(){
+  if (document.getElementById("ukcs-cmp-tray")) return;
+  var css = document.createElement("style");
+  css.textContent =
+    "#ukcs-cmp-tray{position:fixed;left:16px;right:16px;bottom:16px;z-index:9998;background:#111;color:#fff;"+
+    "border-radius:12px;box-shadow:0 20px 50px -20px rgba(0,0,0,.55);padding:12px 14px;display:none;"+
+    "align-items:center;gap:14px;font:14px/1.3 system-ui,sans-serif;max-width:760px;margin:0 auto}"+
+    "#ukcs-cmp-tray.on{display:flex}"+
+    "#ukcs-cmp-tray .lbl{font-weight:700;white-space:nowrap}"+
+    "#ukcs-cmp-tray .items{display:flex;gap:6px;flex:1;overflow-x:auto}"+
+    "#ukcs-cmp-tray .chip{background:rgba(255,255,255,.12);border-radius:7px;padding:6px 10px;white-space:nowrap;font-size:12.5px;display:flex;gap:7px;align-items:center}"+
+    "#ukcs-cmp-tray .chip button{color:#aaa;font-size:14px;line-height:1;background:none;border:0}"+
+    "#ukcs-cmp-tray .chip button:hover{color:#fff}"+
+    "#ukcs-cmp-tray a.go{background:#fff;color:#111;border-radius:7px;padding:8px 14px;font-weight:700;font-size:13px;white-space:nowrap;text-decoration:none}"+
+    "#ukcs-cmp-tray a.go.off{opacity:.4;pointer-events:none}"+
+    "#ukcs-cmp-tray button.clear{color:#aaa;background:none;border:0;font-size:12.5px;white-space:nowrap;text-decoration:underline}";
+  document.head.appendChild(css);
+  var el = document.createElement("div");
+  el.id = "ukcs-cmp-tray";
+  document.body.appendChild(el);
+}
+function refreshCompareUI(){
+  ensureCompareTray();
+  var items = Compare.products();
+  var tray = document.getElementById("ukcs-cmp-tray");
+  tray.classList.toggle("on", items.length > 0);
+  tray.innerHTML = '<span class="lbl">Compare (' + items.length + '/' + COMPARE_MAX + ')</span>' +
+    '<span class="items">' + items.map(function(p){
+      return '<span class="chip">' + esc(p.name.length > 26 ? p.name.slice(0,24) + "…" : p.name) +
+        '<button data-cmp-remove="' + p.id + '">×</button></span>';
+    }).join("") + '</span>' +
+    '<button class="clear" id="ukcs-cmp-clear">Clear</button>' +
+    '<a class="go' + (items.length < 2 ? " off" : "") + '" href="' + url("compare") + '">Compare →</a>';
+  [].forEach.call(document.querySelectorAll("[data-compare]"), function(el){
+    var on = Compare.has(el.dataset.compare);
+    el.classList.toggle("on", on);
+    var lbl = el.querySelector("[data-compare-label]");
+    if (lbl) lbl.textContent = on ? "In compare" : "Compare";
+  });
+}
+document.addEventListener("click", function(e){
+  var rm = e.target.closest("[data-cmp-remove]");
+  if (rm){ Compare.remove(rm.dataset.cmpRemove); refreshCompareUI(); return; }
+  if (e.target.id === "ukcs-cmp-clear"){ Compare.clear(); refreshCompareUI(); return; }
+});
+
 document.addEventListener("click", function(e){
   var b = e.target.closest("[data-add]");
   if (!b) return;
@@ -367,7 +464,40 @@ document.addEventListener("click", function(e){
   refreshBasketUI();
   flash("Added — " + (p.name.length > 42 ? p.name.slice(0,40) + "…" : p.name));
 });
+document.addEventListener("click", function(e){
+  var buy = e.target.closest("[data-buy]");
+  if (buy){
+    e.preventDefault();
+    var pb = byId(buy.dataset.buy); if (!pb || pb.stockStatus === "backorder") return;
+    var qtyElB = document.querySelector("[data-qty-input]");
+    var qtyB = buy.dataset.qty === "input" && qtyElB ? (parseInt(qtyElB.value, 10) || 1) : 1;
+    Basket.add(pb.id, qtyB);
+    location.href = url("checkout");
+    return;
+  }
+  var w = e.target.closest("[data-wish]");
+  if (w){
+    e.preventDefault();
+    var pw = byId(w.dataset.wish); if (!pw) return;
+    var nowSaved = Wishlist.toggle(pw.id);
+    refreshWishlistUI();
+    flash(nowSaved ? "Saved to wishlist" : "Removed from wishlist");
+    return;
+  }
+  var c = e.target.closest("[data-compare]");
+  if (c){
+    e.preventDefault();
+    var pc = byId(c.dataset.compare); if (!pc) return;
+    var r = Compare.toggle(pc.id);
+    refreshCompareUI();
+    if (r.full) flash("Compare holds up to " + COMPARE_MAX + " products");
+    else flash(r.added ? "Added to compare" : "Removed from compare");
+    return;
+  }
+});
 document.addEventListener("DOMContentLoaded", refreshBasketUI);
+document.addEventListener("DOMContentLoaded", refreshWishlistUI);
+document.addEventListener("DOMContentLoaded", refreshCompareUI);
 
 root.Shop = {
   all:P, byId:byId, related:related, alsoBought:alsoBought, recommended:recommended,
@@ -375,6 +505,7 @@ root.Shop = {
   brands:brands, byBrand:byBrand, complement:COMPLEMENT, compatible:compatible,
   money:money, exVat:exVat, stars:stars, esc:esc, uniq:uniq, param:param, url:url,
   stockText:stockText, design:design, tree:tree, countIn:countIn, CAT_ORDER:CAT_ORDER,
-  Basket:Basket, refreshBasketUI:refreshBasketUI, flash:flash, DELIVERY:DELIVERY, VAT_RATE:VAT_RATE, orders:orders, ADDRESSES:ADDRESSES
+  Basket:Basket, refreshBasketUI:refreshBasketUI, flash:flash, DELIVERY:DELIVERY, VAT_RATE:VAT_RATE, orders:orders, ADDRESSES:ADDRESSES,
+  Wishlist:Wishlist, Compare:Compare, COMPARE_MAX:COMPARE_MAX, refreshWishlistUI:refreshWishlistUI, refreshCompareUI:refreshCompareUI
 };
 })(window);

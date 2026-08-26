@@ -54,7 +54,7 @@ function header(){
         '<input id="sq" placeholder="Search '+S.all.length+' products — name, SKU, MPN, brand or spec…">'+
         '<span class="kbd">⌘K</span><button class="go" type="submit">'+ic("i-search",16,16)+'Search</button></form>'+
       '<div class="mast-act">'+
-        '<a class="mact" href="'+S.url("account",{tab:"wishlist"})+'">'+ic("i-heart",21,21)+
+        '<a class="mact" href="'+S.url("account",{tab:"wishlist"})+'">'+ic("i-heart",21,21)+'<span class="pip" data-wishlist-count hidden>0</span>'+
           '<span><span class="lbl">Saved</span><span class="val">Wishlist</span></span></a>'+
         '<a class="mact" href="'+S.url("account")+'">'+ic("i-user",21,21)+
           '<span><span class="lbl">Sign in</span><span class="val">Account</span></span></a>'+
@@ -117,8 +117,8 @@ function card(p){
     '<div class="flags">'+
       (p.was ? '<span class="flag">−'+Math.round((p.was-p.price)/p.was*100)+'%</span>' : "")+
       (p.isNew ? '<span class="flag new">NEW</span>' : "")+'</div>'+
-    '<div class="acts"><button title="Add to wishlist">'+ic("i-heart",16,16)+'</button>'+
-      '<a title="Compare" href="'+S.url("product",{id:p.id})+'">'+ic("i-scale",16,16)+'</a>'+
+    '<div class="acts"><button data-wish="'+p.id+'" title="Add to wishlist">'+ic("i-heart",16,16)+'</button>'+
+      '<button data-compare="'+p.id+'" title="Compare">'+ic("i-scale",16,16)+'</button>'+
       '<a title="Quick view" href="'+S.url("product",{id:p.id})+'">'+ic("i-search",16,16)+'</a></div>'+
     '<a class="fig" href="'+S.url("product",{id:p.id})+'">'+fig(p,138,100)+'</a>'+
     '<div class="bd">'+
@@ -239,9 +239,12 @@ function productPage(){
   ];
   document.getElementById("app").innerHTML = header() + crumbs(d.crumbs) +
     '<div class="wrap"><div class="pd">'+
-      '<div class="gal"><div class="main">'+(p.was ? '<span class="flag">SAVE '+M(p.was-p.price)+'</span>' : "")+
-        '<svg viewBox="0 0 64 44" style="width:340px;height:250px"><use href="#'+p.icon+'"/></svg></div>'+
-        '<div class="thumbs"><span class="on">'+fig(p,54,40)+'</span><span>'+fig(p,54,40)+'</span><span>'+fig(p,54,40)+'</span><span>'+fig(p,54,40)+'</span></div></div>'+
+      '<div class="gal"><div class="main" id="pdMain"></div>'+
+        '<div class="thumbs">'+
+          '<span class="on" data-view="product">'+ic("i-search",20,20)+'<b>Product</b></span>'+
+          '<span data-view="specs">'+ic("i-cpu",20,20)+'<b>Specification</b></span>'+
+          '<span data-view="box">'+ic("i-bag",20,20)+'<b>In the box</b></span>'+
+        '</div></div>'+
       '<div class="pdinfo">'+
         '<div class="top"><a href="'+S.url("brand",{b:p.brand})+'">'+E(p.brand)+'</a><span class="mono" style="color:var(--mute)">'+E(p.subcategory)+'</span></div>'+
         '<h1>'+E(p.name)+'</h1>'+
@@ -255,6 +258,11 @@ function productPage(){
           '<div class="stk '+st.cls+'"><i></i>'+E(st.text)+'</div>'+
           '<div class="pdrow"><div class="qty"><button type="button">−</button><input value="1" data-qty-input><button type="button">+</button></div>'+
             '<a class="btn btn-volt" href="#" data-add="'+p.id+'" data-qty="input">'+ic("i-bag",16,16)+(st.cls==="out"?"Pre-order":"Add to basket")+'</a></div>'+
+          (st.cls==="out" ? "" : '<a class="btn btn-ink" href="#" data-buy="'+p.id+'" data-qty="input" style="width:100%;margin-bottom:10px">Buy now — skip the basket</a>')+
+          '<div class="pdrow" style="margin-bottom:0">'+
+            '<button class="btn btn-line" data-wish="'+p.id+'" style="flex:1">'+ic("i-heart",15,15)+'<span data-wish-label>Wishlist</span></button>'+
+            '<button class="btn btn-line" data-compare="'+p.id+'" style="flex:1">'+ic("i-scale",15,15)+'<span data-compare-label>Compare</span></button>'+
+          '</div>'+
           '<ul class="perks"><li>'+ic("i-truck",15,15)+'<span>Free next-day delivery, order before 17:00</span></li>'+
             '<li>'+ic("i-shield",15,15)+'<span>'+E(p.specs.Warranty || "Manufacturer warranty")+' · 30-day UK returns</span></li>'+
             '<li>'+ic("i-wrench",15,15)+'<span>Fitting available at our Manchester workshop</span></li></ul>'+
@@ -282,7 +290,7 @@ function productPage(){
     section("Recommended for you", d.recentlyViewed.length ? "Based on what you have been looking at." : "Popular right now across the catalogue.", d.recommended)+
     (d.recentlyViewed.length ? section("Recently viewed", null, d.recentlyViewed.slice(0,4)) : "")+
     footer();
-  wireTabs(); wireChrome();
+  wireGallery(p); wireTabs(); wireChrome();
   document.title = p.name + " — UK Computer Shop";
 }
 
@@ -334,6 +342,39 @@ function brandsPage(){
 }
 
 /* ---------------- shared behaviour ---------------- */
+
+/* Three honest gallery views built from real catalogue data — not stock
+   photos standing in for a specific SKU's actual appearance. */
+function wireGallery(p){
+  var main = document.getElementById("pdMain"); if (!main) return;
+  var views = {
+    product: function(){
+      return (p.was ? '<span class="flag">SAVE '+M(p.was-p.price)+'</span>' : "")+
+        '<svg viewBox="0 0 64 44" style="width:300px;height:220px"><use href="#'+p.icon+'"/></svg>';
+    },
+    specs: function(){
+      var keys = Object.keys(p.specs);
+      return '<div class="specview">'+keys.map(function(k){
+        return '<div><span>'+E(k)+'</span><b>'+E(p.specs[k])+'</b></div>'; }).join("")+'</div>';
+    },
+    box: function(){
+      var items = p.inBox || ["Product", "Documentation"];
+      return '<ul class="boxview">'+items.map(function(it){
+        return '<li>'+ic("i-shield",16,16)+'<span>'+E(it)+'</span></li>'; }).join("")+'</ul>';
+    }
+  };
+  function show(v){
+    main.innerHTML = views[v]();
+    document.querySelectorAll(".gal .thumbs span").forEach(function(t){
+      t.classList.toggle("on", t.dataset.view === v);
+    });
+  }
+  document.querySelectorAll(".gal .thumbs span").forEach(function(t){
+    t.addEventListener("click", function(){ show(t.dataset.view); });
+  });
+  show("product");
+}
+
 function wireTabs(){
   $$(".tabbar button").forEach(function(b){
     b.addEventListener("click", function(){

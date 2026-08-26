@@ -269,13 +269,20 @@ function account(D){
     tab === "details"   ? detailsView() : overview(d);
   mount(D.header() + D.crumbs(d.crumbs) +
     '<div class="wrap"><div class="ac-head"><div><h1>My account</h1><p>Signed in as <b>prolay@example.com</b> · member since 2021</p></div>'+
-      '<button class="ac-out">Sign out</button></div>'+
+      '<button class="ac-out" id="acSignOut">Sign out</button></div>'+
       '<div class="ac-layout"><nav class="ac-nav">'+
         TABS.map(function(t){ return '<a class="'+(t[0] === tab ? "on" : "")+'" href="'+S.url("account",{tab:t[0]})+'">'+t[1]+'</a>'; }).join("")+
       '</nav><div class="ac-main">'+body+'</div></div></div>'+
     (tab === "overview" ? D.section("Recommended for you", "Based on your orders and browsing.", d.recommended) : "")+
     D.footer());
   document.title = "My account — UK Computer Shop";
+  var signOutBtn = $("#acSignOut");
+  if (signOutBtn) signOutBtn.addEventListener("click", function(){
+    S.flash("Signed out — this is a design prototype, no account was created");
+  });
+  $$(".ac-check input").forEach(function(cb){
+    cb.addEventListener("change", function(){ S.flash("Preference saved"); });
+  });
 
   function overview(d2){
     return '<div class="ac-stats">'+
@@ -286,8 +293,11 @@ function account(D){
       '<section class="ac-block"><div class="ac-blockhead"><h2>Latest order</h2>'+
         '<a href="'+S.url("account",{tab:"orders"})+'">All orders →</a></div>'+
         orderCard(d2.orders[0])+'</section>'+
-      (d2.recentlyViewed.length ? '<section class="ac-block"><div class="ac-blockhead"><h2>Recently viewed</h2></div>'+
-        '<div class="ac-mini">'+d2.recentlyViewed.map(miniRow).join("")+'</div></section>' : "");
+      '<section class="ac-block"><div class="ac-blockhead"><h2>Recently viewed</h2></div>'+
+        (d2.recentlyViewed.length
+          ? '<div class="ac-mini">'+d2.recentlyViewed.map(miniRow).join("")+'</div>'
+          : '<p class="ac-none">Nothing viewed yet — browse the catalogue and it will start building up here.</p>')+
+      '</section>';
   }
   function ordersView(d2){
     return '<section class="ac-block"><div class="ac-blockhead"><h2>Order history</h2><span>'+d2.orders.length+' orders</span></div>'+
@@ -348,5 +358,63 @@ function account(D){
   });
 }
 
-root.Commerce = { category:category, basket:basket, checkout:checkout, account:account };
+
+/* ------------------------------------------------ compare */
+function compare(D){
+  function render(){
+    var d = Pages.compare();
+    if (d.empty || d.needsMore){
+      mount(D.header() + D.crumbs(d.crumbs) +
+        '<div class="wrap"><div class="cmp-empty">'+icon("i-scale",34,34)+
+        '<h3>'+(d.empty ? "Nothing to compare yet" : "Add one more to compare")+'</h3>'+
+        '<p>'+(d.empty
+          ? "Tick \u201cCompare\u201d on two or more products and they will line up here, spec by spec."
+          : "You have one product queued. Add at least one more and this page will show the differences.")+'</p>'+
+        '<a class="bk-cta" href="'+S.url("home")+'" style="display:inline-flex;padding:12px 26px">Browse the catalogue</a>'+
+        '</div></div>' + D.footer());
+      return;
+    }
+    var ps = d.products;
+    var keys = S.uniq(ps.reduce(function(acc, p){ return acc.concat(Object.keys(p.specs)); }, []));
+    function row(label, fn){
+      var vals = ps.map(fn);
+      var diff = S.uniq(vals.map(String)).length > 1;
+      return '<tr><th>'+label+'</th>' + vals.map(function(v){
+        return '<td'+(diff ? ' class="cmp-diff"' : '')+'>'+v+'</td>';
+      }).join("") + '</tr>';
+    }
+    mount(D.header() + D.crumbs(d.crumbs) +
+      '<div class="wrap"><div class="cmp-head"><h1>Comparing '+ps.length+' products</h1>'+
+        '<p>Differing rows are highlighted. Remove one to swap it out, or add more from the catalogue.</p></div>'+
+      '<div class="cmp-scroll"><table class="cmp-table"><thead><tr><th></th>'+
+        ps.map(function(p){
+          return '<th><div class="cmp-card">'+
+            '<button class="cmp-rm" data-rm="'+p.id+'" title="Remove from compare">&times;</button>'+
+            '<a href="'+S.url("product",{id:p.id})+'" class="cmp-fig">'+icon(p.icon,72,54)+'</a>'+
+            '<a class="cmp-name" href="'+S.url("product",{id:p.id})+'">'+E(p.name)+'</a>'+
+            '<span class="cmp-brand">'+E(p.brand)+'</span></div></th>';
+        }).join("")+'</tr></thead><tbody>'+
+        row("Price", function(p){ return '<b class="cmp-price">'+M(p.price)+'</b>'+(p.was ? ' <s>'+M(p.was)+'</s>' : ""); })+
+        row("Rating", function(p){ return S.stars(p.rating)+' '+p.rating+' ('+p.reviews.toLocaleString("en-GB")+')'; })+
+        row("Availability", function(p){ var st = S.stockText(p); return E(st.text); })+
+        row("SKU", function(p){ return E(p.sku); })+
+        row("Brand", function(p){ return '<a href="'+S.url("brand",{b:p.brand})+'">'+E(p.brand)+'</a>'; })+
+        keys.map(function(k){ return row(k, function(p){ return p.specs[k] ? E(p.specs[k]) : '<span class="cmp-na">—</span>'; }); }).join("")+
+      '</tbody></table></div>'+
+      '<div class="cmp-actions"><button class="ck-back" id="cmpClearAll">Clear all</button>'+
+        '<a class="ck-edit" href="'+S.url("home")+'">Continue shopping</a></div>'+
+      '</div>'+
+      D.section("Recommended for you", "Other products worth a look.", d.recommended) +
+      D.footer());
+    $$("[data-rm]").forEach(function(b){
+      b.addEventListener("click", function(){ S.Compare.remove(b.dataset.rm); S.refreshCompareUI(); render(); });
+    });
+    var clearBtn = $("#cmpClearAll");
+    if (clearBtn) clearBtn.addEventListener("click", function(){ S.Compare.clear(); S.refreshCompareUI(); render(); });
+    document.title = "Compare products — UK Computer Shop";
+  }
+  render();
+}
+
+root.Commerce = { category:category, basket:basket, checkout:checkout, account:account, compare:compare };
 })(window);
