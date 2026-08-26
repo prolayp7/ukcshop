@@ -55,7 +55,9 @@ nav a.on{color:var(--txt);border-bottom-color:var(--lime)}
 nav .r{margin-left:auto;display:flex;gap:14px;align-items:center;color:var(--dim2);font-family:var(--mono);font-size:10.5px}
 
 /* hero */
-.hero{padding:56px 0 44px;position:relative}
+.hero{padding:56px 0 44px;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;z-index:-2;background:url('https://picsum.photos/seed/ukcs-b-hero/1600/900') center/cover no-repeat;filter:grayscale(.3)}
+.hero::after{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(700px 420px at 82% 15%,rgba(139,92,255,.22),transparent 65%),linear-gradient(100deg,rgba(8,9,12,.97) 0%,rgba(8,9,12,.92) 34%,rgba(8,9,12,.68) 62%,rgba(8,9,12,.9) 100%)}
 .hero .grid{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center}
 .eyebrow{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--line2);background:var(--surf);padding:6px 13px;color:var(--lime);font-family:var(--mono);font-size:10.5px;letter-spacing:.18em}
 .hero h1{margin:22px 0 16px;font-size:60px;line-height:.98;font-weight:700}
@@ -157,18 +159,24 @@ section{padding:60px 0}
 
 /* cats */
 .cgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
-.cg{border:1px solid var(--line);background:var(--surf);padding:22px 16px;transition:.18s;position:relative;overflow:hidden}
-.cg:hover{border-color:var(--lime);background:var(--surf2)}
-.cg .ic{color:var(--dim);margin-bottom:16px}
-.cg:hover .ic{color:var(--lime)}
-.cg b{display:block;font-family:"Chakra Petch";font-size:15px;font-weight:600}
-.cg span{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;color:var(--dim2)}
+.cg{position:relative;overflow:hidden;height:170px;background-size:cover;background-position:center;
+  border:1px solid var(--line);clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));
+  display:flex;flex-direction:column;justify-content:space-between;padding:16px;transition:.18s;isolation:isolate}
+.cg::before{content:"";position:absolute;inset:0;z-index:-1;
+  background:linear-gradient(180deg,rgba(8,9,12,.25) 0%,rgba(8,9,12,.2) 42%,rgba(8,9,12,.92) 100%);transition:.18s}
+.cg:hover{border-color:var(--lime)}
+.cg:hover::before{background:linear-gradient(180deg,rgba(8,9,12,.55) 0%,rgba(8,9,12,.4) 42%,rgba(8,9,12,.95) 100%)}
+.cg .ic{width:34px;height:26px;display:grid;place-items:center;color:#fff;background:rgba(8,9,12,.55);border:1px solid var(--line2)}
+.cg:hover .ic{color:var(--lime);border-color:var(--lime)}
+.cg b{display:block;font-family:"Chakra Petch";font-size:15px;font-weight:600;color:#fff}
+.cg span{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;color:rgba(255,255,255,.7)}
+.cg:hover span{color:var(--lime)}
 
 /* split banner */
 .split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .sp{border:1px solid var(--line);padding:38px;position:relative;overflow:hidden;min-height:230px;display:flex;flex-direction:column;justify-content:flex-end}
-.sp.g1{background:linear-gradient(150deg,#12071f,#1c0b33 60%,#0a0c11)}
-.sp.g2{background:linear-gradient(150deg,#04161c,#06272f 60%,#0a0c11)}
+.sp.g1{background:linear-gradient(150deg,rgba(18,7,31,.92),rgba(28,11,51,.82) 60%,rgba(10,12,17,.94)),url('https://picsum.photos/seed/ukcs-b-compat/900/560') center/cover no-repeat}
+.sp.g2{background:linear-gradient(150deg,rgba(4,22,28,.92),rgba(6,39,47,.82) 60%,rgba(10,12,17,.94)),url('https://picsum.photos/seed/ukcs-b-tradein/900/560') center/cover no-repeat}
 .sp h3{margin:0 0 10px;font-size:27px}
 .sp p{margin:0 0 22px;color:var(--dim);max-width:380px;font-size:14px}
 .sp .lk{font-family:"Chakra Petch";font-weight:600;display:inline-flex;align-items:center;gap:9px;color:var(--lime)}
@@ -293,7 +301,9 @@ footer p{color:var(--dim);font-size:13.5px;max-width:300px}
 .rv .date{font-family:var(--mono);font-size:9.5px;color:var(--dim2)}
 .rv i{color:var(--lime);font-style:normal;letter-spacing:1px;font-size:12px}
 .rv p{margin:0;font-size:13px;color:var(--dim)}
-.bhero{border:1px solid var(--line2);background:linear-gradient(150deg,#12071f,#1c0b33 55%,#0a0c11);padding:40px;display:grid;grid-template-columns:1fr 340px;gap:30px;align-items:center;margin:6px 0 22px;position:relative;overflow:hidden}
+.bhero{border:1px solid var(--line2);padding:40px;display:grid;grid-template-columns:1fr 340px;gap:30px;align-items:center;margin:6px 0 22px;position:relative;overflow:hidden;background-size:cover;background-position:center}
+.bhero::before{content:"";position:absolute;inset:0;background:linear-gradient(150deg,rgba(18,7,31,.94),rgba(28,11,51,.85) 55%,rgba(10,12,17,.95))}
+.bhero>*{position:relative;z-index:2}
 .bhero .mark{width:80px;height:80px;background:var(--lime);color:#0a0c11;display:grid;place-items:center;font-family:"Chakra Petch",sans-serif;font-size:26px;font-weight:700;clip-path:polygon(0 0,100% 0,100% 74%,74% 100%,0 100%);margin-bottom:18px}
 .bhero h1{margin:0 0 10px;font-size:40px;letter-spacing:-1px}
 .bhero p{margin:0;color:var(--dim);max-width:520px;font-size:14.5px}

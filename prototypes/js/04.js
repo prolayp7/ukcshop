@@ -125,8 +125,10 @@ function brandPage(){
   var state = { sub:"All", sort:"best" };
   document.getElementById("app").innerHTML = header() + crumbs(d.crumbs) +
     '<div class="wrap">'+
-      '<div class="bhead"><div class="mark">'+E(b.brand.slice(0,2).toUpperCase())+'</div>'+
-        '<div><h1>'+E(b.brand)+'</h1><p>'+E(b.note)+'</p></div>'+
+      '<div class="bhead">'+
+        '<div class="img" style="background-image:url(https://picsum.photos/seed/ukcs-d-brand-'+encodeURIComponent(b.brand.toLowerCase().replace(/[^a-z0-9]+/g,"-"))+'/220/220)"></div>'+
+        '<div class="mid"><div class="mark">'+E(b.brand.slice(0,2).toUpperCase())+'</div>'+
+        '<div><h1>'+E(b.brand)+'</h1><p>'+E(b.note)+'</p></div></div>'+
         '<div class="bstats"><div><b>'+b.count+'</b><span>Products</span></div><div><b>'+b.rating.toFixed(1)+'</b><span>Rating</span></div>'+
         '<div><b>'+M(b.min).replace(".00","")+'</b><span>From</span></div><div><b>'+b.deals+'</b><span>On offer</span></div></div></div>'+
       '<div class="toolbar"><span class="cnt" id="bcount"></span>'+

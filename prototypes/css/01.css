@@ -73,8 +73,9 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
 /* ---------- hero ---------- */
 .hero{padding:20px 0}
 .hero .grid{display:grid;grid-template-columns:1fr 300px;gap:16px}
-.slide{position:relative;border-radius:14px;overflow:hidden;background:linear-gradient(115deg,#0a2540 0%,#123a5e 55%,#1b5fa8 100%);color:#fff;min-height:344px;display:flex;align-items:center;padding:44px}
-.slide::after{content:"";position:absolute;inset:0;background:radial-gradient(600px 300px at 78% 45%,rgba(88,166,255,.35),transparent 70%)}
+.slide{position:relative;border-radius:14px;overflow:hidden;color:#fff;min-height:344px;display:flex;align-items:center;padding:44px;background:url('https://picsum.photos/seed/ukcs-a-hero/1400/700') center/cover no-repeat}
+.slide::before{content:"";position:absolute;inset:0;background:linear-gradient(100deg,rgba(10,37,64,.96) 0%,rgba(10,37,64,.9) 30%,rgba(18,58,94,.6) 58%,rgba(27,95,168,.68) 100%)}
+.slide::after{content:"";position:absolute;inset:0;background:radial-gradient(600px 300px at 78% 45%,rgba(88,166,255,.3),transparent 70%)}
 .slide .txt{position:relative;z-index:2;max-width:400px}
 .tag{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.24);padding:5px 12px;border-radius:99px;font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
 .slide h1{margin:16px 0 10px;font-size:38px;line-height:1.08;letter-spacing:-1.2px;font-weight:800}
@@ -112,11 +113,13 @@ section{padding:34px 0}
 
 /* category tiles */
 .cats{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
-.cat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 12px;text-align:center;transition:.15s}
-.cat:hover{border-color:var(--blue);box-shadow:var(--shadow);transform:translateY(-2px)}
-.cat .ic{width:52px;height:52px;margin:0 auto 10px;border-radius:12px;background:#f2f6fb;display:grid;place-items:center;color:var(--navy)}
+.cat{position:relative;overflow:hidden;border-radius:12px;height:150px;background-size:cover;background-position:center;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding:14px 10px;color:#fff;transition:.18s;text-align:center;isolation:isolate}
+.cat::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(10,37,64,.08) 0%,rgba(10,37,64,.18) 45%,rgba(10,37,64,.9) 100%);transition:.18s}
+.cat:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.cat:hover::before{background:linear-gradient(180deg,rgba(10,37,64,.3) 0%,rgba(10,37,64,.4) 45%,rgba(10,37,64,.95) 100%)}
+.cat .ic{width:40px;height:40px;margin:0 0 8px;border-radius:10px;background:rgba(10,37,64,.55);backdrop-filter:blur(4px);display:grid;place-items:center;color:#fff}
 .cat b{font-size:13.5px;display:block}
-.cat span{font-size:11.5px;color:#8a94a4}
+.cat span{font-size:11.5px;color:rgba(255,255,255,.82)}
 
 /* product cards */
 .rail{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
@@ -166,8 +169,8 @@ section{padding:34px 0}
 /* build cta */
 .build{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .bx{border-radius:14px;padding:30px;color:#fff;position:relative;overflow:hidden;min-height:190px;display:flex;flex-direction:column;justify-content:center}
-.bx.one{background:linear-gradient(120deg,#062f6b,#0b64d6)}
-.bx.two{background:linear-gradient(120deg,#123a20,#00875a)}
+.bx.one{background:linear-gradient(120deg,rgba(6,47,107,.88),rgba(11,100,214,.72)),url('https://picsum.photos/seed/ukcs-a-build/900/500') center/cover no-repeat}
+.bx.two{background:linear-gradient(120deg,rgba(18,58,32,.88),rgba(0,135,90,.72)),url('https://picsum.photos/seed/ukcs-a-business/900/500') center/cover no-repeat}
 .bx h3{margin:0 0 8px;font-size:22px;letter-spacing:-.5px}
 .bx p{margin:0 0 18px;font-size:14px;opacity:.85;max-width:340px}
 .bx .btn{background:#fff;color:var(--ink);align-self:flex-start}
@@ -302,7 +305,9 @@ footer a:hover{color:#fff;text-decoration:underline}
 .rv p{margin:0;font-size:13.5px;color:var(--body)}
 .rv .date{font-size:12px;color:#9aa5b4}
 
-.bhero{background:linear-gradient(120deg,var(--navy),#1b5fa8);border-radius:14px;padding:34px;color:#fff;display:grid;grid-template-columns:1fr 300px;gap:28px;align-items:center;margin-bottom:8px}
+.bhero{border-radius:14px;padding:34px;color:#fff;display:grid;grid-template-columns:1fr 300px;gap:28px;align-items:center;margin-bottom:8px;position:relative;overflow:hidden;background-size:cover;background-position:center}
+.bhero::before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(10,37,64,.94),rgba(27,95,168,.72))}
+.bhero>*{position:relative;z-index:2}
 .bhero .mark{width:74px;height:74px;border-radius:14px;background:#fff;color:var(--navy);display:grid;place-items:center;font-size:22px;font-weight:800;letter-spacing:-.5px;margin-bottom:16px}
 .bhero h1{margin:0 0 8px;font-size:32px;letter-spacing:-.8px}
 .bhero p{margin:0;color:#c2d8f2;max-width:520px;font-size:14.5px}

@@ -175,7 +175,7 @@ function brandPage(){
   var b = d.b;
   document.getElementById("app").innerHTML =
     header() + crumbs(d.crumbs) +
-    '<div class="wrap"><div class="bhero">'+
+    '<div class="wrap"><div class="bhero" style="background-image:url(https://picsum.photos/seed/ukcs-a-brand-'+encodeURIComponent(b.brand.toLowerCase().replace(/[^a-z0-9]+/g,"-"))+'/1200/700)">'+
       '<div><div class="mark">'+E(b.brand.slice(0,2).toUpperCase())+'</div><h1>'+E(b.brand)+'</h1><p>'+E(b.note)+'</p></div>'+
       '<div class="bstats">'+
         '<div><b>'+b.count+'</b><span>Products</span></div>'+
