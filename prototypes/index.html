@@ -24,6 +24,8 @@ header p{color:#96a2b3;max-width:640px;margin:0;font-size:16px}
 .c h2{margin:10px 0 6px;font-size:24px;letter-spacing:-.5px}
 .c .tag{display:inline-block;font-size:12px;font-weight:600;padding:4px 10px;border-radius:99px;margin-bottom:14px}
 .c p{color:#96a2b3;font-size:14.5px;margin:0 0 18px}
+.c.wide{grid-column:1 / -1}
+.c.wide ul{grid-template-columns:1fr 1fr;gap:8px 26px}
 .c ul{margin:0 0 22px;padding:0;list-style:none;display:grid;gap:8px;font-size:13.5px;color:#b6c1cf}
 .c li{display:flex;gap:10px}
 .c li::before{content:"—";color:#5b6878}
@@ -40,8 +42,8 @@ code{font-family:ui-monospace,SFMono-Regular,monospace;font-size:.9em;background
 <body>
 <header><div class="w">
   <div class="k">UK Computer Shop · Phase 1</div>
-  <h1>Four design directions for the storefront</h1>
-  <p>Each direction now covers the full shopping journey — home, category listing, product detail, brand, brand directory, basket, checkout and account — all built from the same catalogue data, so the comparison stays about design language and information density rather than content. Pick one, or tell me which parts of each to merge.</p>
+  <h1>Five design directions for the storefront</h1>
+  <p>Five directions, each covering the full shopping journey — home, category listing, product detail, brand, brand directory, basket, checkout and account — all built from the same catalogue data, so the comparison stays about design language and information density rather than content. Pick one, or tell me which parts of each to merge.</p>
 </div></header>
 
 <div class="w"><div class="grid">
@@ -90,9 +92,26 @@ code{font-family:ui-monospace,SFMono-Regular,monospace;font-size:.9em;background
     </div>
   </div>
 
+
+  <div class="c wide" data-href="05-voltage.html">
+    <div class="sw"><i style="background:#09090b"></i><i style="background:#ffdb1e"></i><i style="background:#f6f6f4"></i><i style="background:#e5322d"></i><i style="background:#fff"></i></div>
+    <div class="cb">
+      <div class="n">DIRECTION E · NEW</div><h2>Voltage</h2>
+      <span class="tag" style="background:#2a2410;color:#ffdb1e">Synthesis of the two reference sites</span>
+      <p>Built after reviewing <b style="color:#e9edf3">Goxtore</b> and <b style="color:#e9edf3">Neotek</b>. It takes the utility density of the first — support phone, order tracking, category&rarr;brand mega menus, off-canvas cart, countdown deals — and puts it on the editorial surface of the second: near-black and electric yellow, a search modal, category tiles carrying product counts, and generous spacing.</p>
+      <ul>
+        <li><b>From Goxtore:</b> utility bar with support number and order tracking, VAT/currency switchers, all-departments dropdown, category&rarr;brand mega menus, countdown deal band with stock-claimed bars</li>
+        <li><b>From Neotek:</b> slim shipping-threshold announcement bar, &#8984;K search modal, department tiles with live product counts, editorial build-room feature block, near-black + yellow palette, Lexend Deca</li>
+        <li><b>Added:</b> off-canvas cart drawer that opens on every add, with live totals</li>
+        <li>Covers all eight page types like the other four</li>
+      </ul>
+      <span class="open">Open home page &rarr;</span>
+      <span class="pages"><a href="05-category.html?cat=PC%20Components">Category</a><a href="05-product.html?id=1">Product</a><a href="05-brand.html?b=Corsair">Brand</a><a href="05-brands.html">Brands</a><a href="05-basket.html">Basket</a><a href="05-checkout.html">Checkout</a><a href="05-account.html">Account</a></span>
+    </div>
+  </div>
 </div></div>
 
-<footer><div class="w">All four designs share one dummy catalogue (<code>data/products.js</code>, 104 products), one set of recommendation and compatibility rules (<code>js/shop.js</code>) and one basket/checkout implementation (<code>js/commerce.js</code>) — each design supplies only its own chrome, cards and stylesheet. The basket persists in <code>localStorage</code>; the checkout is a layout prototype that places no order and accepts no payment details. No build step, no framework. Pricing, stock, reviews and company details are invented.</div></footer>
+<footer><div class="w">All five designs share one dummy catalogue (<code>data/products.js</code>, 104 products), one set of recommendation and compatibility rules (<code>js/shop.js</code>) and one basket/checkout implementation (<code>js/commerce.js</code>) — each design supplies only its own chrome, cards and stylesheet. The basket persists in <code>localStorage</code>; the checkout is a layout prototype that places no order and accepts no payment details. No build step, no framework. Pricing, stock, reviews and company details are invented.</div></footer>
 <script>
 document.querySelectorAll('.c[data-href]').forEach(function(c){
   c.addEventListener('click', function(e){ if (!e.target.closest('a')) location.href = c.dataset.href; });
