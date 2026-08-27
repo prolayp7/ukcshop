@@ -996,10 +996,181 @@ function cookiePolicy(D){
   });
 }
 
+
+/* ------------------------------------------------ blog */
+function blogCard(post, author){
+  return '<a class="blog-card" href="'+S.url("blogPost",{slug:post.slug})+'">'+
+    '<span class="cover" style="background-image:url(https://picsum.photos/seed/'+post.cover+'/480/300)"></span>'+
+    '<div class="body"><span class="cat">'+E(post.category)+'</span><h3>'+E(post.title)+'</h3><p>'+E(post.excerpt)+'</p>'+
+    '<div class="meta"><span>'+(author ? E(author.name) : "")+'</span><span>'+E(post.readMins)+' min read</span></div>'+
+    '</div></a>';
+}
+function blogSidebar(d){
+  return '<aside class="blog-sidebar">'+
+    '<div class="blog-widget"><h4>Categories</h4><ul>'+d.categories.map(function(c){
+      return '<li><a href="'+S.url("blog",{cat:c})+'"'+(d.cat===c?' style="color:var(--c-accent);font-weight:600"':'')+'>'+E(c)+'</a></li>'; }).join("")+'</ul></div>'+
+    '<div class="blog-widget"><h4>Tags</h4><div class="blog-tags">'+d.tags.map(function(t){
+      return '<a href="'+S.url("blog",{tag:t})+'"'+(d.tag===t?' style="border-color:var(--c-accent);color:var(--c-accent)"':'')+'>'+E(t)+'</a>'; }).join("")+'</div></div>'+
+    '<div class="blog-widget"><h4>Archive</h4><ul>'+d.months.map(function(m){
+      var label = new Date(m.key+"-02").toLocaleDateString("en-GB",{month:"long",year:"numeric"});
+      return '<li><a href="'+S.url("blog",{month:m.key})+'"'+(d.month===m.key?' style="color:var(--c-accent);font-weight:600"':'')+'>'+label+'<span>'+m.count+'</span></a></li>'; }).join("")+'</ul></div>'+
+  '</aside>';
+}
+function blog(D){
+  function render(){
+    var d = Pages.blog(); if (!d) return;
+    var activeLabel = d.cat ? "Category: " + d.cat : d.tag ? "Tag: " + d.tag : d.authorSlug ? "By " + (S.BLOG_AUTHORS.filter(function(a){return a.slug===d.authorSlug;})[0]||{}).name : d.month ? "From " + new Date(d.month+"-02").toLocaleDateString("en-GB",{month:"long",year:"numeric"}) : null;
+    mount(D.header() + D.crumbs(d.crumbs) +
+      '<div class="wrap"><div class="info-hero"><span class="eyebrow">From the workshop</span>'+
+        '<h1>The blog</h1><p>Buying guides, explainers and comparisons written by the technicians who build what we sell — not marketing copy.</p></div>'+
+      '<div class="blog-layout"><div>'+
+        '<form class="blog-search" id="blogSearch"><input id="blogQ" placeholder="Search articles…" value="'+E(d.q||"")+'"><button type="submit">Search</button></form>'+
+        (activeLabel ? '<div class="blog-active-filter">'+E(activeLabel)+' <a href="'+S.url("blog")+'">Clear ×</a></div>' : "")+
+        (d.empty
+          ? '<div class="cmp-empty"><h3>No articles match that search</h3><p>Try a different term, or <a href="'+S.url("blog")+'">browse everything</a>.</p></div>'
+          : '<div class="blog-grid">'+d.posts.map(function(x){ return blogCard(x.post, x.author); }).join("")+'</div>')+
+      '</div>'+blogSidebar(d)+'</div></div>'+
+      D.section("Recommended for you", "Popular products right now.", d.recommended)+
+      D.footer());
+    var form = $("#blogSearch");
+    if (form) form.addEventListener("submit", function(e){
+      e.preventDefault();
+      location.href = S.url("blog", { q: $("#blogQ").value });
+    });
+  }
+  render();
+  document.title = "Blog — UK Computer Shop";
+}
+
+function blogPost(D){
+  var d = Pages.blogPost(); if (!d) return;
+  var p = d.post, a = d.author;
+  mount(D.header() + D.crumbs(d.crumbs) +
+    '<div class="wrap"><div class="blog-post-hero"><span class="cat">'+E(p.category)+'</span>'+
+      '<h1>'+E(p.title)+'</h1>'+
+      '<div class="blog-byline"><a class="avatar" href="'+S.url("blogAuthor",{slug:a.slug})+'" style="background-image:url(https://picsum.photos/seed/'+a.avatarSeed+'/100/100);display:block"></a>'+
+        '<span><b><a href="'+S.url("blogAuthor",{slug:a.slug})+'" style="color:inherit;text-decoration:none">'+E(a.name)+'</a></b>'+
+        '<span>'+E(new Date(p.date).toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"}))+' · '+p.readMins+' min read</span></span></div></div>'+
+    '<div class="blog-cover" style="background-image:url(https://picsum.photos/seed/'+p.cover+'/1200/600)"></div>'+
+    '<div class="blog-post-body">'+p.body.map(function(para){ return '<p>'+para+'</p>'; }).join("")+
+      '<div class="blog-post-tags">'+p.tags.map(function(t){ return '<a class="blog-tags" style="display:inline-block" href="'+S.url("blog",{tag:t})+'">'+E(t)+'</a>'; }).join("")+'</div>'+
+      '<div class="author-card"><span class="avatar" style="background-image:url(https://picsum.photos/seed/'+a.avatarSeed+'/120/120)"></span>'+
+        '<div><b>'+E(a.name)+'</b><span class="role">'+E(a.role)+'</span><p>'+E(a.bio)+'</p></div></div>'+
+    '</div>'+
+    '<h2 class="od-sub" style="margin-top:10px">Related articles</h2>'+
+    '<div class="blog-grid">'+d.related.map(function(rp){
+      var ra = S.BLOG_AUTHORS.filter(function(x){ return x.slug === rp.author; })[0];
+      return blogCard(rp, ra);
+    }).join("")+'</div>'+
+    '</div>'+
+    D.section("Recommended for you", "Popular products right now.", d.recommended)+
+    D.footer());
+  document.title = p.title + " — UK Computer Shop";
+}
+
+function blogAuthor(D){
+  var d = Pages.blogAuthor(); if (!d) return;
+  var a = d.author;
+  mount(D.header() + D.crumbs(d.crumbs) +
+    '<div class="wrap"><div class="author-hero">'+
+      '<span class="avatar" style="background-image:url(https://picsum.photos/seed/'+a.avatarSeed+'/200/200)"></span>'+
+      '<div><h1>'+E(a.name)+'</h1><span class="role">'+E(a.role)+'</span><p>'+E(a.bio)+'</p></div>'+
+    '</div>'+
+    '<h2 class="od-sub">Articles by '+E(a.name)+'</h2>'+
+    '<div class="blog-grid">'+d.posts.map(function(p){ return blogCard(p, a); }).join("")+'</div>'+
+    '</div>' + D.footer());
+  document.title = a.name + " — UK Computer Shop";
+}
+
+
+/* ------------------------------------------------ deals & clearance
+   Same reusable-template principle as the category page: one function,
+   a ?view=clearance switch, not a parallel page. */
+function deals(D){
+  var d = Pages.deals(); if (!d) return;
+  mount(D.header() + D.crumbs(d.crumbs) +
+    '<div class="wrap"><div class="info-hero"><span class="eyebrow">'+(d.view==="clearance"?"Final stock — won't be restocked":"Reduced for a limited time")+'</span>'+
+      '<h1>'+(d.view==="clearance"?"Clearance":"Deals &amp; offers")+'</h1>'+
+      '<p>'+(d.view==="clearance"
+        ? "The deepest reductions in the catalogue, on stock we are not bringing back at this price once it is gone."
+        : E(d.allCount)+" products currently reduced across the catalogue.")+'</p></div>'+
+      '<div class="cat-chips" style="margin-bottom:22px">'+
+        '<a class="cat-chip'+(d.view==="all"?" on":"")+'" href="'+S.url("deals")+'">All offers <span>'+d.allCount+'</span></a>'+
+        '<a class="cat-chip'+(d.view==="clearance"?" on":"")+'" href="'+S.url("deals",{view:"clearance"})+'">Clearance <span>'+d.clearanceCount+'</span></a>'+
+      '</div>'+
+      (d.items.length
+        ? '<div class="cat-grid">'+d.items.map(D.card).join("")+'</div>'
+        : '<div class="cat-empty"><h3>Nothing in clearance right now</h3><p>Check back soon, or see <a href="'+S.url("deals")+'">all current offers</a>.</p></div>')+
+    '</div>'+
+    D.section("Recommended for you", "Popular products right now.", d.recommended)+
+    D.footer());
+  document.title = (d.view==="clearance" ? "Clearance" : "Deals & offers") + " — UK Computer Shop";
+}
+
+/* ------------------------------------------------ error & system pages
+   Static, deliberately simple — the value of a 404 page is getting a lost
+   visitor back on track quickly, not decoration. */
+function errorPage(D, opts){
+  mount(D.header() +
+    '<div class="wrap"><div class="error-page">'+
+      (opts.code ? '<div class="code">'+E(opts.code)+'</div>' : "")+
+      icon(opts.icon, 40, 40).replace('width="40"','class="ic" width="40"')+
+      '<h1>'+E(opts.title)+'</h1><p>'+opts.body+'</p>'+
+      '<div class="error-actions">'+opts.actions+'</div>'+
+      (opts.links ? '<div class="error-links">'+opts.links+'</div>' : "")+
+    '</div></div>' + D.footer());
+  document.title = opts.title + " — UK Computer Shop";
+}
+function error404(D){
+  errorPage(D, {
+    code: "404", icon:"i-search", title:"We can't find that page",
+    body:"The link might be out of date, or the page may have moved. Try searching, or head back to somewhere that exists.",
+    actions:'<a class="bk-cta" href="'+S.url("home")+'" style="display:inline-flex;padding:12px 26px">Back to the home page</a>'+
+      '<a class="ck-back" href="'+S.url("support")+'" style="display:inline-flex;align-items:center;padding:12px 20px;border:1px solid var(--c-line-strong);border-radius:var(--c-radius)">Visit support</a>',
+    links:'<a href="'+S.url("category",{})+'">All products</a><a href="'+S.url("brands")+'">All brands</a><a href="'+S.url("blog")+'">Blog</a><a href="'+S.url("contact")+'">Contact us</a>'
+  });
+}
+function error403(D){
+  errorPage(D, {
+    code: "403", icon:"i-shield", title:"This area is restricted",
+    body:"You don't have access to this page — it may be limited to trade or business accounts, or you may need to sign in first.",
+    actions:'<a class="bk-cta" href="'+S.url("login")+'" style="display:inline-flex;padding:12px 26px">Sign in</a>'+
+      '<a class="ck-back" href="'+S.url("home")+'" style="display:inline-flex;align-items:center;padding:12px 20px;border:1px solid var(--c-line-strong);border-radius:var(--c-radius)">Back to home</a>',
+    links:'<a href="'+S.url("contact")+'">Think this is a mistake? Contact us</a>'
+  });
+}
+function error500(D){
+  errorPage(D, {
+    code: "500", icon:"i-wrench", title:"Something went wrong on our end",
+    body:"Not something you did — an unexpected error occurred while loading this page. Try again in a moment.",
+    actions:'<button class="bk-cta" style="padding:12px 26px" onclick="location.reload()">Try again</button>'+
+      '<a class="ck-back" href="'+S.url("home")+'" style="display:inline-flex;align-items:center;padding:12px 20px;border:1px solid var(--c-line-strong);border-radius:var(--c-radius)">Back to home</a>',
+    links:'<a href="'+S.url("contact")+'">Still broken? Let us know</a>'
+  });
+}
+function maintenance(D){
+  errorPage(D, {
+    icon:"i-wrench", title:"Back shortly",
+    body:"We are carrying out scheduled maintenance. The site will be back to normal within the hour — thanks for your patience.",
+    actions:'<a class="bk-cta" href="'+S.url("contact")+'" style="display:inline-flex;padding:12px 26px">Contact us</a>',
+    links:""
+  });
+}
+function comingSoon(D){
+  errorPage(D, {
+    icon:"i-shield", title:"Coming soon",
+    body:"This part of the site is not live yet. Check back soon, or get in touch if you have a question in the meantime.",
+    actions:'<a class="bk-cta" href="'+S.url("home")+'" style="display:inline-flex;padding:12px 26px">Back to the home page</a>',
+    links:'<a href="'+S.url("contact")+'">Contact us</a>'
+  });
+}
+
 root.Commerce = { category:category, basket:basket, checkout:checkout, account:account, compare:compare,
   login:login, register:register, forgotPassword:forgotPassword,
   orderDetails:orderDetails, orderCancel:orderCancel, orderReturn:orderReturn,
   about:about, contact:contact, stores:stores, faq:faq, support:support,
   delivery:delivery, returns:returns, warranty:warranty, paymentInfo:paymentInfo,
-  terms:terms, privacy:privacy, cookiePolicy:cookiePolicy };
+  terms:terms, privacy:privacy, cookiePolicy:cookiePolicy,
+  blog:blog, blogPost:blogPost, blogAuthor:blogAuthor, deals:deals,
+  error404:error404, error403:error403, error500:error500, maintenance:maintenance, comingSoon:comingSoon };
 })(window);

@@ -134,7 +134,9 @@ function url(kind, q){
                orderDetails:"-order-details", orderCancel:"-order-cancel", orderReturn:"-order-return",
                about:"-about", contact:"-contact", stores:"-stores", faq:"-faq", support:"-support",
                delivery:"-delivery", returns:"-returns", warranty:"-warranty", paymentInfo:"-payment-info",
-               terms:"-terms", privacy:"-privacy", cookiePolicy:"-cookie-policy" }[kind];
+               terms:"-terms", privacy:"-privacy", cookiePolicy:"-cookie-policy",
+               blog:"-blog", blogPost:"-blog-post", blogAuthor:"-blog-author", deals:"-deals",
+               error404:"-404", error403:"-403", error500:"-500", maintenance:"-maintenance", comingSoon:"-coming-soon" }[kind];
   var name = kind === "home" ? design + HOME_SUFFIX[design] : design + file;
   return name + ".html" + (s ? "?" + s : "");
 }
@@ -259,6 +261,85 @@ function countIn(sub){ return P.filter(function(p){ return p.subcategory === sub
    Everything lives in localStorage. There is no server: these rules are here so
    the four designs agree on totals rather than each inventing its own. */
 var VAT_RATE = 0.20;
+
+/* ---------------- blog ----------------
+   Static content, same spirit as the catalogue data: real enough to design
+   against, clearly invented, and structured so one template serves the
+   listing, a category, a tag and an author's articles rather than four. */
+var BLOG_AUTHORS = [
+  { slug:"mark-esson", name:"Mark Esson", role:"Senior Build Technician",
+    bio:"Been building and repairing PCs since the socket 478 days. Runs the workshop's stress-test bench and writes most of the buying guides.",
+    avatarSeed:"ukcs-author-mark" },
+  { slug:"chidi-okafor", name:"Chidi Okafor", role:"Hardware Specialist",
+    bio:"Focuses on storage, memory and cooling. If a spec sheet has a footnote, Chidi has already read it.",
+    avatarSeed:"ukcs-author-chidi" },
+  { slug:"sara-quinn", name:"Sara Quinn", role:"Workshop Manager",
+    bio:"Runs the day-to-day of the Manchester workshop and writes about the parts of buying a computer that spec sheets don't cover.",
+    avatarSeed:"ukcs-author-sara" }
+];
+var BLOG_POSTS = [
+  { slug:"how-much-power-supply-do-you-need", title:"How much power supply do you actually need?",
+    category:"Buying guides", tags:["Power supplies","Compatibility"], author:"mark-esson",
+    date:"2026-07-14", readMins:8, cover:"ukcs-blog-psu",
+    excerpt:"Transient spikes, headroom and why the calculator number on a manufacturer's site isn't the whole story.",
+    body:[
+      "Every graphics card box quotes a “recommended” power supply wattage, and every online calculator will hand you a bigger number than you expected. Neither is wrong, exactly — they're both being cautious about something worth understanding rather than just obeying.",
+      "The number that actually matters isn't your system's average draw, it's the transient spike: a graphics card under load can briefly pull two to three times its rated power for a few milliseconds. A supply with too little headroom won't smoothly reduce performance when that happens — it will trip its protection circuit and cut power entirely, which looks exactly like a random crash and is genuinely difficult to diagnose after the fact.",
+      "Our own rule of thumb, and the one baked into the compatibility checks on every product page here: take the GPU manufacturer's recommended wattage, and don't go below it even if a calculator suggests you could. If you're planning to keep the system for years and might upgrade the graphics card later, buying one tier above that recommendation costs relatively little now and saves a full PSU swap later.",
+      "The other number worth checking is the connector, not just the wattage. Modern high-end cards increasingly use the 12V-2×6 connector rather than multiple 8-pin PCIe leads, and a supply's wattage rating tells you nothing about which connectors it actually has in the box."
+    ] },
+  { slug:"ddr5-timings-without-the-marketing", title:"DDR5 timings, without the marketing",
+    category:"Explained", tags:["Memory","Performance"], author:"chidi-okafor",
+    date:"2026-06-30", readMins:11, cover:"ukcs-blog-ram",
+    excerpt:"CL30 versus CL36 at the same speed, measured across nine real workloads rather than a single synthetic benchmark.",
+    body:[
+      "Memory listings lead with a big speed number — 6000, 6400, sometimes higher — and bury the latency rating in smaller text below it. That ordering is backwards for most buyers, because at a given speed, latency is usually the bigger lever on real performance.",
+      "CL30 and CL36 kits running at the same 6000 MT/s aren't interchangeable. The lower CAS latency number means fewer clock cycles between a memory request and the data arriving, and across the range of workloads we actually test on our bench — game frame times, compression, code compilation — a CL30 kit consistently edges out a CL36 kit at the same speed, sometimes by a margin that matters and sometimes by one that doesn't.",
+      "Where it matters most: anything sensitive to memory latency rather than bandwidth, which in practice means gaming frame times and any single-threaded workload. Where it matters least: sustained throughput tasks like video encoding, which lean more on raw bandwidth than latency.",
+      "Practically: if a CL30 and a CL36 kit at the same speed are priced close together, take the CL30 kit. If the latency upgrade costs meaningfully more, it's only worth it if you're specifically chasing 1% lows in games or working with latency-sensitive software."
+    ] },
+  { slug:"oled-or-fast-ips-for-a-1440p-desk", title:"OLED or fast IPS for a 1440p desk?",
+    category:"Comparisons", tags:["Monitors"], author:"sara-quinn",
+    date:"2026-06-12", readMins:9, cover:"ukcs-blog-monitor",
+    excerpt:"Burn-in risk in 2026, text clarity for actual work, and which panel suits a desk used for more than games.",
+    body:[
+      "OLED monitors solved the two things gamers cared about most — response time and true black levels — years before they solved the two things everyone else cares about: static-content burn-in risk and comfortable all-day text rendering.",
+      "Burn-in risk is real but overstated for how most desks are actually used. Modern OLED panels ship with pixel-shifting and logo-dimming safeguards, and the failure case — a taskbar or a static UI element left on screen for extended, uninterrupted periods — is avoidable with basic habits rather than a reason to avoid the panel entirely.",
+      "Where a fast IPS panel still wins outright: pure text work at small font sizes. OLED's subpixel layout can produce faint colour fringing on fine text that some people never notice and others find genuinely uncomfortable during long reading or coding sessions. If your desk is 80% spreadsheets and code with gaming in the evenings, test an OLED panel in person before committing.",
+      "Our honest recommendation: if gaming is the primary use, OLED's response time and contrast are worth the burn-in caveat. If the monitor spends most of its life showing a code editor or a browser, a high-refresh IPS panel remains the safer everyday choice."
+    ] },
+  { slug:"refurbished-vs-new-whats-the-real-difference", title:"Refurbished vs new: what's the real difference?",
+    category:"Buying guides", tags:["Refurbished","Laptops"], author:"sara-quinn",
+    date:"2026-05-22", readMins:7, cover:"ukcs-blog-refurb",
+    excerpt:"What actually happens to a system before it's graded and listed, and when refurbished is the better buy.",
+    body:[
+      "“Refurbished” covers a wide range of actual conditions across the industry, which is exactly why we publish a grade and a description of what was checked on every listing rather than using the word on its own.",
+      "On our own refurbished stock, every unit is powered on, stress-tested, and any failed component replaced before grading. A unit graded for cosmetic wear has been checked functionally to the same standard as one graded as looking new — the grade describes the case and screen, not the internals.",
+      "Refurbished makes the most sense for business laptops and desktops, where last year's mid-range professional model at a meaningful discount will comfortably outperform a genuinely new budget model at the same price. It makes less sense for the newest graphics card generation, where refurbished stock is scarce and the discount versus new is usually small.",
+      "One thing to actually check before buying: our refurbished warranty. It's shorter than the warranty on new systems we build, and that's stated clearly on every listing rather than left for you to find out later."
+    ] },
+  { slug:"air-or-liquid-cooling-for-a-modern-cpu", title:"Air or liquid cooling for a modern CPU?",
+    category:"Explained", tags:["Cooling","CPUs"], author:"mark-esson",
+    date:"2026-05-02", readMins:8, cover:"ukcs-blog-cooling",
+    excerpt:"A good air cooler beats a mediocre AIO more often than the marketing around liquid cooling suggests.",
+    body:[
+      "A 360mm AIO looks more impressive in a case than a tower air cooler, and that's doing a lot of work in why liquid cooling has a reputation for being the “better” choice. Thermally, a genuinely good dual-tower air cooler competes with a mid-range 240mm or even 280mm AIO on most modern CPUs.",
+      "Where liquid actually pulls ahead: very high sustained loads on a high-core-count processor, and clearance-constrained builds where a large air tower simply won't fit under a case's side panel or won't clear tall memory modules.",
+      "Where air is the better choice more often than people expect: everything else. No pump to eventually wear out, no tubing to worry about over a multi-year lifespan, and typically better price-to-performance below the very top tier of CPUs.",
+      "Our practical filter: if the CPU is a flagship part running sustained all-core workloads (rendering, compilation, streaming while gaming), a 280mm-or-larger AIO earns its keep. For most gaming-focused builds, a well-reviewed dual-tower air cooler is the better spend, and the money saved is better put toward the graphics card."
+    ] },
+  { slug:"building-your-first-gaming-pc-a-realistic-order-of-operations", title:"Building your first gaming PC: a realistic order of operations",
+    category:"Buying guides", tags:["Gaming PCs","Compatibility"], author:"chidi-okafor",
+    date:"2026-04-18", readMins:12, cover:"ukcs-blog-build",
+    excerpt:"The order we'd actually pick parts in, starting from a budget rather than a graphics card.",
+    body:[
+      "Most first-build guides start with “pick your graphics card” because it's the most exciting part to shop for. We'd suggest starting with a number instead: your total budget, because it changes which trade-offs are worth making everywhere else.",
+      "From there, the order that avoids the most rework: case (it constrains everything physically), then power supply sized to the GPU tier you're aiming for, then motherboard and CPU together as a pair since they're locked to the same socket, then memory matched to what that platform actually supports well, then storage, then finally the graphics card itself — by which point you'll know exactly how much budget is left for it.",
+      "The single most common first-build mistake we see at the counter isn't a compatibility error — our configurator catches most of those — it's underspending on the power supply to leave more for the GPU, then discovering the system won't reliably run under full load.",
+      "If in doubt, one of our pre-built tiers is a reasonable starting point even for a first build: every part in it is already compatibility-checked, and every part in it can also be swapped individually before checkout if you want to fine-tune it yourself."
+    ] }
+];
+
 var DELIVERY = [
   { id:"standard", label:"Standard delivery", note:"3–5 working days", price:2.95, freeOver:75 },
   { id:"nextday",  label:"Next working day",  note:"Order before 17:00", price:4.95, freeOver:75 },
@@ -567,6 +648,7 @@ root.Shop = {
   money:money, exVat:exVat, stars:stars, esc:esc, uniq:uniq, param:param, url:url,
   stockText:stockText, design:design, tree:tree, countIn:countIn, CAT_ORDER:CAT_ORDER,
   Basket:Basket, refreshBasketUI:refreshBasketUI, flash:flash, DELIVERY:DELIVERY, VAT_RATE:VAT_RATE, orders:orders, ADDRESSES:ADDRESSES, OrderState:OrderState,
+  BLOG_POSTS:BLOG_POSTS, BLOG_AUTHORS:BLOG_AUTHORS,
   CONTENT_PAGES_ROLLED_OUT:CONTENT_PAGES_ROLLED_OUT,
   Wishlist:Wishlist, Compare:Compare, COMPARE_MAX:COMPARE_MAX, refreshWishlistUI:refreshWishlistUI, refreshCompareUI:refreshCompareUI
 };

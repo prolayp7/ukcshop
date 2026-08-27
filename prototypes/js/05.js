@@ -68,7 +68,8 @@ function header(){
         '<a href="'+S.url("brands")+'">'+ic("i-scale",18,14)+'All brands<em>'+S.brands().length+'</em></a></div></div>'+
       megas + rest +
       '<a class="top" href="'+S.url("brands")+'">Brands</a>'+
-      '<a class="top hot" href="#deals">Deals</a>'+
+      '<a class="top" href="'+S.url("blog")+'">Blog</a>'+
+      '<a class="top hot" href="'+S.url("deals")+'">Deals</a>'+
       '<div class="right">'+ic("i-truck",15,15)+'<span>Despatch cut-off <b>17:00</b></span></div>'+
     '</div></nav>';
 }
@@ -146,6 +147,7 @@ function section(title, note, items, link){
 /* ---------------- home ---------------- */
 function home(){
   var best = S.all.slice().sort(function(a,b){ return b.sold - a.sold; });
+  var featured = S.all.filter(function(p){ return p.featured; });
   var hero = S.byId(1) || best[0];
   var deals = S.all.filter(function(p){ return p.was; })
     .sort(function(a,b){ return (b.was-b.price)/b.was - (a.was-a.price)/a.was; }).slice(0,3);
@@ -210,6 +212,9 @@ function home(){
 
     section("This week's best sellers", "Ranked on units shipped over the last seven days.", best.slice(0,4),
             { href:S.url("category",{cat:"PC Components"}), label:"See all" })+
+
+    section("Featured products", "A spread across departments, picked by the team rather than an algorithm.", featured.slice(0,4),
+            { href:S.url("category",{featured:1}), label:"See all featured" })+
 
     '<section style="padding-top:0"><div class="wrap"><div class="feature">'+
       '<div class="txt"><span class="eyebrow">The build room</span>'+

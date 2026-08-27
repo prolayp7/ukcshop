@@ -356,7 +356,8 @@
    "Processor",
    "Protective case",
    "Quick start guide"
-  ]
+  ],
+  "featured": true
  },
  {
   "id": 10,
@@ -434,7 +435,8 @@
    "Processor",
    "Protective case",
    "Quick start guide"
-  ]
+  ],
+  "featured": true
  },
  {
   "id": 12,
@@ -629,7 +631,8 @@
    "Processor",
    "Protective case",
    "Quick start guide"
-  ]
+  ],
+  "clearance": true
  },
  {
   "id": 17,
@@ -926,7 +929,9 @@
   "inBox": [
    "Memory module(s)",
    "Warranty card"
-  ]
+  ],
+  "clearance": true,
+  "featured": true
  },
  {
   "id": 24,
@@ -1043,7 +1048,8 @@
   "inBox": [
    "Memory module(s)",
    "Warranty card"
-  ]
+  ],
+  "clearance": true
  },
  {
   "id": 27,
@@ -1593,7 +1599,8 @@
    "AC power cable",
    "Mounting screws",
    "User manual"
-  ]
+  ],
+  "clearance": true
  },
  {
   "id": 41,
@@ -2046,7 +2053,8 @@
   "inBox": [
    "Syringe of thermal compound",
    "Spreader tool"
-  ]
+  ],
+  "clearance": true
  },
  {
   "id": 53,
@@ -2241,7 +2249,8 @@
    "Pre-built PC",
    "Power cable",
    "Quick start guide"
-  ]
+  ],
+  "featured": true
  },
  {
   "id": 58,
@@ -2438,7 +2447,8 @@
    "Refurbished PC",
    "Power cable",
    "Refurbishment test report"
-  ]
+  ],
+  "clearance": true
  },
  {
   "id": 63,
@@ -2672,7 +2682,8 @@
    "Laptop",
    "Power adapter",
    "Quick start guide"
-  ]
+  ],
+  "featured": true
  },
  {
   "id": 69,
@@ -2750,7 +2761,8 @@
    "Laptop",
    "Power adapter",
    "Refurbishment test report"
-  ]
+  ],
+  "clearance": true
  },
  {
   "id": 71,
@@ -3192,7 +3204,8 @@
    "Mouse",
    "USB-C charging/wireless cable",
    "Extra grip tape (where applicable)"
-  ]
+  ],
+  "featured": true
  },
  {
   "id": 82,
@@ -3596,7 +3609,8 @@
    "Switch",
    "Power adapter",
    "Mounting brackets"
-  ]
+  ],
+  "featured": true
  },
  {
   "id": 93,
@@ -3982,7 +3996,8 @@
    "Enclosure or backplane",
    "Cable",
    "Mounting screws"
-  ]
+  ],
+  "clearance": true
  },
  {
   "id": 104,
@@ -4018,6 +4033,7 @@
    "Enclosure or backplane",
    "Cable",
    "Mounting screws"
-  ]
+  ],
+  "featured": true
  }
 ]

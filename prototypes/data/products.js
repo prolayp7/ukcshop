@@ -359,7 +359,8 @@ window.PRODUCTS = [
    "Processor",
    "Protective case",
    "Quick start guide"
-  ]
+  ],
+  "featured": true
  },
  {
   "id": 10,
@@ -437,7 +438,8 @@ window.PRODUCTS = [
    "Processor",
    "Protective case",
    "Quick start guide"
-  ]
+  ],
+  "featured": true
  },
  {
   "id": 12,
@@ -632,7 +634,8 @@ window.PRODUCTS = [
    "Processor",
    "Protective case",
    "Quick start guide"
-  ]
+  ],
+  "clearance": true
  },
  {
   "id": 17,
@@ -929,7 +932,9 @@ window.PRODUCTS = [
   "inBox": [
    "Memory module(s)",
    "Warranty card"
-  ]
+  ],
+  "clearance": true,
+  "featured": true
  },
  {
   "id": 24,
@@ -1046,7 +1051,8 @@ window.PRODUCTS = [
   "inBox": [
    "Memory module(s)",
    "Warranty card"
-  ]
+  ],
+  "clearance": true
  },
  {
   "id": 27,
@@ -1596,7 +1602,8 @@ window.PRODUCTS = [
    "AC power cable",
    "Mounting screws",
    "User manual"
-  ]
+  ],
+  "clearance": true
  },
  {
   "id": 41,
@@ -2049,7 +2056,8 @@ window.PRODUCTS = [
   "inBox": [
    "Syringe of thermal compound",
    "Spreader tool"
-  ]
+  ],
+  "clearance": true
  },
  {
   "id": 53,
@@ -2244,7 +2252,8 @@ window.PRODUCTS = [
    "Pre-built PC",
    "Power cable",
    "Quick start guide"
-  ]
+  ],
+  "featured": true
  },
  {
   "id": 58,
@@ -2441,7 +2450,8 @@ window.PRODUCTS = [
    "Refurbished PC",
    "Power cable",
    "Refurbishment test report"
-  ]
+  ],
+  "clearance": true
  },
  {
   "id": 63,
@@ -2675,7 +2685,8 @@ window.PRODUCTS = [
    "Laptop",
    "Power adapter",
    "Quick start guide"
-  ]
+  ],
+  "featured": true
  },
  {
   "id": 69,
@@ -2753,7 +2764,8 @@ window.PRODUCTS = [
    "Laptop",
    "Power adapter",
    "Refurbishment test report"
-  ]
+  ],
+  "clearance": true
  },
  {
   "id": 71,
@@ -3195,7 +3207,8 @@ window.PRODUCTS = [
    "Mouse",
    "USB-C charging/wireless cable",
    "Extra grip tape (where applicable)"
-  ]
+  ],
+  "featured": true
  },
  {
   "id": 82,
@@ -3599,7 +3612,8 @@ window.PRODUCTS = [
    "Switch",
    "Power adapter",
    "Mounting brackets"
-  ]
+  ],
+  "featured": true
  },
  {
   "id": 93,
@@ -3985,7 +3999,8 @@ window.PRODUCTS = [
    "Enclosure or backplane",
    "Cable",
    "Mounting screws"
-  ]
+  ],
+  "clearance": true
  },
  {
   "id": 104,
@@ -4021,6 +4036,7 @@ window.PRODUCTS = [
    "Enclosure or backplane",
    "Cable",
    "Mounting screws"
-  ]
+  ],
+  "featured": true
  }
 ];

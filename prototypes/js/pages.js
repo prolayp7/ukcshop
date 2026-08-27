@@ -14,14 +14,15 @@ function notFound(what){
 var Pages = {
 
   category: function(){
-    var cat = S.param("cat"), sub = S.param("sub");
+    var cat = S.param("cat"), sub = S.param("sub"), featured = S.param("featured");
     var items = S.all.filter(function(p){
+      if (featured) return !!p.featured;
       if (sub) return p.subcategory === sub;
       if (cat) return p.category === cat;
       return true;
     });
-    if (!items.length) return notFound(sub || cat ? "Category" : "Products");
-    var label = sub || cat || "All products";
+    if (!items.length) return notFound(featured ? "Featured products" : sub || cat ? "Category" : "Products");
+    var label = featured ? "Featured products" : sub || cat || "All products";
     var parent = sub ? (items[0] && items[0].category) : null;
     var bySub = {};
     (cat ? S.all.filter(function(p){ return p.category === cat; }) : items)
@@ -118,6 +119,81 @@ var Pages = {
       order: order, alreadyRequested: S.OrderState.get(ref).returnRequested,
       crumbs: [ { label:"Home", href:S.url("home") }, { label:"My account", href:S.url("account",{tab:"orders"}) },
                 { label:order.ref, href:S.url("orderDetails",{ref:ref}) }, { label:"Return" } ]
+    };
+  },
+
+  blog: function(){
+    var cat = S.param("cat"), tag = S.param("tag"), authorSlug = S.param("author"), month = S.param("month"),
+        q = (S.param("q")||"").toLowerCase().trim();
+    var posts = S.BLOG_POSTS.slice().sort(function(a,b){ return a.date < b.date ? 1 : -1; });
+    var authorOf = function(p){ return S.BLOG_AUTHORS.filter(function(a){ return a.slug === p.author; })[0]; };
+    var filtered = posts.filter(function(p){
+      if (cat && p.category !== cat) return false;
+      if (tag && p.tags.indexOf(tag) === -1) return false;
+      if (authorSlug && p.author !== authorSlug) return false;
+      if (month && p.date.slice(0,7) !== month) return false;
+      if (q && (p.title + " " + p.excerpt + " " + p.body.join(" ")).toLowerCase().indexOf(q) === -1) return false;
+      return true;
+    });
+    var byMonth = {};
+    posts.forEach(function(p){
+      var key = p.date.slice(0,7);
+      byMonth[key] = (byMonth[key] || 0) + 1;
+    });
+    return {
+      posts: filtered.map(function(p){ return { post:p, author:authorOf(p) }; }),
+      empty: filtered.length === 0,
+      cat: cat, tag: tag, authorSlug: authorSlug, month: month, q: q,
+      categories: S.uniq(posts.map(function(p){ return p.category; })),
+      tags: S.uniq(posts.reduce(function(a,p){ return a.concat(p.tags); }, [])).sort(),
+      months: Object.keys(byMonth).sort().reverse().map(function(k){ return { key:k, count:byMonth[k] }; }),
+      recommended: S.recommended(4, []),
+      crumbs: [ { label:"Home", href:S.url("home") }, { label:"Blog" } ]
+    };
+  },
+
+  blogPost: function(){
+    var slug = S.param("slug");
+    var post = S.BLOG_POSTS.filter(function(p){ return p.slug === slug; })[0];
+    if (!post) return notFound("Article");
+    var author = S.BLOG_AUTHORS.filter(function(a){ return a.slug === post.author; })[0];
+    var related = S.BLOG_POSTS.filter(function(p){
+      return p.slug !== post.slug && (p.category === post.category || p.tags.some(function(t){ return post.tags.indexOf(t) > -1; }));
+    }).slice(0, 3);
+    if (related.length < 3){
+      S.BLOG_POSTS.forEach(function(p){
+        if (related.length < 3 && p.slug !== post.slug && related.indexOf(p) === -1) related.push(p);
+      });
+    }
+    return {
+      post: post, author: author, related: related,
+      recommended: S.recommended(4, []),
+      crumbs: [ { label:"Home", href:S.url("home") }, { label:"Blog", href:S.url("blog") },
+                { label:post.category, href:S.url("blog",{cat:post.category}) }, { label:post.title } ]
+    };
+  },
+
+  blogAuthor: function(){
+    var slug = S.param("slug");
+    var author = S.BLOG_AUTHORS.filter(function(a){ return a.slug === slug; })[0];
+    if (!author) return notFound("Author");
+    var posts = S.BLOG_POSTS.filter(function(p){ return p.author === slug; }).sort(function(a,b){ return a.date < b.date ? 1 : -1; });
+    return {
+      author: author, posts: posts,
+      crumbs: [ { label:"Home", href:S.url("home") }, { label:"Blog", href:S.url("blog") }, { label:author.name } ]
+    };
+  },
+
+  deals: function(){
+    var view = S.param("view") || "all";
+    var all = S.all.filter(function(p){ return p.was; });
+    var items = view === "clearance" ? all.filter(function(p){ return p.clearance; }) : all;
+    return {
+      items: items, view: view,
+      clearanceCount: all.filter(function(p){ return p.clearance; }).length,
+      allCount: all.length,
+      recommended: S.recommended(4, items.map(function(p){ return p.id; })),
+      crumbs: [ { label:"Home", href:S.url("home") }, { label: view === "clearance" ? "Clearance" : "Deals & offers" } ]
     };
   },
 
