@@ -145,10 +145,23 @@ h1,h2,h3,h4{margin:0;letter-spacing:-.02em;font-weight:600}
 .btn-line.on{background:var(--ink);color:var(--volt);border-color:var(--ink)}
 
 /* hero */
-.hero{background:var(--ink);color:#fff;position:relative;overflow:hidden}
-.hero::before{content:"";position:absolute;inset:0;background:url('https://picsum.photos/seed/ukcs-hero-rig/1600/1000') center/cover no-repeat}
-.hero::after{content:"";position:absolute;inset:0;background:radial-gradient(circle 720px at 92% -14%,rgba(255,219,30,.18),transparent 62%),linear-gradient(100deg,rgba(9,9,11,.97) 0%,rgba(9,9,11,.92) 32%,rgba(9,9,11,.58) 58%,rgba(9,9,11,.8) 100%)}
+.hero{position:relative;overflow:hidden}
+.hero-slides{position:relative;min-height:660px}
+.hero-slide{position:absolute;inset:0;background:var(--ink);color:#fff;opacity:0;visibility:hidden;transition:opacity .5s ease;z-index:1}
+.hero-slide.on{opacity:1;visibility:visible;position:relative;z-index:2}
+.hero-slide::before{content:"";position:absolute;inset:0;background-size:cover;background-position:center}
+.hero-slide.s1::before{background-image:url('https://picsum.photos/seed/ukcs-hero-rig-1/1600/1000')}
+.hero-slide.s2::before{background-image:url('https://picsum.photos/seed/ukcs-hero-rig-2/1600/1000')}
+.hero-slide.s3::before{background-image:url('https://picsum.photos/seed/ukcs-hero-rig-3/1600/1000')}
+.hero-slide::after{content:"";position:absolute;inset:0;background:radial-gradient(circle 720px at 92% -14%,rgba(255,219,30,.18),transparent 62%),linear-gradient(100deg,rgba(9,9,11,.97) 0%,rgba(9,9,11,.92) 32%,rgba(9,9,11,.58) 58%,rgba(9,9,11,.8) 100%)}
 .hero .wrap{position:relative;z-index:2;display:grid;grid-template-columns:1.05fr .95fr;gap:50px;align-items:center;padding:70px 0}
+.hero-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:46px;height:46px;border-radius:50%;background:rgba(9,9,11,.55);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.18);color:#fff;display:grid;place-items:center;transition:.15s}
+.hero-arrow:hover{background:var(--volt);color:var(--ink);border-color:var(--volt)}
+.hero-arrow.prev{left:20px}
+.hero-arrow.next{right:20px}
+.hero-dots{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);z-index:5;display:flex;gap:8px}
+.hero-dots button{width:8px;height:8px;padding:0;border-radius:50%;background:rgba(255,255,255,.3);transition:.2s}
+.hero-dots button.on{background:var(--volt);width:24px;border-radius:99px}
 .hero .eyebrow{color:var(--volt)}
 .hero h1{font-size:60px;line-height:1.02;margin:20px 0 20px;font-weight:600;letter-spacing:-.035em}
 .hero h1 em{font-style:normal;color:var(--volt)}
@@ -427,6 +440,7 @@ footer a:hover{color:var(--volt)}
   .deal .l{border-right:0;border-bottom:1px solid rgba(255,255,255,.12)}
   .hero .wrap,.feature,.pd,.bhero{grid-template-columns:1fr}
   .hero h1{font-size:42px}
+  .hero-slides{min-height:1000px}
   .feature .txt{padding:40px 28px}
   .trust .wrap{grid-template-columns:1fr 1fr}
   .fgrid{grid-template-columns:1fr 1fr}
@@ -447,6 +461,10 @@ footer a:hover{color:var(--volt)}
   .dealcard{border-right:0;border-bottom:1px solid rgba(255,255,255,.12)}
   .hero h1{font-size:32px}
   .hero .facts{flex-wrap:wrap;gap:20px}
+  .hero-slides{min-height:1080px}
+  .hero-arrow{width:38px;height:38px}
+  .hero-arrow.prev{left:10px}
+  .hero-arrow.next{right:10px}
   .pdkey{grid-template-columns:1fr}
   .gal .main{height:280px}
   .pdinfo h1{font-size:25px}

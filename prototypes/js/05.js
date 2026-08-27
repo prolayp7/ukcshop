@@ -144,11 +144,51 @@ function section(title, note, items, link){
     '<div class="grid">'+items.map(card).join("")+'</div></div></section>';
 }
 
+/* ---------------- hero slider ---------------- */
+function heroSlide(cls, badge, eyebrow, h1, copy, p){
+  return '<div class="hero-slide '+cls+'"><div class="wrap">'+
+      '<div><span class="eyebrow">'+eyebrow+'</span>'+
+        '<h1>'+h1+'</h1>'+
+        '<p>'+copy+'</p>'+
+        '<div class="cta"><a class="btn btn-volt" href="'+S.url("category",{cat:"PC Components"})+'">Shop components '+ic("i-arr",16,16)+'</a>'+
+        '<a class="btn btn-line" style="border-color:rgba(255,255,255,.4);color:#fff" href="'+S.url("brands")+'">Browse brands</a></div>'+
+        '<div class="facts"><div><b>'+S.all.length.toLocaleString("en-GB")+'</b><span>Products</span></div>'+
+          '<div><b>17:00</b><span>Despatch cut-off</span></div>'+
+          '<div><b>3 years</b><span>System warranty</span></div>'+
+          '<div><b>'+S.all.length+'</b><span>Products in stock today</span></div></div></div>'+
+      '<div class="hcard"><div class="top"><span class="badge">'+badge+'</span>'+
+          '<span class="mono" style="color:#71717a">'+E(p.subcategory)+'</span></div>'+
+        '<div class="fig"><svg viewBox="0 0 64 44" style="width:250px;height:180px"><use href="#'+p.icon+'"/></svg></div>'+
+        '<h3>'+E(p.name)+'</h3><div class="sub">'+E(p.brand)+' · '+E(p.sku)+'</div>'+
+        '<div class="specs">'+Object.keys(p.specs).slice(0,4).map(function(k){
+          return '<div><span>'+E(k).toUpperCase()+'</span><b>'+E(p.specs[k])+'</b></div>'; }).join("")+'</div>'+
+        '<div class="buy"><div class="p"><b>'+M(p.price)+'</b>'+(p.was ? '<s>'+M(p.was)+'</s>' : "")+'</div>'+
+          '<a class="btn btn-volt" href="#" data-add="'+p.id+'">Add to basket</a></div>'+
+      '</div></div></div>';
+}
+function wireHero(){
+  var slides = $$(".hero-slide"), dots = $$(".hero-dots button");
+  if (!slides.length) return;
+  var i = 0, n = slides.length, timer;
+  function show(idx){
+    i = (idx + n) % n;
+    slides.forEach(function(s,k){ s.classList.toggle("on", k === i); });
+    dots.forEach(function(d,k){ d.classList.toggle("on", k === i); });
+  }
+  function restart(){ clearInterval(timer); timer = setInterval(function(){ show(i + 1); }, 6000); }
+  $(".hero-arrow.next").addEventListener("click", function(){ show(i + 1); restart(); });
+  $(".hero-arrow.prev").addEventListener("click", function(){ show(i - 1); restart(); });
+  dots.forEach(function(d,k){ d.addEventListener("click", function(){ show(k); restart(); }); });
+  restart();
+}
+
 /* ---------------- home ---------------- */
 function home(){
   var best = S.all.slice().sort(function(a,b){ return b.sold - a.sold; });
   var featured = S.all.filter(function(p){ return p.featured; });
   var hero = S.byId(1) || best[0];
+  var slide2 = S.byId(9) || best[1];
+  var slide3 = S.byId(3) || best[2];
   var deals = S.all.filter(function(p){ return p.was; })
     .sort(function(a,b){ return (b.was-b.price)/b.was - (a.was-a.price)/a.was; }).slice(0,3);
   var fresh = S.all.slice().sort(function(a,b){ return a.added < b.added ? 1 : -1; }).slice(0,4);
@@ -156,25 +196,21 @@ function home(){
   var topBrands = S.brands().filter(function(b){ return b.brand !== "UKCS"; }).slice(0,8);
 
   document.getElementById("app").innerHTML = header() +
-    '<div class="hero"><div class="wrap">'+
-      '<div><span class="eyebrow">Blackwell series · in stock today</span>'+
-        '<h1>Every part<br>benchmarked.<br><em>Then boxed.</em></h1>'+
-        '<p>Twenty-four thousand lines of components, systems and peripherals — specified, stock-checked and tested by people who build machines for a living.</p>'+
-        '<div class="cta"><a class="btn btn-volt" href="'+S.url("category",{cat:"PC Components"})+'">Shop components '+ic("i-arr",16,16)+'</a>'+
-        '<a class="btn btn-line" style="border-color:rgba(255,255,255,.4);color:#fff" href="'+S.url("brands")+'">Browse brands</a></div>'+
-        '<div class="facts"><div><b>'+S.all.length.toLocaleString("en-GB")+'</b><span>Products</span></div>'+
-          '<div><b>17:00</b><span>Despatch cut-off</span></div>'+
-          '<div><b>3 years</b><span>System warranty</span></div>'+
-          '<div><b>'+S.all.length+'</b><span>Products in stock today</span></div></div></div>'+
-      '<div class="hcard"><div class="top"><span class="badge">DEAL OF THE WEEK</span>'+
-          '<span class="mono" style="color:#71717a">'+E(hero.subcategory)+'</span></div>'+
-        '<div class="fig"><svg viewBox="0 0 64 44" style="width:250px;height:180px"><use href="#'+hero.icon+'"/></svg></div>'+
-        '<h3>'+E(hero.name)+'</h3><div class="sub">'+E(hero.brand)+' · '+E(hero.sku)+'</div>'+
-        '<div class="specs">'+Object.keys(hero.specs).slice(0,4).map(function(k){
-          return '<div><span>'+E(k).toUpperCase()+'</span><b>'+E(hero.specs[k])+'</b></div>'; }).join("")+'</div>'+
-        '<div class="buy"><div class="p"><b>'+M(hero.price)+'</b>'+(hero.was ? '<s>'+M(hero.was)+'</s>' : "")+'</div>'+
-          '<a class="btn btn-volt" href="#" data-add="'+hero.id+'">Add to basket</a></div>'+
-      '</div></div></div>'+
+    '<div class="hero"><div class="hero-slides">'+
+      heroSlide("s1 on", "Deal of the week", "Blackwell series · in stock today",
+        "Every part<br>benchmarked.<br><em>Then boxed.</em>",
+        "Twenty-four thousand lines of components, systems and peripherals — specified, stock-checked and tested by people who build machines for a living.", hero)+
+      heroSlide("s2", "Featured this week", "AM5 platform · bench-tested",
+        "Every socket<br>checked.<br><em>Every time.</em>",
+        "Every processor we list is checked against its full spec sheet before it goes live — socket, cache and TDP included. No guesswork at checkout.", slide2)+
+      heroSlide("s3", "Featured this week", "Flagship · liquid cooled",
+        "The flagship,<br>fully<br><em>verified.</em>",
+        "Our top-tier graphics card, bench-tested on arrival and re-checked before every despatch. If it is listed in stock, it has already been through the lab.", slide3)+
+    '</div>'+
+    '<button class="hero-arrow prev" aria-label="Previous slide"><svg width="18" height="18"><use href="#i-chev" transform="rotate(90 12 12)"/></svg></button>'+
+    '<button class="hero-arrow next" aria-label="Next slide"><svg width="18" height="18"><use href="#i-chev" transform="rotate(-90 12 12)"/></svg></button>'+
+    '<div class="hero-dots"><button class="on" aria-label="Slide 1"></button><button aria-label="Slide 2"></button><button aria-label="Slide 3"></button></div>'+
+    '</div>'+
 
     '<div class="trust"><div class="wrap">'+
       '<div><span class="ic">'+ic("i-truck",20,20)+'</span><span><b>Free next-day over £75</b><span>DPD one-hour window</span></span></div>'+
@@ -233,7 +269,7 @@ function home(){
         return '<a href="'+S.url("brand",{b:b.brand})+'">'+E(b.brand)+'</a>'; }).join("")+'</div>'+
     '</div></section>' + footer();
 
-  countdown(); wireChrome();
+  countdown(); wireChrome(); wireHero();
   document.title = "UK Computer Shop — Voltage";
 }
 
