@@ -26,12 +26,12 @@ function header(){
 function footer(){
   return '<footer><div class="wrap"><div class="fg">'+
     '<div><a class="logo" href="'+S.url("home")+'" style="margin-bottom:16px"><span class="mark">UK</span><span><b>UK COMPUTER SHOP</b><span class="mono">Performance division</span></span></a>'+
-    '<p>Independent UK retailer since 2009. Warehouse, build room and test lab in Manchester.</p></div>'+
+    '<p>Independent UK retailer. Warehouse, build room and test lab in Manchester.</p></div>'+
     '<div><h4>SHOP</h4><ul>'+S.CAT_ORDER.slice(0,5).map(function(c){ return '<li><a href="'+S.url("category",{cat:c})+'">'+E(c)+'</a></li>'; }).join("")+'</ul></div>'+
     '<div><h4>SYSTEMS</h4><ul><li><a href="#">Gaming PCs</a></li><li><a href="#">Workstations</a></li><li><a href="#">Configurator</a></li><li><a href="#">Trade-in</a></li></ul></div>'+
     '<div><h4>SUPPORT</h4><ul><li><a href="#">Track order</a></li><li><a href="#">Delivery &amp; returns</a></li><li><a href="#">Warranty / RMA</a></li><li><a href="#">Contact</a></li></ul></div>'+
     '<div><h4>COMPANY</h4><ul><li><a href="'+S.url("brands")+'">All brands</a></li><li><a href="#">About</a></li><li><a href="#">Test lab</a></li><li><a href="#">Terms</a></li></ul></div>'+
-    '</div><div class="fb"><span>© 2026 UK COMPUTER SHOP LTD · VAT GB 123 4567 89</span><span>ALL PRICES INC. VAT · E&amp;OE</span></div></div></footer>';
+    '</div><div class="fb"><span>© 2026 UK COMPUTER SHOP LTD · VAT [VAT number]</span><span>ALL PRICES INC. VAT · E&amp;OE</span></div></div></footer>';
 }
 function crumbs(list){
   return '<div class="wrap"><nav class="crumb">'+list.map(function(c,i){

@@ -25,7 +25,7 @@ function header(){
 
   return '<div class="util"><div class="wrap">'+
     '<a href="#">Track my order</a><a href="#">Business &amp; Education</a><a href="#">Trade accounts</a>'+
-    '<div class="sep"><span><strong>4.8/5</strong> from 12,480 reviews</span><a href="#">Help centre</a><a href="#">£ GBP · Inc. VAT</a></div>'+
+    '<div class="sep"><span><strong>'+S.all.length+'</strong> products in stock</span><a href="#">Help centre</a><a href="#">£ GBP · Inc. VAT</a></div>'+
     '</div></div>'+
   '<header class="mast"><div class="wrap">'+
     '<a class="logo" href="'+S.url("home")+'"><span class="mark">UK</span><span><b>UK Computer Shop</b><span>Components &amp; Systems</span></span></a>'+
@@ -48,13 +48,13 @@ function header(){
 function footer(){
   return '<footer><div class="wrap"><div class="fgrid">'+
     '<div><a class="logo" href="'+S.url("home")+'" style="margin-bottom:14px"><span class="mark">UK</span><span><b style="color:#fff">UK Computer Shop</b><span style="color:#7fa3c7">Components &amp; Systems</span></span></a>'+
-    '<p style="margin:0 0 16px;max-width:300px">Independent UK retailer since 2009. Warehouse and workshop in Manchester, showroom open Mon–Sat.</p>'+
+    '<p style="margin:0 0 16px;max-width:300px">Independent UK retailer. Warehouse and workshop in Manchester, showroom open Mon–Sat.</p>'+
     '<div class="fnews"><input placeholder="Email address for deals"><button>Subscribe</button></div></div>'+
     '<div><h4>Shop</h4><ul>'+S.CAT_ORDER.map(function(c){ return '<li><a href="'+S.url("category",{cat:c})+'">'+E(c)+'</a></li>'; }).join("")+'</ul></div>'+
     '<div><h4>Services</h4><ul><li><a href="#">PC configurator</a></li><li><a href="#">Build &amp; test service</a></li><li><a href="#">Repairs &amp; upgrades</a></li><li><a href="#">Trade-in</a></li></ul></div>'+
     '<div><h4>Support</h4><ul><li><a href="#">Track my order</a></li><li><a href="#">Delivery &amp; returns</a></li><li><a href="#">Warranty &amp; RMA</a></li><li><a href="#">Contact us</a></li></ul></div>'+
     '<div><h4>Company</h4><ul><li><a href="'+S.url("brands")+'">All brands</a></li><li><a href="#">About us</a></li><li><a href="#">Reviews</a></li><li><a href="#">Terms &amp; conditions</a></li></ul></div>'+
-    '</div><div class="fbot"><span>© 2026 UK Computer Shop Ltd · Company no. 07234891 · VAT GB 123 4567 89</span>'+
+    '</div><div class="fbot"><span>© 2026 UK Computer Shop Ltd · [Company registration] · [VAT number]</span>'+
     '<div class="pay"><span>VISA</span><span>MASTERCARD</span><span>AMEX</span><span>PAYPAL</span><span>KLARNA</span><span>APPLE PAY</span></div></div></div></footer>';
 }
 function crumbs(list){

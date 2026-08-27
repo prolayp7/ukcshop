@@ -9,7 +9,7 @@ function header(){
   return '<div class="ann">Complimentary next-day delivery on orders over £75 · <b>Build service now booking for next week</b></div>'+
   '<header><div class="wrap"><div class="hrow">'+
     '<div class="hleft"><a href="#">Configurator</a><a href="#">Build service</a><a href="#">Business</a></div>'+
-    '<a class="brand" href="'+S.url("home")+'"><b>UK Computer Shop</b><span>Est. 2009 · Manchester</span></a>'+
+    '<a class="brand" href="'+S.url("home")+'"><b>UK Computer Shop</b><span>Manchester</span></a>'+
     '<div class="hright"><a class="icb" href="#">'+ic("i-search",17,17)+'Search</a><a class="icb" href="'+S.url("account")+'">'+ic("i-user",17,17)+'Account</a>'+
     '<a class="icb" href="'+S.url("basket")+'">'+ic("i-bag",17,17)+'Basket<span class="n" data-basket-count hidden>0</span></a></div>'+
   '</div><nav class="hnav">'+
@@ -23,12 +23,12 @@ function header(){
 }
 function footer(){
   return '<footer><div class="wrap"><div class="fg">'+
-    '<div class="about"><b>UK Computer Shop</b><p>Independent retailer, workshop and showroom. Unit 7, Ardwick Green, Manchester M12. Open Monday to Saturday.</p></div>'+
+    '<div class="about"><b>UK Computer Shop</b><p>Independent retailer, workshop and showroom. [Business address], Manchester. Open Monday to Saturday.</p></div>'+
     '<div><h4>Shop</h4><ul>'+S.CAT_ORDER.slice(0,5).map(function(c){ return '<li><a href="'+S.url("category",{cat:c})+'">'+E(c)+'</a></li>'; }).join("")+'</ul></div>'+
     '<div><h4>Services</h4><ul><li><a href="#">Configurator</a></li><li><a href="#">Assembly</a></li><li><a href="#">Repairs</a></li><li><a href="#">Trade-in</a></li></ul></div>'+
     '<div><h4>Support</h4><ul><li><a href="#">Track an order</a></li><li><a href="#">Delivery &amp; returns</a></li><li><a href="#">Warranty</a></li><li><a href="#">Contact</a></li></ul></div>'+
     '<div><h4>Company</h4><ul><li><a href="'+S.url("brands")+'">All brands</a></li><li><a href="#">About</a></li><li><a href="#">The journal</a></li><li><a href="#">Terms</a></li></ul></div>'+
-    '</div><div class="fb"><span>© 2026 UK Computer Shop Ltd · Registered in England 07234891 · VAT GB 123 4567 89</span><span>All prices include VAT at 20%</span></div></div></footer>';
+    '</div><div class="fb"><span>© 2026 UK Computer Shop Ltd · Registered in England [Company registration] · VAT [VAT number]</span><span>All prices include VAT at 20%</span></div></div></footer>';
 }
 function crumbs(l){
   return '<div class="wrap"><nav class="crumb">'+l.map(function(c,i){
