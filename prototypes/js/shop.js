@@ -140,7 +140,7 @@ function url(kind, q){
   var name = kind === "home" ? design + HOME_SUFFIX[design] : design + file;
   return name + ".html" + (s ? "?" + s : "");
 }
-var HOME_SUFFIX = { "01":"-highstreet", "02":"-overdrive", "03":"-atelier", "04":"-spec-index", "05":"-voltage" };
+var HOME_SUFFIX = { "01":"-highstreet", "02":"-overdrive", "03":"-atelier", "04":"-spec-index", "05":"-voltage", "06":"-ion" };
 
 function byId(id){ id = Number(id); for (var i=0;i<P.length;i++) if (P[i].id === id) return P[i]; return null; }
 function tier(p){ return p.price < 60 ? 0 : p.price < 200 ? 1 : p.price < 600 ? 2 : 3; }
