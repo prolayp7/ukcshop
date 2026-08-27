@@ -149,7 +149,7 @@ header .wrap{display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-ite
 .row .info{padding:14px 18px;min-width:0}
 .row .idl{display:flex;gap:14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--mute);text-transform:uppercase;margin-bottom:6px;flex-wrap:wrap}
 .row .idl b{color:var(--ink);font-weight:600}
-.row h3{margin:0 0 9px;font-size:16px;font-weight:600;letter-spacing:-.2px}
+.row h3{margin:0 0 9px;font-size:18px;font-weight:600;letter-spacing:-.2px}
 .row h3 a:hover{color:var(--blue);text-decoration:underline}
 .stab{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);margin-bottom:9px}
 .stab div{padding:6px 9px;border-right:1px solid var(--line);min-width:0}
@@ -182,7 +182,7 @@ header .wrap{display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-ite
 .rows.grid .row .info{padding:12px 14px}
 .rows.grid .row .idl{gap:9px}
 .rows.grid .row .idl span:nth-child(n+3){display:none}
-.rows.grid .row h3{font-size:14px;min-height:42px}
+.rows.grid .row h3{font-size:16px;min-height:46px}
 .rows.grid .stab{grid-template-columns:1fr 1fr}
 .rows.grid .stab div:nth-child(2n){border-right:0}
 .rows.grid .stab div:nth-child(n+3){border-top:1px solid var(--line)}
