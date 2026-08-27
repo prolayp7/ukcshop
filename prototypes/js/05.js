@@ -43,7 +43,7 @@ function header(){
       '<a class="ico" href="'+S.url("account",{tab:"orders"})+'">'+ic("i-truck",15,15)+'Track your order</a>'+
       '<a class="ico" href="'+S.url("stores")+'">'+ic("i-wrench",15,15)+'Store &amp; workshop</a>'+
       '<a class="ico" href="'+S.url("support")+'">'+ic("i-shield",15,15)+'Warranty &amp; returns</a>'+
-      '<div class="right"><span class="ico">'+ic("i-user",15,15)+'Need help? <a class="tel" href="#">0161 496 0100</a></span>'+
+      '<div class="right"><span class="ico">'+ic("i-user",15,15)+'Need help? <a class="tel" href="#">[Phone number]</a></span>'+
         '<span class="sel">Inc. VAT '+ic("i-chev",12,12)+'</span><span class="sel">£ GBP '+ic("i-chev",12,12)+'</span></div>'+
     '</div></div>'+
     '<header class="mast"><div class="wrap">'+
@@ -78,9 +78,9 @@ function footer(){
   return '<footer><div class="wrap"><div class="fgrid">'+
     '<div><a class="logo" href="'+S.url("home")+'" style="margin-bottom:16px"><span class="bolt">'+ic("i-cpu",22,22)+'</span>'+
       '<span><b style="color:#fff">UK Computer Shop</b><span>Voltage · Manchester</span></span></a>'+
-      '<p style="margin:0;max-width:300px">Independent UK retailer since 2009. Warehouse, build room and test lab in Manchester. Showroom open Monday to Saturday.</p>'+
-      '<div class="fcontact"><div>'+ic("i-user",15,15)+'<span>0161 496 0100 · Mon–Sat 9–18</span></div>'+
-        '<div>'+ic("i-wrench",15,15)+'<span>Unit 7, Ardwick Green, Manchester M12</span></div></div>'+
+      '<p style="margin:0;max-width:300px">Independent UK retailer. Warehouse, build room and test lab in Manchester. Showroom open Monday to Saturday.</p>'+
+      '<div class="fcontact"><div>'+ic("i-user",15,15)+'<span>[Phone number] · Mon–Sat 9–18</span></div>'+
+        '<div>'+ic("i-wrench",15,15)+'<span>[Business address], Manchester</span></div></div>'+
       '<div class="fnews"><input placeholder="Email for restocks and price drops"><button>Join</button></div></div>'+
     '<div><h4>Shop</h4><ul>'+S.CAT_ORDER.map(function(c){
       return '<li><a href="'+S.url("category",{cat:c})+'">'+E(c)+'</a></li>'; }).join("")+'</ul></div>'+
@@ -94,7 +94,7 @@ function footer(){
       '<li><a href="'+S.url("stores")+'">Store locations</a></li><li><a href="#">Reviews</a></li>'+
       '<li><a href="'+S.url("terms")+'">Terms</a></li><li><a href="'+S.url("privacy")+'">Privacy</a></li>'+
       '<li><a href="'+S.url("cookiePolicy")+'">Cookie policy</a></li></ul></div>'+
-    '</div><div class="fbot"><span>© 2026 UK Computer Shop Ltd · Company 07234891 · VAT GB 123 4567 89</span>'+
+    '</div><div class="fbot"><span>© 2026 UK Computer Shop Ltd · [Company registration] · [VAT number]</span>'+
       '<div class="pay"><span>VISA</span><span>MASTERCARD</span><span>AMEX</span><span>PAYPAL</span><span>KLARNA</span><span>APPLE PAY</span></div>'+
     '</div></div></footer>'+
     /* search modal + cart drawer live at the end of the document */
@@ -165,7 +165,7 @@ function home(){
         '<div class="facts"><div><b>'+S.all.length.toLocaleString("en-GB")+'</b><span>Products</span></div>'+
           '<div><b>17:00</b><span>Despatch cut-off</span></div>'+
           '<div><b>3 years</b><span>System warranty</span></div>'+
-          '<div><b>4.8/5</b><span>12,480 reviews</span></div></div></div>'+
+          '<div><b>'+S.all.length+'</b><span>Products in stock today</span></div></div></div>'+
       '<div class="hcard"><div class="top"><span class="badge">DEAL OF THE WEEK</span>'+
           '<span class="mono" style="color:#71717a">'+E(hero.subcategory)+'</span></div>'+
         '<div class="fig"><svg viewBox="0 0 64 44" style="width:250px;height:180px"><use href="#'+hero.icon+'"/></svg></div>'+

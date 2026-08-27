@@ -701,7 +701,7 @@ function orderInvoice(D){
     '<div class="wrap"><div class="inv-bar"><a class="ck-back" href="'+S.url("orderDetails",{ref:o.ref})+'">← Back to order</a>'+
       '<button class="ck-next" onclick="window.print()">Print / save as PDF</button></div>'+
     '<div class="inv-sheet"><div class="inv-head">'+
-      '<div><b class="inv-logo">UK Computer Shop</b><span>Unit 7, Ardwick Green North<br>Manchester M12 6FZ<br>VAT GB 123 4567 89 · Company 07234891</span></div>'+
+      '<div><b class="inv-logo">UK Computer Shop</b><span>[Business address], Manchester<br>VAT [VAT number] · Company [Company registration]</span></div>'+
       '<div class="inv-meta"><h1>Invoice</h1><span>Order '+E(o.ref)+'</span><span>'+E(o.date)+'</span></div>'+
     '</div>'+
     '<div class="inv-to"><span>Billed to</span><b>'+E(d.address.name)+'</b>'+d.address.lines.map(E).join(", ")+'</div>'+
@@ -807,13 +807,14 @@ function about(D){
       '<h1>An independent computer shop that still builds what it sells</h1>'+
       '<p>We started as a two-person repair counter in Manchester and grew into a full-catalogue retailer without losing the habit of testing everything ourselves before it goes out the door.</p></div>'+
     '<div class="info-body">'+
+      contentNotice("The founding date, stats and photography on this page are a demonstration of how the template presents company history. They should be replaced with your own before this page goes live.")+
       '<p>UK Computer Shop opened in 2009 as a repair and upgrade counter serving Manchester’s university district. Word travelled on the strength of straight answers rather than a sales pitch, and the catalogue grew from a shelf of spare parts into the six departments you can browse today — components, complete systems, laptops, peripherals, networking and accessories.</p>'+
       '<p>We are still run out of the same workshop, now expanded to hold a proper build room alongside the counter. Every system we assemble is built, cable-managed and stress-tested there before it is boxed, by the same team who will answer the phone if something goes wrong with it.</p>'+
       '<div class="about-stats">'+
         '<div><b>2009</b><span>Trading since</span></div>'+
         '<div><b>'+S.all.length+'</b><span>Products in the current catalogue</span></div>'+
         '<div><b>3&nbsp;years</b><span>Warranty on systems we build</span></div>'+
-        '<div><b>4.8/5</b><span>Average customer rating</span></div>'+
+        '<div><b>6</b><span>Departments across the catalogue</span></div>'+
       '</div>'+
       '<div class="about-fig" style="background-image:url(https://picsum.photos/seed/ukcs-about-bench/1000/700)"></div>'+
       '<h2>What that means in practice</h2>'+
@@ -835,9 +836,9 @@ function contact(D){
         '<h1>Get in touch</h1><p>For an existing order, the fastest route is usually your <a href="'+S.url("account",{tab:"orders"})+'">order details page</a> — otherwise, here is every other way to reach us.</p></div>'+
       '<div class="contact-grid">'+
         '<div><div class="contact-methods">'+
-          '<div class="contact-method">'+icon("i-user",18,18)+'<span><b>Phone</b><a href="tel:01614960100">0161 496 0100</a><br><span>Mon–Sat, 9:00–18:00</span></span></div>'+
+          '<div class="contact-method">'+icon("i-user",18,18)+'<span><b>Phone</b><span>[Phone number]</span><br><span>Mon–Sat, 9:00–18:00</span></span></div>'+
           '<div class="contact-method">'+icon("i-search",18,18)+'<span><b>Email</b><a href="mailto:help@ukcomputershop.example">help@ukcomputershop.example</a><br><span>We reply within one working day</span></span></div>'+
-          '<div class="contact-method">'+icon("i-wrench",18,18)+'<span><b>Workshop &amp; showroom</b><span>Unit 7, Ardwick Green North, Manchester M12 6FZ</span><br><a href="'+S.url("stores")+'">Opening hours &amp; directions</a></span></div>'+
+          '<div class="contact-method">'+icon("i-wrench",18,18)+'<span><b>Workshop &amp; showroom</b><span>[Business address], Manchester</span><br><a href="'+S.url("stores")+'">Opening hours &amp; directions</a></span></div>'+
         '</div></div>'+
         '<div class="contact-form">'+(sent ? contactSent() : contactForm())+'</div>'+
       '</div></div>' + D.footer());
@@ -869,9 +870,9 @@ function stores(D){
       '<h1>Visit the workshop</h1><p>We trade from a single site in Manchester — warehouse, build room and showroom all under one roof. No other locations exist yet, so this page is deliberately short rather than padded out with invented branches.</p></div>'+
       '<div class="store-card">'+
         '<div class="fig" style="background-image:url(https://picsum.photos/seed/ukcs-store-front/700/700)"></div>'+
-        '<div class="body"><h2>Manchester — Ardwick Green</h2><span class="tag">Workshop, showroom &amp; collection point</span>'+
-          '<div class="store-row">'+icon("i-wrench",18,18)+'<span><b>Address</b><span>Unit 7, Ardwick Green North, Manchester M12 6FZ</span></span></div>'+
-          '<div class="store-row">'+icon("i-user",18,18)+'<span><b>Phone</b><span><a href="tel:01614960100">0161 496 0100</a></span></span></div>'+
+        '<div class="body"><h2>Manchester</h2><span class="tag">Workshop, showroom &amp; collection point</span>'+
+          '<div class="store-row">'+icon("i-wrench",18,18)+'<span><b>Address</b><span>[Business address], Manchester</span></span></div>'+
+          '<div class="store-row">'+icon("i-user",18,18)+'<span><b>Phone</b><span>[Phone number]</span></span></div>'+
           '<div class="store-row">'+icon("i-truck",18,18)+'<span><b>Opening hours</b><span>Monday–Friday 9:00–18:00<br>Saturday 10:00–16:00<br>Closed Sunday and bank holidays</span></span></div>'+
           '<div class="store-row">'+icon("i-shield",18,18)+'<span><b>Collection</b><span>Orders placed before 15:00 are usually ready to collect the same day — we will email you when it is ready.</span></span></div>'+
           '<div class="store-amenities"><span>Build service desk</span><span>PC configurator kiosk</span><span>Trade counter</span><span>Free parking</span><span>Wheelchair accessible</span></div>'+
@@ -1067,6 +1068,10 @@ function legalNotice(){
   return '<div class="info-note" style="border-color:var(--c-neg);background:color-mix(in srgb, var(--c-neg) 8%, var(--c-surface-2))">'+
     '<b>This is placeholder text for design review.</b> It is a realistic template, not verified legal advice, and must be reviewed and approved by a qualified legal adviser before this site accepts a real order.</div>';
 }
+function contentNotice(text){
+  return '<div class="info-note" style="border-color:var(--c-warn);background:color-mix(in srgb, var(--c-warn) 8%, var(--c-surface-2))">'+
+    '<b>Placeholder content.</b> '+text+'</div>';
+}
 function legalPage(D, opts){
   mount(D.header() + D.crumbs([{ label:"Home", href:S.url("home") }, { label:opts.title }]) +
     '<div class="wrap"><div class="info-hero"><span class="eyebrow">Legal</span><h1>'+opts.title+'</h1>'+
@@ -1091,7 +1096,7 @@ function terms(D){
     intro: "The terms that apply when you buy from UK Computer Shop, in plain language wherever the law lets us.",
     sections: [
       { id:"who", h:"Who we are", body:
-        '<p>UK Computer Shop Ltd, company number 07234891, trading from Unit 7, Ardwick Green North, Manchester M12 6FZ. VAT registration GB 123 4567 89. These terms apply to any order placed through this website.</p>' },
+        '<p>UK Computer Shop Ltd, company number [Company registration], trading from [Business address], Manchester. VAT registration [VAT number]. These terms apply to any order placed through this website.</p>' },
       { id:"contract", h:"Placing an order", body:
         '<p>Adding an item to your basket is not an offer to buy — you make that offer when you complete checkout, and we accept it when we send order confirmation. We may decline an order, for example if a listed price or stock level was wrong, and if we do we will not take payment.</p>' },
       { id:"pricing", h:"Pricing and payment", body:
@@ -1121,7 +1126,7 @@ function privacy(D){
     intro: "What we collect when you use this site, why, and the rights you have over it under UK GDPR.",
     sections: [
       { id:"controller", h:"Who is responsible for your data", body:
-        '<p>UK Computer Shop Ltd, Unit 7, Ardwick Green North, Manchester M12 6FZ, is the data controller for information collected through this site.</p>' },
+        '<p>UK Computer Shop Ltd, [Business address], Manchester, is the data controller for information collected through this site.</p>' },
       { id:"what", h:"What we collect", body:
         '<ul><li>Account details: name, email, delivery and billing addresses, phone number</li>'+
         '<li>Order history and basket contents</li><li>Payment confirmation from our payment partners — we do not store full card numbers</li>'+
