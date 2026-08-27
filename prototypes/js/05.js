@@ -124,7 +124,7 @@ function card(p){
       (p.isNew ? '<span class="flag new">NEW</span>' : "")+'</div>'+
     '<div class="acts"><button data-wish="'+p.id+'" title="Add to wishlist">'+ic("i-heart",16,16)+'</button>'+
       '<button data-compare="'+p.id+'" title="Compare">'+ic("i-scale",16,16)+'</button>'+
-      '<a title="Quick view" href="'+S.url("product",{id:p.id})+'">'+ic("i-search",16,16)+'</a></div>'+
+      '<button data-quickview="'+p.id+'" title="Quick view">'+ic("i-search",16,16)+'</button></div>'+
     '<a class="fig" href="'+S.url("product",{id:p.id})+'">'+fig(p,138,100)+'</a>'+
     '<div class="bd">'+
       '<a class="br" href="'+S.url("brand",{b:p.brand})+'">'+E(p.brand)+'</a>'+
@@ -297,7 +297,11 @@ function productPage(){
             { href:S.url("category",{sub:p.subcategory}), label:"All "+p.subcategory })+
     section("Frequently bought together", "Compatibility checked against this part — socket, memory profile and PSU headroom.", d.alsoBought)+
     section("Recommended for you", d.recentlyViewed.length ? "Based on what you have been looking at." : "Popular right now across the catalogue.", d.recommended)+
-    (d.recentlyViewed.length ? section("Recently viewed", null, d.recentlyViewed.slice(0,4)) : "")+
+    '<section style="padding-top:0"><div class="wrap"><div class="shead"><div><h2>Recently viewed</h2></div></div>'+
+      (d.recentlyViewed.length
+        ? '<div class="grid">'+d.recentlyViewed.slice(0,4).map(card).join("")+'</div>'
+        : '<p style="color:var(--mute);font-size:14px;margin:0">Nothing else viewed yet this session — browse the catalogue and it will start building up here.</p>')+
+    '</div></section>'+
     footer();
   wireGallery(p); wireTabs(); wireChrome();
   document.title = p.name + " — UK Computer Shop";

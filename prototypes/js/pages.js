@@ -65,8 +65,8 @@ var Pages = {
     return {
       t: t, empty: !t.lines.length,
       delivery: S.DELIVERY, chosen: S.Basket.method(),
-      address: S.ADDRESSES.filter(function(a){ return a.default; })[0] || S.ADDRESSES[0],
-      addresses: S.ADDRESSES,
+      address: S.Addresses.list().filter(function(a){ return a.default; })[0] || S.Addresses.list()[0],
+      addresses: S.Addresses.list(),
       crumbs: [ { label:"Home", href:S.url("home") }, { label:"Basket", href:S.url("basket") }, { label:"Checkout" } ]
     };
   },
@@ -80,7 +80,7 @@ var Pages = {
       spend: o.reduce(function(s,x){ return s + x.total; }, 0),
       wishlist: wishIds.map(S.byId).filter(Boolean),
       recentlyViewed: S.recentProducts(4),
-      addresses: S.ADDRESSES,
+      addresses: S.Addresses.list(),
       basketCount: S.Basket.count(),
       recommended: S.recommended(4, []),
       crumbs: [ { label:"Home", href:S.url("home") }, { label:"My account" } ]
@@ -91,13 +91,21 @@ var Pages = {
     var ref = S.param("ref");
     var order = S.orders().filter(function(o){ return o.ref === ref; })[0];
     if (!order) return notFound("Order");
-    var addr = S.ADDRESSES.filter(function(a){ return a.default; })[0] || S.ADDRESSES[0];
+    var addr = S.Addresses.list().filter(function(a){ return a.default; })[0] || S.Addresses.list()[0];
     return {
       order: order, address: addr, method: S.DELIVERY[1],
       canCancel: order.status === "Processing",
       canReturn: order.status === "Delivered" && !S.OrderState.get(order.ref).returnRequested,
       crumbs: [ { label:"Home", href:S.url("home") }, { label:"My account", href:S.url("account",{tab:"orders"}) }, { label:order.ref } ]
     };
+  },
+
+  orderInvoice: function(){
+    var ref = S.param("ref");
+    var order = S.orders().filter(function(o){ return o.ref === ref; })[0];
+    if (!order) return notFound("Order");
+    var addr = S.Addresses.list().filter(function(a){ return a.default; })[0] || S.Addresses.list()[0];
+    return { order: order, address: addr, method: S.DELIVERY[1] };
   },
 
   orderCancel: function(){

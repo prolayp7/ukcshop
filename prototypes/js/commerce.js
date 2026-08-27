@@ -28,7 +28,10 @@ function category(D){
     discount:function(a,b){ return (b.was?(b.was-b.price)/b.was:0) - (a.was?(a.was-a.price)/a.was:0); }
   };
   var urlSort = S.param("sort");
-  var st = { sub:d.sub || "All", brand:"All", sort:SORTS[urlSort] ? urlSort : "best", page:1, per:12 };
+  var urlMin = parseFloat(S.param("min")), urlMax = parseFloat(S.param("max"));
+  var st = { sub:d.sub || "All", brand:"All", sort:SORTS[urlSort] ? urlSort : "best", page:1, per:12,
+             priceMin: isNaN(urlMin) ? null : urlMin, priceMax: isNaN(urlMax) ? null : urlMax };
+  var priceFloor = Math.floor(d.min), priceCeil = Math.ceil(d.max);
   mount(D.header() + D.crumbs(d.crumbs) +
     '<div class="wrap">'+
       '<div class="cat-head"><div><h1>'+E(d.label)+'</h1>'+
@@ -37,6 +40,9 @@ function category(D){
       '<div class="cat-filters">'+
         '<div class="cat-chips" id="chips"></div>'+
         '<div class="cat-tools">'+
+          '<div class="cat-price"><input id="fpmin" type="number" min="0" placeholder="Min £" value="'+(st.priceMin!=null?st.priceMin:"")+'">'+
+            '<span>–</span><input id="fpmax" type="number" min="0" placeholder="Max £" value="'+(st.priceMax!=null?st.priceMax:"")+'">'+
+            '<button class="cat-morebtn" id="fpgo" style="padding:8px 14px;font-size:12.5px">Go</button></div>'+
           '<select class="cat-sel" id="fbrand"><option value="All">All brands</option>'+
             d.brands.map(function(b){ return '<option>'+E(b)+'</option>'; }).join("")+'</select>'+
           '<select class="cat-sel" id="fsort">'+
@@ -53,7 +59,19 @@ function category(D){
 
   function pool(){
     var src = st.sub === "All" ? d.items : (d.bySub[st.sub] || []);
-    return src.filter(function(p){ return st.brand === "All" || p.brand === st.brand; }).sort(SORTS[st.sort]);
+    return src.filter(function(p){
+      if (st.brand !== "All" && p.brand !== st.brand) return false;
+      if (st.priceMin != null && p.price < st.priceMin) return false;
+      if (st.priceMax != null && p.price > st.priceMax) return false;
+      return true;
+    }).sort(SORTS[st.sort]);
+  }
+  function activeFilterChips(){
+    var chips = [];
+    if (st.brand !== "All") chips.push({ k:"brand", label:st.brand });
+    if (st.priceMin != null || st.priceMax != null)
+      chips.push({ k:"price", label:(st.priceMin!=null?"£"+st.priceMin:"£0")+"–"+(st.priceMax!=null?"£"+st.priceMax:"any") });
+    return chips;
   }
   function draw(){
     var list = pool(), show = list.slice(0, st.page * st.per);
@@ -61,21 +79,42 @@ function category(D){
     $("#chips").innerHTML = ["All"].concat(d.subcats).map(function(s2){
       var n = s2 === "All" ? d.items.length : (d.bySub[s2] || []).length;
       return '<button class="cat-chip'+(st.sub === s2 ? " on" : "")+'" data-sub="'+E(s2)+'">'+E(s2)+' <span>'+n+'</span></button>';
+    }).join("") + activeFilterChips().map(function(c){
+      return '<button class="cat-chip on" data-clear="'+c.k+'">'+E(c.label)+' ×</button>';
     }).join("");
     $("#catres").innerHTML = show.length
       ? '<div class="cat-grid">'+show.map(D.card).join("")+'</div>'
-      : '<div class="cat-empty"><h3>Nothing matches that combination</h3><p>Try a different brand, or clear the sub-category filter.</p>'+
+      : '<div class="cat-empty"><h3>Nothing matches that combination</h3><p>Try a different brand, a wider price range, or clear the sub-category filter.</p>'+
         '<button class="cat-morebtn" id="reset">Clear filters</button></div>';
     $("#moreWrap").hidden = show.length >= list.length;
     if (!$("#moreWrap").hidden) $("#more").textContent = "Load more — " + (list.length - show.length) + " remaining";
-    $$("#chips .cat-chip").forEach(function(c){
+    $$("#chips .cat-chip[data-sub]").forEach(function(c){
       c.addEventListener("click", function(){ st.sub = c.dataset.sub; st.page = 1; draw(); });
     });
-    if ($("#reset")) $("#reset").addEventListener("click", function(){ st.sub = "All"; st.brand = "All"; $("#fbrand").value = "All"; st.page = 1; draw(); });
+    $$("#chips .cat-chip[data-clear]").forEach(function(c){
+      c.addEventListener("click", function(){
+        if (c.dataset.clear === "brand"){ st.brand = "All"; $("#fbrand").value = "All"; }
+        if (c.dataset.clear === "price"){ st.priceMin = st.priceMax = null; $("#fpmin").value = ""; $("#fpmax").value = ""; }
+        st.page = 1; draw();
+      });
+    });
+    if ($("#reset")) $("#reset").addEventListener("click", function(){
+      st.sub = "All"; st.brand = "All"; st.priceMin = st.priceMax = null;
+      $("#fbrand").value = "All"; $("#fpmin").value = ""; $("#fpmax").value = "";
+      st.page = 1; draw();
+    });
   }
   $("#fbrand").addEventListener("change", function(e){ st.brand = e.target.value; st.page = 1; draw(); });
   $("#fsort").value = st.sort;
   $("#fsort").addEventListener("change", function(e){ st.sort = e.target.value; st.page = 1; draw(); });
+  $("#fpgo").addEventListener("click", function(){
+    var mn = parseFloat($("#fpmin").value), mx = parseFloat($("#fpmax").value);
+    st.priceMin = isNaN(mn) ? null : mn; st.priceMax = isNaN(mx) ? null : mx;
+    st.page = 1; draw();
+  });
+  [$("#fpmin"), $("#fpmax")].forEach(function(inp){
+    inp.addEventListener("keydown", function(e){ if (e.key === "Enter") $("#fpgo").click(); });
+  });
   $("#more").addEventListener("click", function(){ st.page++; draw(); });
   draw();
   document.title = d.label + " — UK Computer Shop";
@@ -279,30 +318,82 @@ function checkout(D){
 
 /* ------------------------------------------------ account */
 function account(D){
-  var d = Pages.account();
-  var tab = d.tab;
-  var TABS = [["overview","Overview"],["orders","Orders"],["wishlist","Wishlist"],["addresses","Addresses"],["details","Details"]];
-  var body =
-    tab === "orders"    ? ordersView(d) :
-    tab === "wishlist"  ? wishView(d, D) :
-    tab === "addresses" ? addrView(d) :
-    tab === "details"   ? detailsView() : overview(d);
-  mount(D.header() + D.crumbs(d.crumbs) +
-    '<div class="wrap"><div class="ac-head"><div><h1>My account</h1><p>Signed in as <b>prolay@example.com</b> · member since 2021</p></div>'+
-      '<button class="ac-out" id="acSignOut">Sign out</button></div>'+
-      '<div class="ac-layout"><nav class="ac-nav">'+
-        TABS.map(function(t){ return '<a class="'+(t[0] === tab ? "on" : "")+'" href="'+S.url("account",{tab:t[0]})+'">'+t[1]+'</a>'; }).join("")+
-      '</nav><div class="ac-main">'+body+'</div></div></div>'+
-    (tab === "overview" ? D.section("Recommended for you", "Based on your orders and browsing.", d.recommended) : "")+
-    D.footer());
-  document.title = "My account — UK Computer Shop";
-  var signOutBtn = $("#acSignOut");
-  if (signOutBtn) signOutBtn.addEventListener("click", function(){
-    S.flash("Signed out — this is a design prototype, no account was created");
-  });
-  $$(".ac-check input").forEach(function(cb){
-    cb.addEventListener("change", function(){ S.flash("Preference saved"); });
-  });
+  var addrEditing = null; /* null = list view; "new" or an address id = form view */
+  function render(){
+    var d = Pages.account();
+    var tab = d.tab;
+    var TABS = [["overview","Overview"],["orders","Orders"],["wishlist","Wishlist"],["addresses","Addresses"],["details","Details"]];
+    var body =
+      tab === "orders"    ? ordersView(d) :
+      tab === "wishlist"  ? wishView(d, D) :
+      tab === "addresses" ? addrView(d) :
+      tab === "details"   ? detailsView() : overview(d);
+    mount(D.header() + D.crumbs(d.crumbs) +
+      '<div class="wrap"><div class="ac-head"><div><h1>My account</h1><p>Signed in as <b>prolay@example.com</b> · member since 2021</p></div>'+
+        '<button class="ac-out" id="acSignOut">Sign out</button></div>'+
+        '<div class="ac-layout"><nav class="ac-nav">'+
+          TABS.map(function(t){ return '<a class="'+(t[0] === tab ? "on" : "")+'" href="'+S.url("account",{tab:t[0]})+'">'+t[1]+'</a>'; }).join("")+
+        '</nav><div class="ac-main">'+body+'</div></div></div>'+
+      (tab === "overview" ? D.section("Recommended for you", "Based on your orders and browsing.", d.recommended) : "")+
+      D.footer());
+    document.title = "My account — UK Computer Shop";
+    var signOutBtn = $("#acSignOut");
+    if (signOutBtn) signOutBtn.addEventListener("click", function(){
+      S.flash("Signed out — this is a design prototype, no account was created");
+    });
+    $$(".ac-check input").forEach(function(cb){
+      cb.addEventListener("change", function(){ S.flash("Preference saved"); });
+    });
+    wireAddresses();
+    $$("[data-reorder]").forEach(function(b){
+      b.addEventListener("click", function(){
+        b.dataset.reorder.split(",").forEach(function(pair){
+          var kv = pair.split(":"); S.Basket.add(Number(kv[0]), Number(kv[1]));
+        });
+        location.href = S.url("basket");
+      });
+    });
+  }
+
+  function wireAddresses(){
+    var addBtn = $(".ac-add");
+    if (addBtn) addBtn.addEventListener("click", function(){ addrEditing = "new"; render(); });
+    $$(".ac-addr-edit").forEach(function(b){
+      b.addEventListener("click", function(){ addrEditing = Number(b.dataset.id); render(); });
+    });
+    $$(".ac-addr-remove").forEach(function(b){
+      b.addEventListener("click", function(){
+        S.Addresses.remove(Number(b.dataset.id));
+        S.flash("Address removed");
+        render();
+      });
+    });
+    $$(".ac-addr-default").forEach(function(b){
+      b.addEventListener("click", function(){
+        S.Addresses.update(Number(b.dataset.id), { default:true });
+        S.flash("Default address updated");
+        render();
+      });
+    });
+    var form = $("#addrForm");
+    if (form) form.addEventListener("submit", function(e){
+      e.preventDefault();
+      var patch = {
+        label: $("#afLabel").value.trim() || "Address",
+        name: $("#afName").value.trim(),
+        lines: [$("#afLine1").value.trim(), $("#afCity").value.trim(), $("#afPostcode").value.trim()].filter(Boolean),
+        phone: $("#afPhone").value.trim(),
+        default: $("#afDefault").checked
+      };
+      if (addrEditing === "new") S.Addresses.add(patch);
+      else S.Addresses.update(addrEditing, patch);
+      addrEditing = null;
+      S.flash("Address saved");
+      render();
+    });
+    var cancelBtn = $("#addrCancel");
+    if (cancelBtn) cancelBtn.addEventListener("click", function(){ addrEditing = null; render(); });
+  }
 
   function overview(d2){
     return '<div class="ac-stats">'+
@@ -341,7 +432,8 @@ function account(D){
       }).join("")+'</div>'+
       '<div class="ac-orderacts">'+
         (rolled ? '<a href="'+S.url("orderDetails",{ref:o.ref})+'">Order details</a>' : "")+
-        '<button>Track parcel</button><button>Invoice (PDF)</button>'+
+        (rolled ? '<a href="'+S.url("orderDetails",{ref:o.ref})+'#track">Track parcel</a>' : '<button>Track parcel</button>')+
+        (rolled ? '<a href="'+S.url("orderInvoice",{ref:o.ref})+'">Invoice (PDF)</a>' : '<button>Invoice (PDF)</button>')+
         (canCancel ? '<a href="'+S.url("orderCancel",{ref:o.ref})+'">Cancel order</a>' : "")+
         (canReturn ? '<a href="'+S.url("orderReturn",{ref:o.ref})+'">Return an item</a>' : (rolled ? "" : '<button>Return an item</button>'))+
         '<button data-reorder="'+o.items.map(function(i){ return i.p.id + ":" + i.qty; }).join(",")+'">Buy it again</button></div></div>';
@@ -354,12 +446,36 @@ function account(D){
       '<div class="cat-grid">'+d2.wishlist.map(D2.card).join("")+'</div></section>';
   }
   function addrView(d2){
+    if (addrEditing !== null) return addrForm(d2);
+    if (!d2.addresses.length)
+      return '<div class="ac-none-block"><h3>No addresses saved</h3><p>Add one to speed up checkout.</p>'+
+             '<button class="bk-cta ac-add" style="display:inline-flex;padding:12px 24px">+ Add address</button></div>';
     return '<section class="ac-block"><div class="ac-blockhead"><h2>Addresses</h2><button class="ac-add">+ Add address</button></div>'+
       '<div class="ac-addr">'+d2.addresses.map(function(a){
         return '<div class="ac-addrcard'+(a.default ? " on" : "")+'"><b>'+E(a.label)+(a.default ? '<em>Default</em>' : "")+'</b>'+
           '<p>'+E(a.name)+'<br>'+a.lines.map(E).join("<br>")+'<br>'+E(a.phone)+'</p>'+
-          '<div class="ac-addracts"><button>Edit</button><button>Remove</button></div></div>';
+          '<div class="ac-addracts"><button class="ac-addr-edit" data-id="'+a.id+'">Edit</button>'+
+          (a.default ? "" : '<button class="ac-addr-default" data-id="'+a.id+'">Set as default</button>')+
+          '<button class="ac-addr-remove" data-id="'+a.id+'">Remove</button></div></div>';
       }).join("")+'</div></section>';
+  }
+  function addrForm(d2){
+    var editing = addrEditing !== "new";
+    var a = editing ? d2.addresses.filter(function(x){ return x.id === addrEditing; })[0] : null;
+    if (editing && !a){ addrEditing = null; return addrView(d2); }
+    var lines = a ? a.lines : [];
+    return '<section class="ac-block"><div class="ac-blockhead"><h2>'+(editing ? "Edit address" : "Add a new address")+'</h2></div>'+
+      '<form id="addrForm">'+
+        '<div class="ck-two"><div class="ck-field"><label>Label</label><input id="afLabel" placeholder="Home, Work…" value="'+E(a?a.label:"")+'" required></div>'+
+          '<div class="ck-field"><label>Full name</label><input id="afName" value="'+E(a?a.name:"")+'" required></div></div>'+
+        '<div class="ck-field"><label>Address line</label><input id="afLine1" value="'+E(lines[0]||"")+'" required></div>'+
+        '<div class="ck-two"><div class="ck-field"><label>Town / city</label><input id="afCity" value="'+E(lines[1]||"")+'" required></div>'+
+          '<div class="ck-field"><label>Postcode</label><input id="afPostcode" value="'+E(lines[2]||"")+'" required></div></div>'+
+        '<div class="ck-field"><label>Phone</label><input id="afPhone" value="'+E(a?a.phone:"")+'" required></div>'+
+        '<label class="ac-check" style="padding:4px 0 16px"><input type="checkbox" id="afDefault"'+(a&&a.default?" checked disabled":"")+'> Make this my default address</label>'+
+        '<div class="ck-actions"><button type="button" class="ck-back" id="addrCancel">← Cancel</button>'+
+          '<button class="ck-next" type="submit">'+(editing ? "Save changes" : "Add address")+'</button></div>'+
+      '</form></section>';
   }
   function detailsView(){
     return '<section class="ac-block"><div class="ac-blockhead"><h2>Your details</h2></div>'+
@@ -378,14 +494,7 @@ function account(D){
     return '<a class="ac-oi" href="'+S.url("product",{id:p.id})+'"><span>'+thumb(p,40,30)+'</span>'+
       '<span class="ac-oiname">'+E(p.name)+'<em>'+M(p.price)+'</em></span></a>';
   }
-  $$("[data-reorder]").forEach(function(b){
-    b.addEventListener("click", function(){
-      b.dataset.reorder.split(",").forEach(function(pair){
-        var kv = pair.split(":"); S.Basket.add(Number(kv[0]), Number(kv[1]));
-      });
-      location.href = S.url("basket");
-    });
-  });
+  render();
 }
 
 
@@ -522,14 +631,41 @@ function forgotPassword(D){
 }
 
 /* ------------------------------------------------ order details / cancel / return */
+/* A plausible tracking timeline derived from the order's date and status —
+   not a real courier feed, but genuinely reflects what stage that specific
+   order is at rather than a static illustration. */
+function orderTimeline(o){
+  var placed = new Date(o.date);
+  var addDays = function(n){ var d2 = new Date(placed); d2.setDate(d2.getDate() + n); return d2; };
+  var fmt = function(d2){ return d2.toLocaleDateString("en-GB",{day:"numeric",month:"short"}); };
+  if (o.status === "Cancelled"){
+    return { cancelled:true, steps:[
+      { label:"Order placed", date:fmt(placed), done:true },
+      { label:"Order cancelled", date:fmt(new Date()), done:true, isEnd:true }
+    ]};
+  }
+  var order = ["Processing","Out for delivery","Delivered"];
+  var idx = order.indexOf(o.status);
+  var dates = [fmt(placed), fmt(placed), fmt(addDays(1)), fmt(addDays(idx >= 1 ? 1 : 2))];
+  var labels = ["Order placed","Processing","Out for delivery","Delivered"];
+  return { cancelled:false, steps: labels.map(function(l, i){
+    return { label:l, date: i <= idx + 1 ? dates[i] : "", done: i <= idx + 1, current: i === idx + 1 };
+  })};
+}
 function orderDetails(D){
   var d = Pages.orderDetails(); if (!d) return;
   var o = d.order;
   var statusCls = o.status === "Delivered" ? "done" : o.status === "Cancelled" ? "cancel" : "live";
+  var tl = orderTimeline(o);
   mount(D.header() + D.crumbs(d.crumbs) +
     '<div class="wrap"><div class="od-head"><div><h1>Order '+E(o.ref)+'</h1><p>Placed '+E(o.date)+'</p></div>'+
       '<span class="ac-status '+statusCls+'">'+E(o.status)+'</span></div>'+
       (o.returnStatus ? '<div class="od-note">'+E(o.returnStatus)+' — we will email you a returns label once it is approved.</div>' : "")+
+      '<h2 class="od-sub" id="track">'+(tl.cancelled ? "What happened" : "Tracking")+'</h2>'+
+      '<div class="od-track'+(tl.cancelled ? " cancelled" : "")+'">'+tl.steps.map(function(s){
+        return '<div class="od-step'+(s.done?" done":"")+(s.current?" current":"")+(s.isEnd?" end":"")+'">'+
+          '<span class="dot"></span><b>'+E(s.label)+'</b>'+(s.date ? '<span>'+E(s.date)+'</span>' : "")+'</div>';
+      }).join("")+'</div>'+
       '<div class="od-grid">'+
         '<div><h4>Delivering to</h4><p>'+E(d.address.name)+'<br>'+d.address.lines.map(E).join("<br>")+'</p></div>'+
         '<div><h4>Delivery method</h4><p>'+E(d.method.label)+'<br>'+E(d.method.note)+'</p></div>'+
@@ -547,9 +683,42 @@ function orderDetails(D){
       '<div class="od-actions">'+
         (d.canCancel ? '<a class="ck-next" href="'+S.url("orderCancel",{ref:o.ref})+'">Cancel this order</a>' : "")+
         (d.canReturn ? '<a class="ck-next" href="'+S.url("orderReturn",{ref:o.ref})+'">Request a return</a>' : "")+
+        '<a class="ck-ghost" href="'+S.url("orderInvoice",{ref:o.ref})+'" style="padding:12px 20px">View invoice</a>'+
         '<a class="ck-back" href="'+S.url("account",{tab:"orders"})+'">← Back to orders</a>'+
       '</div></div>' + D.footer());
   document.title = "Order " + o.ref + " — UK Computer Shop";
+}
+
+/* Invoice — a real, printable page rather than a claimed "PDF download".
+   A static prototype cannot honestly generate a PDF; what it can honestly
+   do is render an invoice that prints cleanly, which is what this is. */
+function orderInvoice(D){
+  var d = Pages.orderInvoice(); if (!d) return;
+  var o = d.order;
+  var vatRate = S.VAT_RATE;
+  var exVatGoods = o.goods / (1 + vatRate), vatOnGoods = o.goods - exVatGoods;
+  mount(D.header() +
+    '<div class="wrap"><div class="inv-bar"><a class="ck-back" href="'+S.url("orderDetails",{ref:o.ref})+'">← Back to order</a>'+
+      '<button class="ck-next" onclick="window.print()">Print / save as PDF</button></div>'+
+    '<div class="inv-sheet"><div class="inv-head">'+
+      '<div><b class="inv-logo">UK Computer Shop</b><span>Unit 7, Ardwick Green North<br>Manchester M12 6FZ<br>VAT GB 123 4567 89 · Company 07234891</span></div>'+
+      '<div class="inv-meta"><h1>Invoice</h1><span>Order '+E(o.ref)+'</span><span>'+E(o.date)+'</span></div>'+
+    '</div>'+
+    '<div class="inv-to"><span>Billed to</span><b>'+E(d.address.name)+'</b>'+d.address.lines.map(E).join(", ")+'</div>'+
+    '<div class="inv-scroll"><table class="inv-table"><thead><tr><th>Item</th><th>SKU</th><th>Qty</th><th>Unit price</th><th>Total</th></tr></thead><tbody>'+
+      o.items.map(function(it){
+        return '<tr><td>'+E(it.p.name)+'</td><td>'+E(it.p.sku)+'</td><td>'+it.qty+'</td><td>'+M(it.p.price)+'</td><td>'+M(it.p.price*it.qty)+'</td></tr>';
+      }).join("")+
+    '</tbody></table></div>'+
+    '<div class="inv-totals">'+
+      '<div><span>Goods (ex. VAT)</span><b>'+M(exVatGoods)+'</b></div>'+
+      '<div><span>VAT (20%)</span><b>'+M(vatOnGoods)+'</b></div>'+
+      '<div><span>Delivery</span><b>'+(o.shipping ? M(o.shipping) : "Free")+'</b></div>'+
+      '<div class="inv-grand"><span>Total paid</span><b>'+M(o.total)+'</b></div>'+
+    '</div>'+
+    '<p class="inv-foot">Paid by card ending 4242 · '+E(d.method.label)+'. This is a design prototype — no real payment was processed and this document has no fiscal validity.</p>'+
+    '</div></div>' + D.footer());
+  document.title = "Invoice " + o.ref + " — UK Computer Shop";
 }
 
 function orderCancel(D){
@@ -1169,7 +1338,7 @@ function comingSoon(D){
 
 root.Commerce = { category:category, basket:basket, checkout:checkout, account:account, compare:compare,
   login:login, register:register, forgotPassword:forgotPassword,
-  orderDetails:orderDetails, orderCancel:orderCancel, orderReturn:orderReturn,
+  orderDetails:orderDetails, orderCancel:orderCancel, orderReturn:orderReturn, orderInvoice:orderInvoice,
   about:about, contact:contact, stores:stores, faq:faq, support:support,
   delivery:delivery, returns:returns, warranty:warranty, paymentInfo:paymentInfo,
   terms:terms, privacy:privacy, cookiePolicy:cookiePolicy,

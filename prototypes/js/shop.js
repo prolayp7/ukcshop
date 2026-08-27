@@ -131,7 +131,7 @@ function url(kind, q){
   var file = { home:"", product:"-product", brand:"-brand", brands:"-brands",
                category:"-category", basket:"-basket", checkout:"-checkout", account:"-account", compare:"-compare",
                login:"-login", register:"-register", forgotPassword:"-forgot-password",
-               orderDetails:"-order-details", orderCancel:"-order-cancel", orderReturn:"-order-return",
+               orderDetails:"-order-details", orderCancel:"-order-cancel", orderReturn:"-order-return", orderInvoice:"-invoice",
                about:"-about", contact:"-contact", stores:"-stores", faq:"-faq", support:"-support",
                delivery:"-delivery", returns:"-returns", warranty:"-warranty", paymentInfo:"-payment-info",
                terms:"-terms", privacy:"-privacy", cookiePolicy:"-cookie-policy",
@@ -426,10 +426,40 @@ function orders(){
     mk("UKCS-204902", 91, "Delivered",        [52, 49], [2, 1])
   ];
 }
-var ADDRESSES = [
+var DEFAULT_ADDRESSES = [
   { id:1, label:"Home", name:"P. Roy", lines:["14 Ardwick Green North","Manchester","M12 6FZ"], phone:"07700 900412", default:true },
   { id:2, label:"Work", name:"P. Roy", lines:["Unit 7, Sharp Street","Manchester","M4 5DA"], phone:"0161 496 0112", default:false }
 ];
+/* A real, editable address book — same localStorage-backed pattern as the
+   basket, wishlist and compare list, seeded with the two sample addresses
+   the first time it is read so existing pages keep working unchanged. */
+var Addresses = {
+  list: function(){
+    var v = lsGet("addresses", null);
+    if (v === null){ v = DEFAULT_ADDRESSES.slice(); Addresses.save(v); }
+    return v;
+  },
+  save: function(v){ lsSet("addresses", v); },
+  get: function(id){ return Addresses.list().filter(function(a){ return a.id === Number(id); })[0]; },
+  add: function(a){
+    var list = Addresses.list();
+    var id = list.reduce(function(m,x){ return Math.max(m, x.id); }, 0) + 1;
+    a.id = id; if (!list.length) a.default = true;
+    if (a.default) list.forEach(function(x){ x.default = false; });
+    list.push(a); Addresses.save(list); return a;
+  },
+  update: function(id, patch){
+    var list = Addresses.list();
+    if (patch.default) list.forEach(function(x){ x.default = false; });
+    list = list.map(function(x){ return x.id === Number(id) ? Object.assign({}, x, patch, { id:x.id }) : x; });
+    Addresses.save(list);
+  },
+  remove: function(id){
+    var list = Addresses.list().filter(function(x){ return x.id !== Number(id); });
+    if (list.length && !list.some(function(x){ return x.default; })) list[0].default = true;
+    Addresses.save(list);
+  }
+};
 
 function stockText(p){
   if (p.stockStatus === "in")  return { cls:"in",  text:"In stock — " + p.stock + " available" };
@@ -558,6 +588,110 @@ document.addEventListener("click", function(e){
   if (e.target.id === "ukcs-cmp-clear"){ Compare.clear(); refreshCompareUI(); return; }
 });
 
+/* ---------------- quick view ----------------
+   A genuine glance-and-add overlay, not a second link to the same page.
+   Self-contained (styles + markup injected on demand) so any design gets it
+   just by putting data-quickview="<id>" on a card's quick-view control —
+   the same shared-first approach as the compare tray and cookie banner. */
+function ensureQuickView(){
+  if (document.getElementById("ukcs-qv")) return;
+  var css = document.createElement("style");
+  css.textContent =
+    "#ukcs-qv{position:fixed;inset:0;z-index:9996;background:rgba(10,10,12,.6);display:none;align-items:center;justify-content:center;padding:24px}"+
+    "#ukcs-qv.on{display:flex}"+
+    "#ukcs-qv .qv-panel{background:#fff;color:#111;border-radius:14px;max-width:840px;width:100%;max-height:88vh;overflow-y:auto;"+
+      "box-shadow:0 30px 70px -20px rgba(0,0,0,.5);position:relative;font:15px/1.5 system-ui,sans-serif}"+
+    "#ukcs-qv .qv-close{position:absolute;top:14px;right:14px;width:36px;height:36px;border-radius:99px;background:#f2f2f2;"+
+      "color:#555;font-size:20px;line-height:1;border:0;cursor:pointer;z-index:2}"+
+    "#ukcs-qv .qv-close:hover{background:#e5e5e5;color:#111}"+
+    "#ukcs-qv .qv-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}"+
+    "#ukcs-qv .qv-fig{background:linear-gradient(180deg,#fafafa,#eee);display:grid;place-items:center;padding:40px;border-radius:14px 0 0 14px;color:#3d4a5c}"+
+    "#ukcs-qv .qv-fig svg{width:100%;max-width:220px;height:auto}"+
+    "#ukcs-qv .qv-body{padding:32px 30px}"+
+    "#ukcs-qv .qv-brand{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:#2454c7;text-decoration:none}"+
+    "#ukcs-qv h2{margin:8px 0 10px;font-size:21px;font-weight:700;line-height:1.3}"+
+    "#ukcs-qv .qv-rate{font-size:13px;color:#666;margin-bottom:14px;display:flex;align-items:center;gap:8px}"+
+    "#ukcs-qv .qv-rate i{color:#e0a930;font-style:normal;letter-spacing:1px}"+
+    "#ukcs-qv .qv-price{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}"+
+    "#ukcs-qv .qv-price b{font-size:26px;font-weight:800}"+
+    "#ukcs-qv .qv-price s{color:#999;font-size:14px}"+
+    "#ukcs-qv .qv-vat{font-size:12px;color:#888;margin-bottom:16px}"+
+    "#ukcs-qv .qv-stock{font-size:13px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:7px}"+
+    "#ukcs-qv .qv-stock i{width:7px;height:7px;border-radius:99px;background:currentColor}"+
+    "#ukcs-qv .qv-specs{list-style:none;margin:0 0 20px;padding:0;display:grid;gap:7px;border-top:1px solid #eee;padding-top:14px}"+
+    "#ukcs-qv .qv-specs li{display:grid;grid-template-columns:130px 1fr;gap:10px;font-size:13px}"+
+    "#ukcs-qv .qv-specs span{color:#888}"+
+    "#ukcs-qv .qv-specs b{color:#111;font-weight:600}"+
+    "#ukcs-qv .qv-actions{display:flex;gap:10px;margin-bottom:14px}"+
+    "#ukcs-qv .qv-add{flex:1;background:#111;color:#fff;border:0;border-radius:8px;padding:13px;font-weight:700;font-size:14px;cursor:pointer}"+
+    "#ukcs-qv .qv-add:hover{background:#000}"+
+    "#ukcs-qv .qv-add[disabled]{background:#ccc;cursor:not-allowed}"+
+    "#ukcs-qv .qv-icon{width:46px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#555;cursor:pointer;display:grid;place-items:center}"+
+    "#ukcs-qv .qv-icon:hover{border-color:#111;color:#111}"+
+    "#ukcs-qv .qv-icon.on{background:#111;color:#fff;border-color:#111}"+
+    "#ukcs-qv .qv-full{display:block;text-align:center;font-size:13px;color:#2454c7;text-decoration:underline}"+
+    "@media(max-width:640px){#ukcs-qv .qv-grid{grid-template-columns:1fr}#ukcs-qv .qv-fig{border-radius:14px 14px 0 0;padding:26px}}";
+  document.head.appendChild(css);
+  var el = document.createElement("div");
+  el.id = "ukcs-qv";
+  el.innerHTML = '<div class="qv-panel" role="dialog" aria-modal="true"><button class="qv-close" id="ukcs-qv-close" aria-label="Close">&times;</button><div id="ukcs-qv-content"></div></div>';
+  document.body.appendChild(el);
+  el.addEventListener("click", function(e){ if (e.target === el) closeQuickView(); });
+  document.getElementById("ukcs-qv-close").addEventListener("click", closeQuickView);
+}
+function closeQuickView(){
+  var el = document.getElementById("ukcs-qv");
+  if (el) el.classList.remove("on");
+  document.body.classList.remove("lock");
+}
+function openQuickView(id){
+  var p = byId(id); if (!p) return;
+  ensureQuickView();
+  var st = stockText(p);
+  var keys = Object.keys(p.specs).slice(0, 6);
+  var content = document.getElementById("ukcs-qv-content");
+  content.innerHTML =
+    '<div class="qv-grid">'+
+      '<div class="qv-fig"><svg viewBox="0 0 64 44"><use href="#'+p.icon+'"/></svg></div>'+
+      '<div class="qv-body">'+
+        '<a class="qv-brand" href="'+url("brand",{b:p.brand})+'">'+esc(p.brand)+'</a>'+
+        '<h2>'+esc(p.name)+'</h2>'+
+        '<div class="qv-rate"><i>'+stars(p.rating)+'</i><span>'+p.rating+' · '+p.reviews.toLocaleString("en-GB")+' reviews</span></div>'+
+        '<div class="qv-price"><b>'+money(p.price)+'</b>'+(p.was ? '<s>'+money(p.was)+'</s>' : "")+'</div>'+
+        '<div class="qv-vat">'+exVat(p.price)+' ex. VAT</div>'+
+        '<div class="qv-stock" style="color:'+(st.cls==="in"?"#0a7a52":st.cls==="low"?"#a06a05":"#c0392b")+'"><i></i>'+esc(st.text)+'</div>'+
+        '<ul class="qv-specs">'+keys.map(function(k){ return '<li><span>'+esc(k)+'</span><b>'+esc(p.specs[k])+'</b></li>'; }).join("")+'</ul>'+
+        '<div class="qv-actions">'+
+          '<button class="qv-add" data-qv-add="'+p.id+'"'+(st.cls==="out"?" disabled":"")+'>'+(st.cls==="out"?"Backorder":"Add to basket")+'</button>'+
+          '<button class="qv-icon'+(Wishlist.has(p.id)?" on":"")+'" data-wish="'+p.id+'" title="Wishlist">'+
+            '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20s-7-4.3-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.7-7 9-7 9z"/></svg></button>'+
+          '<button class="qv-icon'+(Compare.has(p.id)?" on":"")+'" data-compare="'+p.id+'" title="Compare">'+
+            '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 4v16M6 8h12M4 16a3 3 0 0 0 6 0l-3-6zM14 16a3 3 0 0 0 6 0l-3-6z"/></svg></button>'+
+        '</div>'+
+        '<a class="qv-full" href="'+url("product",{id:p.id})+'">See full details, specification and reviews →</a>'+
+      '</div>'+
+    '</div>';
+  document.getElementById("ukcs-qv").classList.add("on");
+  document.body.classList.add("lock");
+}
+document.addEventListener("click", function(e){
+  var qv = e.target.closest("[data-quickview]");
+  if (qv){ e.preventDefault(); openQuickView(qv.dataset.quickview); return; }
+  var add = e.target.closest("#ukcs-qv .qv-add");
+  if (add && !add.disabled){
+    var p = byId(add.dataset.qvAdd); if (!p) return;
+    Basket.add(p.id, 1); refreshBasketUI();
+    flash("Added — " + (p.name.length > 42 ? p.name.slice(0,40) + "…" : p.name));
+  }
+  /* Wishlist and compare icons inside the modal use the same plain
+     data-wish / data-compare attributes as everywhere else on purpose — the
+     existing site-wide handlers (and refreshWishlistUI/refreshCompareUI,
+     which already update *every* matching element in the document) handle
+     them for free. A modal-specific handler here would double-fire
+     alongside those and toggle the state right back. */
+});
+document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeQuickView(); });
+
 document.addEventListener("click", function(e){
   var b = e.target.closest("[data-add]");
   if (!b) return;
@@ -647,7 +781,7 @@ root.Shop = {
   brands:brands, byBrand:byBrand, complement:COMPLEMENT, compatible:compatible,
   money:money, exVat:exVat, stars:stars, esc:esc, uniq:uniq, param:param, url:url,
   stockText:stockText, design:design, tree:tree, countIn:countIn, CAT_ORDER:CAT_ORDER,
-  Basket:Basket, refreshBasketUI:refreshBasketUI, flash:flash, DELIVERY:DELIVERY, VAT_RATE:VAT_RATE, orders:orders, ADDRESSES:ADDRESSES, OrderState:OrderState,
+  Basket:Basket, refreshBasketUI:refreshBasketUI, flash:flash, DELIVERY:DELIVERY, VAT_RATE:VAT_RATE, orders:orders, Addresses:Addresses, OrderState:OrderState,
   BLOG_POSTS:BLOG_POSTS, BLOG_AUTHORS:BLOG_AUTHORS,
   CONTENT_PAGES_ROLLED_OUT:CONTENT_PAGES_ROLLED_OUT,
   Wishlist:Wishlist, Compare:Compare, COMPARE_MAX:COMPARE_MAX, refreshWishlistUI:refreshWishlistUI, refreshCompareUI:refreshCompareUI
