@@ -211,7 +211,7 @@ function home(){
     '</div></div>'+
 
     section("This week's best sellers", "Ranked on units shipped over the last seven days.", best.slice(0,4),
-            { href:S.url("category",{cat:"PC Components"}), label:"See all" })+
+            { href:S.url("category",{sort:"best"}), label:"See all" })+
 
     section("Featured products", "A spread across departments, picked by the team rather than an algorithm.", featured.slice(0,4),
             { href:S.url("category",{featured:1}), label:"See all featured" })+
@@ -225,7 +225,7 @@ function home(){
     '</div></div></section>'+
 
     section("New arrivals", "Added to the catalogue in the last three weeks.", fresh,
-            { href:S.url("category",{cat:"Peripherals"}), label:"See all" })+
+            { href:S.url("category",{sort:"newest"}), label:"See all" })+
 
     '<section style="padding-top:0"><div class="wrap"><div class="shead"><div><span class="eyebrow">Manufacturers</span>'+
         '<h2>Shop by brand</h2></div><a class="more" href="'+S.url("brands")+'">All '+S.brands().length+' brands '+ic("i-arr",15,15)+'</a></div>'+

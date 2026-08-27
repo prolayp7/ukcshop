@@ -19,7 +19,6 @@ function thumb(p, w, h){ return '<svg viewBox="0 0 64 44" style="width:'+w+'px;h
 /* ------------------------------------------------ category listing */
 function category(D){
   var d = Pages.category(); if (!d) return;
-  var st = { sub:d.sub || "All", brand:"All", sort:"best", page:1, per:12 };
   var SORTS = {
     best:function(a,b){ return b.sold - a.sold; },
     "price-asc":function(a,b){ return a.price - b.price; },
@@ -28,6 +27,8 @@ function category(D){
     newest:function(a,b){ return a.added < b.added ? 1 : -1; },
     discount:function(a,b){ return (b.was?(b.was-b.price)/b.was:0) - (a.was?(a.was-a.price)/a.was:0); }
   };
+  var urlSort = S.param("sort");
+  var st = { sub:d.sub || "All", brand:"All", sort:SORTS[urlSort] ? urlSort : "best", page:1, per:12 };
   mount(D.header() + D.crumbs(d.crumbs) +
     '<div class="wrap">'+
       '<div class="cat-head"><div><h1>'+E(d.label)+'</h1>'+
@@ -73,6 +74,7 @@ function category(D){
     if ($("#reset")) $("#reset").addEventListener("click", function(){ st.sub = "All"; st.brand = "All"; $("#fbrand").value = "All"; st.page = 1; draw(); });
   }
   $("#fbrand").addEventListener("change", function(e){ st.brand = e.target.value; st.page = 1; draw(); });
+  $("#fsort").value = st.sort;
   $("#fsort").addEventListener("change", function(e){ st.sort = e.target.value; st.page = 1; draw(); });
   $("#more").addEventListener("click", function(){ st.page++; draw(); });
   draw();
