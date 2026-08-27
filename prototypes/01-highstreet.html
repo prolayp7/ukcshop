@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UK Computer Shop — Prototype A: Highstreet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/01.css">
+</head>
+<body>
+
+<script src="js/sprite.js"></script>
+<script src="data/products.js"></script>
+<script src="js/shop.js"></script>
+
+<!-- utility -->
+<div class="util"><div class="wrap">
+  <a href="#">Track my order</a><a href="#">Business &amp; Education</a><a href="#">Trade accounts</a>
+  <div class="sep"><span><strong>104</strong> products in stock</span><a href="#">Help centre</a><a href="#">£ GBP · Inc. VAT</a></div>
+</div></div>
+
+<!-- masthead -->
+<header class="mast"><div class="wrap">
+  <a class="logo" href="#"><span class="mark">UK</span><span><b>UK Computer Shop</b><span>Components &amp; Systems</span></span></a>
+  <div>
+    <form class="search" role="search">
+      <select aria-label="Search category"><option>All categories</option><option>PC Components</option><option>Graphics Cards</option><option>Laptops</option><option>Monitors</option><option>Networking</option></select>
+      <input type="search" placeholder="Search by name, SKU, MPN, brand or specification…">
+      <button type="submit"><svg width="17" height="17"><use href="#i-search"/></svg>Search</button>
+    </form>
+    <div class="hints"><b>Popular:</b><a href="#">RTX 5080</a><a href="#">DDR5 32GB</a><a href="#">9800X3D</a><a href="#">1440p 240Hz</a><a href="#">SKU: GPU-5080-PNY</a></div>
+  </div>
+  <div class="mast-actions">
+    <a class="act" href="#"><span class="ic"><svg width="22" height="22"><use href="#i-heart"/></svg></span><span><span class="lbl">Saved</span><span class="val">Wishlist</span></span></a>
+    <a class="act" href="#"><span class="ic"><svg width="22" height="22"><use href="#i-user"/></svg></span><span><span class="lbl">Sign in</span><span class="val">My account</span></span></a>
+    <a class="act" href="#"><span class="ic"><svg width="22" height="22"><use href="#i-bag"/></svg><span class="badge">3</span></span><span><span class="lbl">Basket</span><span class="val">£1,489.97</span></span></a>
+  </div>
+</div></header>
+
+<!-- nav -->
+<nav class="nav"><div class="wrap">
+  <div class="has-mega"><a class="top" href="#">PC Components <svg width="14" height="14"><use href="#i-chev"/></svg></a>
+    <div class="mega"><div class="wrap"><div class="grid">
+      <div><h4>Core</h4><ul><li><a href="#">CPUs / Processors</a></li><li><a href="#">Motherboards</a></li><li><a href="#">Graphics Cards</a></li><li><a href="#">RAM / Memory</a></li></ul></div>
+      <div><h4>Storage</h4><ul><li><a href="#">SSD — NVMe M.2</a></li><li><a href="#">SSD — 2.5" SATA</a></li><li><a href="#">Hard Drives (HDD)</a></li><li><a href="#">External Storage</a></li></ul></div>
+      <div><h4>Power &amp; Cases</h4><ul><li><a href="#">Power Supplies</a></li><li><a href="#">PC Cases</a></li><li><a href="#">Case Fans</a></li><li><a href="#">Cable Management</a></li></ul></div>
+      <div><h4>Cooling</h4><ul><li><a href="#">CPU Air Coolers</a></li><li><a href="#">AIO Liquid Coolers</a></li><li><a href="#">Thermal Paste</a></li><li><a href="#">Fan Controllers</a></li></ul></div>
+      <div class="promo"><span>Build service</span><p>We'll assemble, cable-manage and stress-test your parts for £89.</p><a href="#">Learn more <svg width="14" height="14"><use href="#i-arr"/></svg></a></div>
+    </div></div></div>
+  </div>
+  <div class="has-mega"><a class="top" href="#">Computers <svg width="14" height="14"><use href="#i-chev"/></svg></a>
+    <div class="mega"><div class="wrap"><div class="grid">
+      <div><h4>Desktops</h4><ul><li><a href="#">Gaming PCs</a></li><li><a href="#">Business PCs</a></li><li><a href="#">Workstations</a></li><li><a href="#">Mini PCs</a></li></ul></div>
+      <div><h4>Form factor</h4><ul><li><a href="#">All-in-One PCs</a></li><li><a href="#">Small Form Factor</a></li><li><a href="#">Refurbished PCs</a></li><li><a href="#">Custom builds</a></li></ul></div>
+      <div><h4>By use</h4><ul><li><a href="#">1440p gaming</a></li><li><a href="#">4K &amp; VR ready</a></li><li><a href="#">Video editing</a></li><li><a href="#">CAD &amp; 3D</a></li></ul></div>
+      <div><h4>By budget</h4><ul><li><a href="#">Under £700</a></li><li><a href="#">£700 – £1,200</a></li><li><a href="#">£1,200 – £2,000</a></li><li><a href="#">£2,000+</a></li></ul></div>
+      <div class="promo"><span>0% finance</span><p>Spread the cost over 12 months on orders above £600.</p><a href="#">Check eligibility <svg width="14" height="14"><use href="#i-arr"/></svg></a></div>
+    </div></div></div>
+  </div>
+  <a class="top" href="#">Laptops</a>
+  <a class="top" href="#">Peripherals</a>
+  <a class="top" href="#">Networking</a>
+  <a class="top" href="#">Accessories</a>
+  <a class="top" href="01-brands.html">Brands</a><a class="top hot" href="#">Deals</a>
+  <a class="top" href="#">Refurbished</a>
+  <div class="right"><svg width="16" height="16"><use href="#i-truck"/></svg><span>Order within <b>4h 12m</b> for next-day delivery</span></div>
+</div></nav>
+
+<!-- hero -->
+<div class="hero"><div class="wrap"><div class="grid">
+  <div class="slide">
+    <div class="txt">
+      <span class="tag">New in · Blackwell series</span>
+      <h1>GeForce RTX 5080 cards, in stock today</h1>
+      <p>Sixteen models from PNY, ASUS, MSI and Gigabyte — all despatched same day from our Manchester warehouse.</p>
+      <a class="btn btn-p" href="#">Shop graphics cards <svg width="16" height="16"><use href="#i-arr"/></svg></a>
+      <a class="btn btn-g" href="#">Compare specs</a>
+    </div>
+    <div class="dots"><i class="on"></i><i></i><i></i><i></i></div>
+  </div>
+  <div class="side">
+    <a class="scard" href="#"><div><span class="k">Save up to £220</span><h3>Weekend component deals</h3><p>CPUs, memory kits and NVMe drives reduced until Sunday midnight.</p></div><span class="go">See all deals <svg width="14" height="14"><use href="#i-arr"/></svg></span></a>
+    <a class="scard" href="#"><div><span class="k" style="color:var(--blue)">Free build service</span><h3>Custom PC configurator</h3><p>Pick parts with live compatibility checks and wattage estimates.</p></div><span class="go">Start a build <svg width="14" height="14"><use href="#i-arr"/></svg></span></a>
+  </div>
+</div></div></div>
+
+<!-- benefits -->
+<div class="bene"><div class="wrap">
+  <div class="b"><span class="ic"><svg width="20" height="20"><use href="#i-truck"/></svg></span><span><b>Free next-day delivery</b><span>On orders over £75</span></span></div>
+  <div class="b"><span class="ic"><svg width="20" height="20"><use href="#i-shield"/></svg></span><span><b>3-year UK warranty</b><span>On all own-build systems</span></span></div>
+  <div class="b"><span class="ic"><svg width="20" height="20"><use href="#i-card"/></svg></span><span><b>0% finance available</b><span>12 months, orders £600+</span></span></div>
+  <div class="b"><span class="ic"><svg width="20" height="20"><use href="#i-wrench"/></svg></span><span><b>In-house technicians</b><span>Build, repair and upgrades</span></span></div>
+</div></div>
+
+<!-- categories -->
+<section><div class="wrap">
+  <div class="head"><div><h2>Shop by category</h2><p>Over 24,000 lines across components, systems and peripherals.</p></div><a href="#">All categories <svg width="15" height="15"><use href="#i-arr"/></svg></a></div>
+  <div class="cats">
+    <a class="cat" href="#" style="background-image:url(https://picsum.photos/seed/ukcs-cat-pc-components/360/280)"><span class="ic"><svg width="18" height="16"><use href="#i-gpu"/></svg></span><b>PC Components</b><span>11 sub-categories</span></a>
+    <a class="cat" href="#" style="background-image:url(https://picsum.photos/seed/ukcs-cat-computers/360/280)"><span class="ic"><svg width="18" height="16"><use href="#i-pc"/></svg></span><b>Computers</b><span>6 sub-categories</span></a>
+    <a class="cat" href="#" style="background-image:url(https://picsum.photos/seed/ukcs-cat-laptops/360/280)"><span class="ic"><svg width="18" height="16"><use href="#i-lap"/></svg></span><b>Laptops</b><span>4 sub-categories</span></a>
+    <a class="cat" href="#" style="background-image:url(https://picsum.photos/seed/ukcs-cat-peripherals/360/280)"><span class="ic"><svg width="18" height="16"><use href="#i-mon"/></svg></span><b>Peripherals</b><span>7 sub-categories</span></a>
+    <a class="cat" href="#" style="background-image:url(https://picsum.photos/seed/ukcs-cat-networking/360/280)"><span class="ic"><svg width="18" height="16"><use href="#i-net"/></svg></span><b>Networking</b><span>5 sub-categories</span></a>
+    <a class="cat" href="#" style="background-image:url(https://picsum.photos/seed/ukcs-cat-accessories/360/280)"><span class="ic"><svg width="18" height="16"><use href="#i-cable"/></svg></span><b>Accessories</b><span>6 sub-categories</span></a>
+  </div>
+</div></section>
+
+<!-- best sellers -->
+<section style="padding-top:6px"><div class="wrap">
+  <div class="head"><div><h2>This week's best sellers</h2><p>Ranked on units sold across the last 7 days.</p></div><a href="#">View all best sellers <svg width="15" height="15"><use href="#i-arr"/></svg></a></div>
+  <div class="rail">
+
+    <article class="p"><span class="flag">Save £70</span><button class="wish"><svg width="19" height="19"><use href="#i-heart"/></svg></button>
+      <a class="ph" href="01-product.html?id=1"><svg viewBox="0 0 64 44" style="width:140px;height:104px;color:#33587f"><use href="#i-gpu"/></svg></a>
+      <div class="body">
+        <div class="brandrow"><a href="01-brand.html?b=PNY">PNY</a><span>GPU-5080-PNY</span></div>
+        <h3><a href="01-product.html?id=1">GeForce RTX 5080 OC 16GB GDDR7 Triple Fan</a></h3>
+        <ul class="specs"><li>16GB GDDR7 · 256-bit</li><li>2,730 MHz boost · 3× DisplayPort 2.1</li><li>850W PSU recommended</li></ul>
+        <div class="stars"><span class="s">★★★★★</span><span>4.8 (312)</span></div>
+        <div class="price"><b>£949.99</b><s>£1,019.99</s><span class="save">-7%</span></div>
+        <div class="vat">£791.66 ex. VAT</div>
+        <div class="stock"><i></i>In stock — 24 available</div>
+        <div class="pbtns"><a class="add" href="#"><svg width="16" height="16"><use href="#i-bag"/></svg>Add to basket</a><button class="cmp" title="Compare"><svg width="17" height="17"><use href="#i-scale"/></svg></button></div>
+      </div>
+    </article>
+
+    <article class="p"><button class="wish"><svg width="19" height="19"><use href="#i-heart"/></svg></button>
+      <a class="ph" href="01-product.html?id=9"><svg viewBox="0 0 64 64" style="width:104px;height:104px;color:#33587f"><use href="#i-cpu"/></svg></a>
+      <div class="body">
+        <div class="brandrow"><a href="01-brand.html?b=AMD">AMD</a><span>100-100001084WOF</span></div>
+        <h3><a href="01-product.html?id=9">Ryzen 7 9800X3D 8-Core AM5 Processor</a></h3>
+        <ul class="specs"><li>8 cores / 16 threads · 5.2 GHz boost</li><li>96MB 2nd-gen 3D V-Cache</li><li>120W TDP · unlocked</li></ul>
+        <div class="stars"><span class="s">★★★★★</span><span>4.9 (1,204)</span></div>
+        <div class="price"><b>£449.99</b></div>
+        <div class="vat">£374.99 ex. VAT</div>
+        <div class="stock"><i></i>In stock — despatch today</div>
+        <div class="pbtns"><a class="add" href="#"><svg width="16" height="16"><use href="#i-bag"/></svg>Add to basket</a><button class="cmp" title="Compare"><svg width="17" height="17"><use href="#i-scale"/></svg></button></div>
+      </div>
+    </article>
+
+    <article class="p"><span class="flag">Bundle deal</span><button class="wish"><svg width="19" height="19"><use href="#i-heart"/></svg></button>
+      <a class="ph" href="01-product.html?id=23"><svg viewBox="0 0 64 40" style="width:144px;height:90px;color:#33587f"><use href="#i-ram"/></svg></a>
+      <div class="body">
+        <div class="brandrow"><a href="01-brand.html?b=Corsair">Corsair</a><span>CMK32GX5M2B6000Z30</span></div>
+        <h3><a href="01-product.html?id=23">Vengeance 32GB (2×16GB) DDR5-6000 CL30</a></h3>
+        <ul class="specs"><li>CL30-36-36-76 · 1.35V</li><li>AMD EXPO &amp; Intel XMP 3.0</li><li>Lifetime warranty</li></ul>
+        <div class="stars"><span class="s">★★★★☆</span><span>4.7 (856)</span></div>
+        <div class="price"><b>£109.99</b><s>£134.99</s><span class="save">-19%</span></div>
+        <div class="vat">£91.66 ex. VAT</div>
+        <div class="stock"><i></i>In stock — 60+ available</div>
+        <div class="pbtns"><a class="add" href="#"><svg width="16" height="16"><use href="#i-bag"/></svg>Add to basket</a><button class="cmp" title="Compare"><svg width="17" height="17"><use href="#i-scale"/></svg></button></div>
+      </div>
+    </article>
+
+    <article class="p"><button class="wish"><svg width="19" height="19"><use href="#i-heart"/></svg></button>
+      <a class="ph" href="01-product.html?id=29"><svg viewBox="0 0 64 40" style="width:144px;height:90px;color:#33587f"><use href="#i-ssd"/></svg></a>
+      <div class="body">
+        <div class="brandrow"><a href="01-brand.html?b=Samsung">Samsung</a><span>MZ-V9P2T0BW</span></div>
+        <h3><a href="01-product.html?id=29">990 PRO 2TB PCIe 4.0 NVMe M.2 SSD</a></h3>
+        <ul class="specs"><li>7,450 MB/s read · 6,900 MB/s write</li><li>1,200 TBW endurance</li><li>5-year warranty</li></ul>
+        <div class="stars"><span class="s">★★★★★</span><span>4.9 (2,041)</span></div>
+        <div class="price"><b>£159.99</b><s>£179.99</s><span class="save">-11%</span></div>
+        <div class="vat">£133.32 ex. VAT</div>
+        <div class="stock"><i style="background:var(--amber)"></i><span style="color:var(--amber)">Low stock — 6 left</span></div>
+        <div class="pbtns"><a class="add" href="#"><svg width="16" height="16"><use href="#i-bag"/></svg>Add to basket</a><button class="cmp" title="Compare"><svg width="17" height="17"><use href="#i-scale"/></svg></button></div>
+      </div>
+    </article>
+
+  </div>
+</div></section>
+
+<!-- deals band -->
+<section style="padding-top:6px"><div class="wrap"><div class="deals">
+  <div><h2>Midweek Flash Deals</h2><p>Up to 38% off selected monitors, coolers and mechanical keyboards. While stocks last.</p></div>
+  <div class="timer"><div><b>01</b><span>Days</span></div><div><b>08</b><span>Hours</span></div><div><b>42</b><span>Mins</span></div><div><b>19</b><span>Secs</span></div></div>
+</div></div></section>
+
+<!-- new arrivals -->
+<section style="padding-top:16px"><div class="wrap">
+  <div class="head"><div><h2>New arrivals</h2><p>Added to the catalogue in the last 14 days.</p></div><a href="#">View all new arrivals <svg width="15" height="15"><use href="#i-arr"/></svg></a></div>
+  <div class="rail">
+    <article class="p"><span class="flag" style="background:var(--blue)">New</span>
+      <a class="ph" href="01-product.html?id=71"><svg viewBox="0 0 64 48" style="width:150px;height:112px;color:#33587f"><use href="#i-mon"/></svg></a>
+      <div class="body"><div class="brandrow"><a href="01-brand.html?b=LG">LG</a><span>27GX790A-B</span></div>
+        <h3><a href="01-product.html?id=71">UltraGear 27&quot; QHD 240Hz OLED Gaming Monitor</a></h3>
+        <ul class="specs"><li>2560×1440 · 0.03ms GtG</li><li>DisplayHDR True Black 400</li><li>G-Sync Compatible · FreeSync Premium Pro</li></ul>
+        <div class="stars"><span class="s">★★★★★</span><span>4.8 (94)</span></div>
+        <div class="price"><b>£699.99</b></div><div class="vat">£583.32 ex. VAT</div>
+        <div class="stock"><i></i>In stock</div>
+        <div class="pbtns"><a class="add" href="#"><svg width="16" height="16"><use href="#i-bag"/></svg>Add to basket</a><button class="cmp"><svg width="17" height="17"><use href="#i-scale"/></svg></button></div>
+      </div></article>
+    <article class="p">
+      <a class="ph" href="01-product.html?id=17"><svg viewBox="0 0 64 56" style="width:120px;height:106px;color:#33587f"><use href="#i-mb"/></svg></a>
+      <div class="body"><div class="brandrow"><a href="01-brand.html?b=ASUS">ASUS</a><span>ROG-STRIX-B850-F</span></div>
+        <h3><a href="01-product.html?id=17">ROG Strix B850-F Gaming WiFi ATX Motherboard</a></h3>
+        <ul class="specs"><li>AM5 · DDR5 up to 8000 MT/s</li><li>3× PCIe 5.0 M.2 slots</li><li>Wi-Fi 7 · 2.5G LAN</li></ul>
+        <div class="stars"><span class="s">★★★★☆</span><span>4.6 (128)</span></div>
+        <div class="price"><b>£259.99</b></div><div class="vat">£216.66 ex. VAT</div>
+        <div class="stock"><i></i>In stock — 18 available</div>
+        <div class="pbtns"><a class="add" href="#"><svg width="16" height="16"><use href="#i-bag"/></svg>Add to basket</a><button class="cmp"><svg width="17" height="17"><use href="#i-scale"/></svg></button></div>
+      </div></article>
+    <article class="p"><span class="flag" style="background:var(--blue)">New</span>
+      <a class="ph" href="01-product.html?id=77"><svg viewBox="0 0 64 32" style="width:150px;height:76px;color:#33587f"><use href="#i-kb"/></svg></a>
+      <div class="body"><div class="brandrow"><a href="01-brand.html?b=Keychron">Keychron</a><span>Q1P-M1-UK</span></div>
+        <h3><a href="01-product.html?id=77">Q1 Pro QMK Wireless Mechanical Keyboard — UK</a></h3>
+        <ul class="specs"><li>75% layout · gasket mount</li><li>Hot-swappable · QMK/VIA</li><li>Bluetooth 5.1 + USB-C</li></ul>
+        <div class="stars"><span class="s">★★★★☆</span><span>4.7 (203)</span></div>
+        <div class="price"><b>£179.99</b></div><div class="vat">£149.99 ex. VAT</div>
+        <div class="stock"><i></i>In stock</div>
+        <div class="pbtns"><a class="add" href="#"><svg width="16" height="16"><use href="#i-bag"/></svg>Add to basket</a><button class="cmp"><svg width="17" height="17"><use href="#i-scale"/></svg></button></div>
+      </div></article>
+    <article class="p">
+      <a class="ph" href="01-product.html?id=37"><svg viewBox="0 0 64 44" style="width:146px;height:100px;color:#33587f"><use href="#i-psu"/></svg></a>
+      <div class="body"><div class="brandrow"><a href="01-brand.html?b=Corsair">Corsair</a><span>CP-9020200-UK</span></div>
+        <h3><a href="01-product.html?id=37">RM850x 850W 80+ Gold Fully Modular PSU</a></h3>
+        <ul class="specs"><li>ATX 3.1 · 12V-2×6 connector</li><li>Zero RPM fan mode</li><li>10-year warranty</li></ul>
+        <div class="stars"><span class="s">★★★★★</span><span>4.9 (1,772)</span></div>
+        <div class="price"><b>£129.99</b><s>£149.99</s><span class="save">-13%</span></div><div class="vat">£108.32 ex. VAT</div>
+        <div class="stock"><i></i>In stock — 40+ available</div>
+        <div class="pbtns"><a class="add" href="#"><svg width="16" height="16"><use href="#i-bag"/></svg>Add to basket</a><button class="cmp"><svg width="17" height="17"><use href="#i-scale"/></svg></button></div>
+      </div></article>
+  </div>
+</div></section>
+
+<!-- build ctas -->
+<section style="padding-top:6px"><div class="wrap"><div class="build">
+  <div class="bx one"><h3>Build your own PC, part by part</h3><p>Live compatibility checking on socket, memory, clearance and wattage as you pick.</p><a class="btn" href="#">Open the configurator <svg width="16" height="16"><use href="#i-arr"/></svg></a></div>
+  <div class="bx two"><h3>Business &amp; education accounts</h3><p>30-day credit terms, bulk quotes, asset tagging and a named account manager.</p><a class="btn" href="#">Apply for an account <svg width="16" height="16"><use href="#i-arr"/></svg></a></div>
+</div></div></section>
+
+<!-- brands -->
+<section style="padding-top:6px"><div class="wrap">
+  <div class="head"><div><h2>Shop by brand</h2></div><a href="01-brands.html">All brands <svg width="15" height="15"><use href="#i-arr"/></svg></a></div>
+  <div class="brands"><a href="01-brand.html?b=MSI">MSI</a><a href="01-brand.html?b=AMD">AMD</a><a href="01-brand.html?b=ASUS">ASUS</a><a href="01-brand.html?b=Corsair">Corsair</a><a href="01-brand.html?b=Dell">Dell</a><a href="01-brand.html?b=Intel">Intel</a><a href="01-brand.html?b=Lenovo">Lenovo</a><a href="01-brand.html?b=Logitech">Logitech</a></div>
+</div></section>
+
+<footer><div class="wrap">
+  <div class="fgrid">
+    <div>
+      <a class="logo" href="#" style="margin-bottom:14px"><span class="mark">UK</span><span><b style="color:#fff">UK Computer Shop</b><span style="color:#7fa3c7">Components &amp; Systems</span></span></a>
+      <p style="margin:0 0 16px;max-width:300px">Independent UK retailer. Warehouse and workshop in Manchester, showroom open Mon–Sat.</p>
+      <div class="fnews"><input placeholder="Email address for deals"><button>Subscribe</button></div>
+    </div>
+    <div><h4>Shop</h4><ul><li><a href="#">PC Components</a></li><li><a href="#">Gaming PCs</a></li><li><a href="#">Laptops</a></li><li><a href="#">Monitors</a></li><li><a href="#">Networking</a></li><li><a href="#">Clearance</a></li></ul></div>
+    <div><h4>Services</h4><ul><li><a href="#">PC configurator</a></li><li><a href="#">Build &amp; test service</a></li><li><a href="#">Repairs &amp; upgrades</a></li><li><a href="#">Data recovery</a></li><li><a href="#">Trade-in</a></li></ul></div>
+    <div><h4>Support</h4><ul><li><a href="#">Track my order</a></li><li><a href="#">Delivery &amp; returns</a></li><li><a href="#">Warranty &amp; RMA</a></li><li><a href="#">Finance</a></li><li><a href="#">Contact us</a></li></ul></div>
+    <div><h4>Company</h4><ul><li><a href="#">About us</a></li><li><a href="#">Reviews</a></li><li><a href="#">Careers</a></li><li><a href="#">Terms &amp; conditions</a></li><li><a href="#">Privacy &amp; cookies</a></li></ul></div>
+  </div>
+  <div class="fbot">
+    <span>© 2026 UK Computer Shop Ltd · [Company registration] · [VAT number]</span>
+    <div class="pay"><span>VISA</span><span>MASTERCARD</span><span>AMEX</span><span>PAYPAL</span><span>KLARNA</span><span>APPLE PAY</span></div>
+  </div>
+</div></footer>
+</body></html>
