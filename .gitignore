@@ -2,3 +2,21 @@
 .codex
 .remember
 .impeccable
+docs
+admin-prototype
+prototypes
+
+# Next.js implementation
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+.env*
+!.env.example
+
+
+# md files
+*.md
+!README.md
+
+
