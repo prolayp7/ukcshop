@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { DesignParts } from "@/lib/parts";
 import { useCart } from "@/lib/cart";
 import { useCustomerAuth } from "@/lib/storefront-client";
 import { Address, ShippingQuote, Order, listAddresses, listShippingMethods, checkout, CheckoutAddress } from "@/lib/account-api";
+import { listPaymentMethods, createPaymentAttempt, capturePaymentAttempt } from "@/lib/payments-api";
 import { money } from "@/lib/catalogue";
 import { Icon, ProductVisual } from "@/components/Icon";
 import { useHref } from "@/lib/design-context";
@@ -14,15 +16,35 @@ const STEPS = ["Delivery", "Payment", "Review"];
 
 const EMPTY_ADDRESS: CheckoutAddress = { fullName: "", line1: "", line2: "", city: "", county: "", postcode: "", country: "GB", phone: "" };
 
+// Survives the full-page round trip to PayPal and back (sessionStorage, not
+// React state, since returning from PayPal is a fresh page load) - holds the
+// placed order so the success screen and the capture call both have what
+// they need regardless of whether the customer was logged in or a guest.
+const PAYPAL_RETURN_KEY = "ukcs.paypalCheckout";
+
 export default function CheckoutPage({ parts }: { parts: DesignParts }) {
   const { Header, Footer, Crumbs } = parts;
   const href = useHref();
   const { isLoggedIn } = useCustomerAuth();
   const { cart, loaded } = useCart();
-  const [step, setStep] = useState(1);
-  const [placed, setPlaced] = useState<Order | null>(null);
+  const searchParams = useSearchParams();
+  const paypalAttemptId = searchParams.get("paypalAttempt");
+  const paypalWasCancelled = searchParams.get("paypalCancelled") === "1";
+
+  // step is safe to seed from paypalAttemptId directly (URL-derived, identical on
+  // server and client). order/capturing/placeError are NOT seeded here even though
+  // they also depend on paypalAttemptId - they need sessionStorage, which only
+  // exists client-side, so reading it during the initial render (or a lazy
+  // useState initializer, which also runs during SSR) would make the server-
+  // rendered HTML disagree with the client's first render and break hydration.
+  // The effect below sets them after mount instead.
+  const [step, setStep] = useState(() => (paypalAttemptId ? 3 : 1));
+  const [order, setOrder] = useState<Order | null>(null);
+  const [paid, setPaid] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [placeError, setPlaceError] = useState("");
+  const [capturing, setCapturing] = useState(false);
+  const [paypalEnabled, setPaypalEnabled] = useState(false);
 
   const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
   const [selectedSavedId, setSelectedSavedId] = useState<number | null>(null);
@@ -44,7 +66,48 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
       setShippingMethods(methods);
       if (methods[0]) setShippingMethodId(methods[0].id);
     });
+    listPaymentMethods().then((methods) => setPaypalEnabled(methods.some((m) => m.provider === "PAYPAL" && m.enabled)));
   }, [isLoggedIn]);
+
+  // Handles the return trip from PayPal (redirect back to /checkout?paypalAttempt=...).
+  // Reads sessionStorage and calls setState directly in the effect body rather than
+  // during render - deliberately, since this syncs in browser-only state (see the
+  // note above the useState calls) rather than something computable during render.
+  /* eslint-disable react-hooks/set-state-in-effect -- syncing in browser-only
+     sessionStorage state post-mount, not something computable during render; see
+     the note above the useState calls. */
+  useEffect(() => {
+    if (!paypalAttemptId) return;
+    const raw = sessionStorage.getItem(PAYPAL_RETURN_KEY);
+    const saved = raw ? (JSON.parse(raw) as Order) : null;
+    if (saved) setOrder(saved);
+
+    if (paypalWasCancelled) {
+      setPlaceError("Payment was cancelled — you can try again below.");
+      return;
+    }
+    if (!saved) {
+      setPlaceError("We couldn't confirm your payment — please contact us with your order reference if you were charged.");
+      return;
+    }
+    setCapturing(true);
+    capturePaymentAttempt(paypalAttemptId, saved.email)
+      .then((result) => {
+        if (result.status === "CAPTURED") {
+          setPaid(true);
+          sessionStorage.removeItem(PAYPAL_RETURN_KEY);
+        } else {
+          setPlaceError(result.error?.message || "Payment could not be completed — please try again.");
+        }
+      })
+      .catch(() => setPlaceError("Payment could not be completed — please try again."))
+      .finally(() => setCapturing(false));
+    // Intentionally runs once on mount only - paypalAttemptId/paypalWasCancelled are
+    // stable for the lifetime of this page load (they come from the URL, which
+    // nothing here navigates away from without a full reload).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const lines = cart?.items ?? [];
   const subtotal = cart?.subtotal ?? 0;
@@ -72,20 +135,37 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
     setPlacing(true);
     setPlaceError("");
     try {
-      const order = await checkout({
-        email: isLoggedIn ? undefined : email.trim(),
-        shippingAddress,
-        shippingMethodId,
-      });
-      setPlaced(order);
+      // Reuse the order from an earlier attempt in this session (e.g. the
+      // customer cancelled or PayPal declined) instead of creating a second one.
+      const currentOrder = order ?? (await checkout({ email: isLoggedIn ? undefined : email.trim(), shippingAddress, shippingMethodId }));
+      if (!order) setOrder(currentOrder);
+      const attempt = await createPaymentAttempt({ orderUuid: currentOrder.uuid, email: currentOrder.email, provider: "PAYPAL" });
+      if (!attempt.redirectUrl) throw new Error("PayPal did not return a redirect URL");
+      sessionStorage.setItem(PAYPAL_RETURN_KEY, JSON.stringify(currentOrder));
+      window.location.href = attempt.redirectUrl;
     } catch {
-      setPlaceError("We couldn't place your order — check your details and try again.");
-    } finally {
+      setPlaceError(order ? "We couldn't start PayPal payment — please try again." : "We couldn't place your order — check your details and try again.");
       setPlacing(false);
     }
   };
 
-  if (placed) {
+  if (capturing) {
+    return (
+      <>
+        <Header />
+        <div className="wrap">
+          <div className="ck-done">
+            <Icon id="i-shield" w={34} />
+            <h1>Confirming your payment…</h1>
+            <p>Please wait, this only takes a moment.</p>
+          </div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
+  if (order && paid) {
     return (
       <>
         <Header />
@@ -94,11 +174,11 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
             <Icon id="i-shield" w={34} />
             <h1>Order placed</h1>
             <p className="ck-ref">
-              Reference <b>{placed.orderNumber}</b>
+              Reference <b>{order.orderNumber}</b>
             </p>
             <p>A confirmation has been emailed to you.</p>
             <div className="ck-donebox">
-              {placed.items.map((item) => (
+              {order.items.map((item) => (
                 <div className="ck-item" key={item.id}>
                   <span className="ck-name">
                     {item.titleSnapshot}
@@ -109,12 +189,12 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
               ))}
               <div className="bk-row bk-total">
                 <span>Paid</span>
-                <b>{money(Number(placed.total))}</b>
+                <b>{money(Number(order.total))}</b>
               </div>
             </div>
             <div className="ck-doneacts">
               {isLoggedIn ? (
-                <Link className="bk-cta" href={href.order(placed.uuid)}>
+                <Link className="bk-cta" href={href.order(order.uuid)}>
                   Track this order
                 </Link>
               ) : null}
@@ -129,7 +209,7 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
     );
   }
 
-  if (loaded && !lines.length) {
+  if (loaded && !lines.length && !order) {
     return (
       <>
         <Header />
@@ -264,40 +344,30 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
                 <section className="ck-block">
                   <h2>Payment</h2>
                   <div className="ck-pm">
-                    <label className="ck-card on">
-                      <input type="radio" name="pay" defaultChecked />
+                    <label className={`ck-card${paypalEnabled ? " on" : ""}`}>
+                      <input type="radio" name="pay" checked={paypalEnabled} readOnly disabled={!paypalEnabled} />
                       <span>
-                        <b>Card</b>Visa, Mastercard, Amex
+                        <b>PayPal</b>Pay securely with your PayPal account or a card via PayPal
                       </span>
                     </label>
                   </div>
-                  <div className="ck-fake">
-                    <div className="ck-fakebar">Layout preview · inputs disabled</div>
-                    <div className="ck-field">
-                      <label>Name on card</label>
-                      <input defaultValue="Placeholder name" disabled />
-                    </div>
-                    <div className="ck-field">
-                      <label>Card number</label>
-                      <input defaultValue="•••• •••• •••• ••••" disabled />
-                    </div>
-                    <p className="ck-disclaim">
-                      Card payment collection isn&rsquo;t wired up yet in this build — placing an order below creates a real order awaiting
-                      payment, but no card details are collected or charged.
-                    </p>
-                  </div>
+                  {!paypalEnabled ? (
+                    <p className="ck-disclaim">No payment method is currently available — please contact us to place this order.</p>
+                  ) : (
+                    <p className="ck-disclaim">You&rsquo;ll be redirected to PayPal to complete payment securely, then brought back here.</p>
+                  )}
                 </section>
                 <div className="ck-actions">
                   <button className="ck-back" onClick={() => setStep(1)}>
                     ← Back to delivery
                   </button>
-                  <button className="ck-next" onClick={() => setStep(3)}>
+                  <button className="ck-next" disabled={!paypalEnabled} onClick={() => setStep(3)}>
                     Review order <Icon id="i-arr" w={15} />
                   </button>
                 </div>
               </>
             )}
-            {step === 3 && shippingAddress && (
+            {step === 3 && (shippingAddress || order) && (
               <>
                 <section className="ck-block">
                   <h2>Review your order</h2>
@@ -305,37 +375,51 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
                     <div>
                       <h4>Delivering to</h4>
                       <p>
-                        {shippingAddress.fullName}
+                        {order ? order.shippingFullName : shippingAddress!.fullName}
                         <br />
-                        {shippingAddress.line1}, {shippingAddress.city}, {shippingAddress.postcode}
+                        {order ? (
+                          <>
+                            {order.shippingLine1}, {order.shippingCity}, {order.shippingPostcode}
+                          </>
+                        ) : (
+                          <>
+                            {shippingAddress!.line1}, {shippingAddress!.city}, {shippingAddress!.postcode}
+                          </>
+                        )}
                       </p>
                     </div>
                     <div>
                       <h4>Method</h4>
-                      <p>{selectedShipping?.title}</p>
+                      <p>{order ? order.shippingMethod?.title : selectedShipping?.title}</p>
                     </div>
                     <div>
                       <h4>Paying by</h4>
-                      <p>
-                        Card
-                        <br />
-                        Not collected in this build
-                      </p>
+                      <p>PayPal</p>
                     </div>
                   </div>
                   <div className="ck-lines">
-                    {lines.map((l) => (
-                      <div className="ck-item" key={l.productVariantId}>
-                        <span className="ck-thumb">
-                          <ProductVisual productId={l.productId} iconId="package" w={44} h={32} />
-                        </span>
-                        <span className="ck-name">
-                          {l.variant.product.title}
-                          <em>Qty {l.quantity}</em>
-                        </span>
-                        <b>{money(l.unitPrice * l.quantity)}</b>
-                      </div>
-                    ))}
+                    {order
+                      ? order.items.map((item) => (
+                          <div className="ck-item" key={item.id}>
+                            <span className="ck-name">
+                              {item.titleSnapshot}
+                              <em>Qty {item.quantity}</em>
+                            </span>
+                            <b>{money(Number(item.subtotal))}</b>
+                          </div>
+                        ))
+                      : lines.map((l) => (
+                          <div className="ck-item" key={l.productVariantId}>
+                            <span className="ck-thumb">
+                              <ProductVisual productId={l.productId} iconId="package" w={44} h={32} />
+                            </span>
+                            <span className="ck-name">
+                              {l.variant.product.title}
+                              <em>Qty {l.quantity}</em>
+                            </span>
+                            <b>{money(l.unitPrice * l.quantity)}</b>
+                          </div>
+                        ))}
                   </div>
                   {placeError ? (
                     <p className="cart-detail-error" role="alert" style={{ marginTop: 12 }}>
@@ -344,46 +428,53 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
                   ) : null}
                 </section>
                 <div className="ck-actions">
-                  <button className="ck-back" onClick={() => setStep(2)}>
-                    ← Back to payment
-                  </button>
-                  <button className="ck-next" disabled={placing} onClick={() => void placeOrder()}>
-                    {placing ? "Placing order…" : `Place order — ${money(total)}`}
+                  {!order ? (
+                    <button className="ck-back" onClick={() => setStep(2)}>
+                      ← Back to payment
+                    </button>
+                  ) : <span />}
+                  <button className="ck-next" disabled={placing || !paypalEnabled} onClick={() => void placeOrder()}>
+                    {placing ? "Redirecting to PayPal…" : `Pay with PayPal — ${money(order ? Number(order.total) : total)}`}
                   </button>
                 </div>
               </>
             )}
           </div>
-          <aside className="ck-sum">
-            <h2>Order summary</h2>
-            {lines.map((l) => (
-              <div className="ck-item" key={l.productVariantId}>
-                <span className="ck-thumb">
-                  <ProductVisual productId={l.productId} iconId="package" w={44} h={32} />
-                </span>
-                <span className="ck-name">
-                  {l.variant.product.title}
-                  <em>Qty {l.quantity}</em>
-                </span>
-                <b>{money(l.unitPrice * l.quantity)}</b>
+          {/* Once an order exists, Step 3's own review section is the source of
+              truth (the cart is cleared server-side as soon as the order is
+              placed, so `lines`/`subtotal` would just show stale/empty data here). */}
+          {!order ? (
+            <aside className="ck-sum">
+              <h2>Order summary</h2>
+              {lines.map((l) => (
+                <div className="ck-item" key={l.productVariantId}>
+                  <span className="ck-thumb">
+                    <ProductVisual productId={l.productId} iconId="package" w={44} h={32} />
+                  </span>
+                  <span className="ck-name">
+                    {l.variant.product.title}
+                    <em>Qty {l.quantity}</em>
+                  </span>
+                  <b>{money(l.unitPrice * l.quantity)}</b>
+                </div>
+              ))}
+              <div className="bk-row">
+                <span>Goods</span>
+                <b>{money(subtotal)}</b>
               </div>
-            ))}
-            <div className="bk-row">
-              <span>Goods</span>
-              <b>{money(subtotal)}</b>
-            </div>
-            <div className="bk-row">
-              <span>{selectedShipping?.title ?? "Delivery"}</span>
-              <b>{selectedShipping ? (selectedShipping.rate === 0 ? "Free" : money(selectedShipping.rate)) : "—"}</b>
-            </div>
-            <div className="bk-row bk-total">
-              <span>Total</span>
-              <b>{money(total)}</b>
-            </div>
-            <Link className="ck-edit" href={href.basket()}>
-              Edit basket
-            </Link>
-          </aside>
+              <div className="bk-row">
+                <span>{selectedShipping?.title ?? "Delivery"}</span>
+                <b>{selectedShipping ? (selectedShipping.rate === 0 ? "Free" : money(selectedShipping.rate)) : "—"}</b>
+              </div>
+              <div className="bk-row bk-total">
+                <span>Total</span>
+                <b>{money(total)}</b>
+              </div>
+              <Link className="ck-edit" href={href.basket()}>
+                Edit basket
+              </Link>
+            </aside>
+          ) : null}
         </div>
       </div>
       <Footer />

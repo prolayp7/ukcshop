@@ -147,6 +147,13 @@ export interface ApiProductBase {
   upc: string | null;
   shortDescription: string | null;
   description?: string | null;
+  minimumOrderQuantity?: number;
+  warrantyMonths?: number | null;
+  outOfStockLabel?: string | null;
+  inStockDeliveryTime?: string | null;
+  outOfStockDeliveryTime?: string | null;
+  isReturnable?: boolean;
+  returnableDays?: number | null;
   category: ApiCategoryRef & { parent: ApiCategoryRef | null };
   brand: ApiCategoryRef | null;
   price: string | null;
@@ -158,7 +165,9 @@ export interface ApiProductBase {
   images?: { url: string; altText: string | null }[];
   createdAt?: string;
   specsSummary?: Record<string, unknown> | null;
-  reviewSummary?: { average: number; count: number };
+  reviewSummary?: { average: number; count: number; distribution?: Record<string, number> };
+  faqs?: { id: number; question: string; answer: string }[];
+  documents?: { id: number; title: string; url: string }[];
   variants?: ApiVariant[];
   compatibility?: ApiCompatibility | null;
 }
@@ -333,7 +342,29 @@ export async function fetchProducts(params: ProductListParams = {}): Promise<{ i
 export async function fetchProductBySlug(slug: string): Promise<{ product: Product; api: ApiProductBase } | null> {
   const api = await apiGetOrNull<ApiProductBase>(`products/${encodeURIComponent(slug)}`);
   if (!api) return null;
-  return { product: toProduct(api), api };
+  const resolved = {
+    ...api,
+    documents: api.documents?.map((document) => ({ ...document, url: resolveMediaUrl(document.url) || document.url })),
+    images: api.images?.map((image) => ({ ...image, url: resolveMediaUrl(image.url) || image.url })),
+    variants: api.variants?.map((variant) => ({ ...variant, images: (variant.images ?? []).map((image) => ({ ...image, url: resolveMediaUrl(image.url) || image.url })) })),
+  };
+  return { product: toProduct(resolved), api: resolved };
+}
+
+export interface ApiReview {
+  id: number;
+  uuid: string;
+  rating: number;
+  title: string | null;
+  comment: string | null;
+  reviewerName: string;
+  createdAt: string;
+  orderItemId: number | null;
+}
+
+export async function fetchReviews(productId: number, page = 1, perPage = 20): Promise<{ items: ApiReview[]; meta: PaginationMeta }> {
+  const res = await apiGet<{ data: ApiReview[]; meta: PaginationMeta }>(`reviews?productId=${productId}&page=${page}&perPage=${perPage}`, 30);
+  return { items: res.data, meta: res.meta };
 }
 
 export async function fetchCompatibleProducts(slug: string, category?: string, limit = 4): Promise<Product[]> {

@@ -17,7 +17,7 @@ export function makeHref(slug = "") {
   const base = slug ? `/${slug}` : "";
   return {
     home: () => base || "/",
-    category: (params?: { cat?: string; sub?: string; sort?: string; featured?: number; deals?: number }) => `${base}/category${qs(params)}`,
+    category: (params?: { cat?: string; sub?: string; sort?: string; featured?: number; deals?: number; q?: string }) => `${base}/category${qs(params)}`,
     product: (id: number | string) => `${base}/product/${id}`,
     brand: (name: string) => `${base}/brand/${encodeURIComponent(name)}`,
     brands: () => `${base}/brands`,

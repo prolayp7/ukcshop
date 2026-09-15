@@ -92,7 +92,8 @@ function apiUrl(path: string): string {
 }
 
 async function rawRequest(path: string, init: RequestInit, accessToken?: string): Promise<Response> {
-  const headers = new Headers(init.body ? { "Content-Type": "application/json" } : {});
+  const headers = new Headers(init.headers);
+  if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
   if (accessToken) {
     headers.set("Authorization", `Bearer ${accessToken}`);
   } else {
@@ -196,6 +197,10 @@ export async function logout(): Promise<void> {
 
 export function sendOtp(email: string, purpose: "email_verification" | "password_reset"): Promise<void> {
   return request("auth/otp/send", asJsonBody({ email, purpose }));
+}
+
+export function subscribeNewsletter(email: string): Promise<void> {
+  return request("newsletter/subscribe", asJsonBody({ email }));
 }
 
 export async function resetPassword(email: string, code: string, newPassword: string): Promise<void> {

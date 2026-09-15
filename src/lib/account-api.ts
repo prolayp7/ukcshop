@@ -74,6 +74,9 @@ export interface OrderItem {
   unitPrice: string;
   subtotal: string;
   status: string;
+  returnEligible: boolean;
+  returnDeadline: string | null;
+  returns?: { id: number; returnStatus: string }[];
 }
 export interface ShipmentEvent {
   id: number;
@@ -125,4 +128,10 @@ export async function listOrders(page = 1): Promise<{ items: Order[]; meta: { pa
 }
 export function getOrder(uuid: string): Promise<Order> {
   return request(`orders/${encodeURIComponent(uuid)}`);
+}
+export function cancelOrder(uuid: string, reason?: string): Promise<Order> {
+  return request(`orders/${encodeURIComponent(uuid)}/cancel`, { method: "PATCH", body: JSON.stringify({ reason }) });
+}
+export function requestReturn(orderItemId: number, reason: string, comment?: string): Promise<{ id: number; returnStatus: string }> {
+  return request("returns", { method: "POST", body: JSON.stringify({ orderItemId, reason, comment }) });
 }

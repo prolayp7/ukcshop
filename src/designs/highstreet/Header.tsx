@@ -4,14 +4,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CAT_ORDER } from "@/lib/types";
-import { tree, brands as allBrands, PRODUCTS, money, slugify } from "@/lib/catalogue";
+import { CAT_ORDER, type Product } from "@/lib/types";
+import { tree, PRODUCTS, money } from "@/lib/catalogue";
 import { Icon, ProductVisual } from "@/components/Icon";
 import { BasketCount, BasketTotal } from "@/components/BasketBadge";
 import { CartTrigger } from "@/components/CartDrawer";
 import { useHref } from "@/lib/design-context";
 import { useApi } from "@/lib/use-api";
-import { ApiGeneralSettings } from "@/lib/api";
+import { ApiGeneralSettings, type ApiCategory, type ApiBrand, type ListMeta } from "@/lib/api";
 import { useWishlist, useCompare } from "@/lib/basket";
 import { useCustomerAuth } from "@/lib/storefront-client";
 import { MEGA_PROMO, GAMING_MEGA } from "@/lib/homepage-content";
@@ -29,17 +29,12 @@ const MEGA_ICON: Record<string, string> = {
   Accessories: "i-cable",
 };
 
-function haystack(p: (typeof PRODUCTS)[number]): string {
-  return [p.name, p.brand, p.sku, p.mpn, p.category, p.subcategory].join(" ").toLowerCase();
-}
-
 export default function Header() {
   const href = useHref();
   const settingsRes = useApi<{ data: ApiGeneralSettings }>("/api/settings/general");
   const settings = settingsRes.data?.data ?? {};
   const router = useRouter();
-  const t = tree();
-  const brandList = allBrands();
+  const statsRes = useApi<{ meta: ListMeta }>("/api/products?perPage=1");
   const { count: wishCount } = useWishlist();
   const { count: cmpCount } = useCompare();
   const { customer, isLoggedIn } = useCustomerAuth();
@@ -64,22 +59,46 @@ export default function Header() {
     };
   }, []);
 
+  // Debounced so every keystroke doesn't fire a request; product suggestions come
+  // from the real catalogue search (same tokenized/synonym matching as the full
+  // results page) rather than the small local mock list, which couldn't find a
+  // match for anything not phrased exactly like its own fake data.
+  const [debouncedQ, setDebouncedQ] = useState("");
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQ(q.trim()), 200);
+    return () => clearTimeout(timer);
+  }, [q]);
+  const searchRes = useApi<{ items: Product[] }>(debouncedQ.length >= 2 ? `/api/products?q=${encodeURIComponent(debouncedQ)}&perPage=5` : null);
+  // Fetched once (small, slow-changing lists) rather than per keystroke, then
+  // filtered client-side — same live source the category/brand pages use.
+  const categoriesRes = useApi<{ items: ApiCategory[] }>("/api/categories");
+  const brandsRes = useApi<{ items: ApiBrand[] }>("/api/brands");
+  // Falls back to the local mock tree only until the real one has loaded, so the
+  // nav renders instantly instead of flashing empty — the settled state is always
+  // the real department/subcategory list (this catalogue has 6 departments,
+  // "Software" included, not the mock's fixed "Accessories" set).
+  const navTree = useMemo(() => {
+    const items = categoriesRes.data?.items;
+    if (!items) return tree();
+    return items.map((c) => ({ category: c.title, subs: c.children.map((child) => child.title) }));
+  }, [categoriesRes.data]);
   const suggestions = useMemo(() => {
     const s = q.trim().toLowerCase();
     if (s.length < 2) return null;
-    const prods = PRODUCTS.filter((p) => haystack(p).includes(s))
-      .slice()
-      .sort((a, b) => b.sold - a.sold)
-      .slice(0, 5);
-    const cats = Array.from(new Set(PRODUCTS.map((p) => p.subcategory))).filter((c) => c.toLowerCase().includes(s)).slice(0, 3);
-    const brandHits = brandList.map((b) => b.brand).filter((b) => b.toLowerCase().includes(s)).slice(0, 4);
-    return { prods, cats, brandHits };
-  }, [q, brandList]);
+    const categories = categoriesRes.data?.items ?? [];
+    const cats = Array.from(new Set(categories.flatMap((c) => [c.title, ...c.children.map((child) => child.title)])))
+      .filter((title) => title.toLowerCase().includes(s))
+      .slice(0, 3);
+    const brandHits = (brandsRes.data?.items ?? [])
+      .filter((b) => b.title.toLowerCase().includes(s))
+      .slice(0, 4);
+    return { prods: searchRes.data?.items ?? [], cats, brandHits, loading: searchRes.loading };
+  }, [q, categoriesRes.data, brandsRes.data, searchRes.data, searchRes.loading]);
 
   function runSearch(query: string) {
     setOpen(false);
     if (!query.trim()) return;
-    router.push(href.category({ sub: query }));
+    router.push(href.category({ q: query }));
   }
 
   return (
@@ -98,7 +117,7 @@ export default function Header() {
           </div>
           <div className="sep">
             <span>
-              <strong>{PRODUCTS.length}</strong> products in stock
+              <strong>{statsRes.data?.meta.total ?? PRODUCTS.length}</strong> products in stock
             </span>
             <a href="#">Help centre</a>
             <a href="#">£ GBP · Inc. VAT</a>
@@ -174,15 +193,17 @@ export default function Header() {
                       <>
                         <div className="sugg-h">Brands</div>
                         {suggestions.brandHits.map((b) => (
-                          <Link href={href.brand(slugify(b))} key={b} className="sugg-tag" onMouseDown={(e) => e.preventDefault()}>
-                            {b}
+                          <Link href={href.brand(b.slug)} key={b.slug} className="sugg-tag" onMouseDown={(e) => e.preventDefault()}>
+                            {b.title}
                           </Link>
                         ))}
                       </>
                     ) : null}
                   </div>
                 ) : null}
-                {!suggestions.prods.length && !suggestions.cats.length && !suggestions.brandHits.length ? (
+                {suggestions.loading && !suggestions.prods.length ? (
+                  <div className="sugg-empty">Searching…</div>
+                ) : !suggestions.prods.length && !suggestions.cats.length && !suggestions.brandHits.length ? (
                   <div className="sugg-empty">No matches — press Enter to search the full catalogue anyway.</div>
                 ) : (
                   <button type="button" className="sugg-all" onMouseDown={(e) => e.preventDefault()} onClick={() => runSearch(q)}>
@@ -241,7 +262,7 @@ export default function Header() {
         if (!event.currentTarget.contains(event.relatedTarget)) setOpenMega(null);
       }}>
         <div className="wrap">
-          {t.map((node) => (
+          {navTree.map((node) => (
             <div className={`has-mega${openMega === node.category ? " is-open" : ""}`} key={node.category} onMouseEnter={() => setOpenMega(node.category)}>
               <Link className="top" href={href.category({ cat: node.category })} aria-expanded={openMega === node.category} aria-controls={`mega-${node.category.replace(/\s+/g, "-").toLowerCase()}`} onFocus={() => setOpenMega(node.category)}>
                 <Icon id={MEGA_ICON[node.category] || "i-gpu"} w={14} h={14} />

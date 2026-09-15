@@ -29,7 +29,7 @@ function parseSchema(value?: string | null): unknown {
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const query = await searchParams;
   const { category } = await loadCategory(single(query.sub) || single(query.cat));
-  const title = category?.metaTitle || category?.pageHeader || category?.title || "All products";
+  const title = category?.metaTitle || category?.pageHeader || category?.title || (single(query.q) ? `Search results for "${single(query.q)}"` : "All products");
   const description = category?.metaDescription || plainText(category?.description);
   const canonical = category ? categoryUrl(category.slug) : "/category";
   return {
@@ -49,8 +49,10 @@ export default async function Page({ searchParams }: Props) {
   const name = single(query.sub) || single(query.cat);
   const { tree, category } = await loadCategory(name);
   if (name && !category) notFound();
+  const q = single(query.q);
   const initialParams: ProductListParams = {
     category: category?.slug, perPage: 12,
+    q: q || undefined,
     onSale: single(query.deals) === "1" || undefined,
     sort: single(query.sort) === "price-asc" ? "price_asc" : single(query.sort) === "price-desc" ? "price_desc" : "newest",
   };
@@ -77,6 +79,6 @@ export default async function Page({ searchParams }: Props) {
   ] };
   return <>
     {[schema, faqSchema, breadcrumbs].filter(Boolean).map((item, index) => <script key={index} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(item).replace(/</g, "\\u003c") }} />)}
-    <CategoryPage key={JSON.stringify(query)} initialProducts={initialProducts} benefits={home?.hero.badges.slice(0, 3) ?? []} category={category} tree={tree} initialMin={single(query.min)} initialMax={single(query.max)} initialSort={single(query.sort)} deals={single(query.deals) === "1"} />
+    <CategoryPage key={JSON.stringify(query)} initialProducts={initialProducts} benefits={home?.hero.badges.slice(0, 3) ?? []} category={category} tree={tree} initialMin={single(query.min)} initialMax={single(query.max)} initialSort={single(query.sort)} deals={single(query.deals) === "1"} initialQuery={q} />
   </>;
 }

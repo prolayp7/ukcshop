@@ -14,10 +14,10 @@ import { Icon } from "@/components/Icon";
 import { plainText } from "@/lib/category";
 import CategoryProductCard from "@/components/pages/CategoryProductCard";
 
-export default function CategoryPage({ category, tree, initialMin, initialMax, initialSort, deals, initialProducts, benefits }: {
+export default function CategoryPage({ category, tree, initialMin, initialMax, initialSort, deals, initialProducts, benefits, initialQuery = "" }: {
   benefits: { id: number; label: string; icon: string | null }[];
   initialProducts: { items: Product[]; meta: ListMeta } | null;
-  category: ApiCategory | null; tree: ApiCategory[]; initialMin: string; initialMax: string; initialSort: string; deals: boolean;
+  category: ApiCategory | null; tree: ApiCategory[]; initialMin: string; initialMax: string; initialSort: string; deals: boolean; initialQuery?: string;
 }) {
   const { Header, Footer, Crumbs } = parts;
   const href = useHref();
@@ -31,10 +31,11 @@ export default function CategoryPage({ category, tree, initialMin, initialMax, i
   const [perPage, setPerPage] = useState(12);
   const [view, setView] = useState<"grid" | "list">("grid");
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const label = category?.pageHeader || category?.title || (deals ? "Today's Best Deals" : "All products");
+  const label = category?.pageHeader || category?.title || (deals ? "Today's Best Deals" : initialQuery ? `Search results for "${initialQuery}"` : "All products");
   const baseQuery = new URLSearchParams();
   if (category) baseQuery.set("category", category.slug);
   if (deals) baseQuery.set("onSale", "true");
+  if (initialQuery) baseQuery.set("q", initialQuery);
   const facetsRes = useApi<{ items: Product[]; meta: ListMeta }>(`/api/products?${baseQuery}&perPage=1`);
   const query = new URLSearchParams(baseQuery);
   if (brands.length) query.set("brand", brands.join(","));
@@ -46,19 +47,34 @@ export default function CategoryPage({ category, tree, initialMin, initialMax, i
   query.set("perPage", String(perPage));
   const results = useCategoryProducts(query.toString(), initialProducts);
   const sentinel = useRef<HTMLDivElement>(null);
-  const { loadMore, loading, error, hasMore } = results;
+  const { loadMore, hasMore } = results;
+  const loadMoreRef = useRef(loadMore);
+  useEffect(() => { loadMoreRef.current = loadMore; }, [loadMore]);
   useEffect(() => {
     const target = sentinel.current;
-    if (!target || loading || error || !hasMore) return;
+    if (!target || !hasMore) return;
+    // A stable observer that's only torn down when hasMore changes — recreating it on
+    // every loading/error toggle made it re-check intersection (and often re-fire)
+    // right after each page finished loading, causing extra loads and jank.
     const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) loadMore();
+      if (entry.isIntersecting) loadMoreRef.current();
     }, { rootMargin: "1000px" });
     observer.observe(target);
     return () => observer.disconnect();
-  }, [loadMore, loading, error, hasMore]);
+  }, [hasMore]);
   const shown = results.data?.items ?? [];
   const total = results.data?.meta.total ?? 0;
   const facets = facetsRes.data?.meta.facets;
+  useEffect(() => {
+    // A search for a brand name (e.g. "asus") should land with that brand's
+    // filter checkbox already ticked, not just listed in the sidebar.
+    if (!initialQuery || brands.length || !facets?.brands.length) return;
+    const match = facets.brands.find((brand) => brand.title.toLowerCase() === initialQuery.trim().toLowerCase());
+    if (!match) return;
+    const timer = window.setTimeout(() => setBrands([match.slug]), 0);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [facets?.brands]);
   const maxPrice = Math.ceil(facets?.priceMax ?? 0);
   const children = category?.children ?? [];
   const parent = tree.find((node) => node.id === category?.parentId);
