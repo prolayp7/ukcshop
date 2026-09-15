@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { recommended, money, stars } from "@/lib/catalogue";
+import { money, stars } from "@/lib/catalogue";
+import { useApi } from "@/lib/use-api";
+import { Product } from "@/lib/types";
 import { Icon, ProductVisual } from "@/components/Icon";
 import { AddToBasketButton } from "@/components/interactive";
 import { useHref } from "@/lib/design-context";
@@ -11,7 +13,8 @@ import { useHref } from "@/lib/design-context";
  * competing with the sign-in/register task itself. */
 export default function AuthPromo() {
   const href = useHref();
-  const products = recommended(3);
+  const res = useApi<{ items: Product[] }>("/api/products/recommended?limit=3");
+  const products = res.data?.items ?? [];
   if (!products.length) return null;
 
   return (

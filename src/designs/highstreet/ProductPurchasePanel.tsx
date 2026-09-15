@@ -11,7 +11,6 @@ import { plainText } from "@/lib/category";
 import { Cart } from "@/lib/cart";
 import { useCompare } from "@/lib/basket";
 import { useHref } from "@/lib/design-context";
-import { useCartDrawer } from "@/components/CartDrawer";
 import { useApi } from "@/lib/use-api";
 import ProductSpecialOffer from "./ProductSpecialOffer";
 import { WishlistButton } from "@/components/interactive";
@@ -27,7 +26,6 @@ export default function ProductPurchasePanel({ product, api, onReviews }: { prod
   const candidates = offers.data?.items.filter((item) => item.id !== product.id && item.was !== null && item.was > item.price && item.defaultVariantId !== null) ?? [];
   const offer = candidates.find((item) => item.image) ?? candidates[0];
   const router = useRouter();
-  const openCart = useCartDrawer();
   const compare = useCompare();
   const [variantId, setVariantId] = useState(product.defaultVariantId);
   const [imageIndex, setImageIndex] = useState(0);
@@ -67,7 +65,6 @@ export default function ProductPurchasePanel({ product, api, onReviews }: { prod
     try {
       await Cart.add(variant.id, quantity);
       if (destination === "checkout") router.push(href.checkout());
-      else openCart();
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : "Could not add this product. Please try again.");
     } finally {

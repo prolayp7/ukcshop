@@ -1,7 +1,7 @@
 "use client";
 
+import { toast, notifyFailure } from "./notifications";
 import { useCallback, useSyncExternalStore } from "react";
-import { byId } from "./catalogue";
 import { Product } from "./types";
 import { request, useCustomerAuth, isLoggedIn as customerIsLoggedIn } from "./storefront-client";
 
@@ -116,10 +116,11 @@ export const Wishlist = {
   },
   async toggle(productId: number, productVariantId: number): Promise<void> {
     const existing = Wishlist.items().find((i) => i.productId === productId);
-    const data = existing
+    const data = await notifyFailure("Could not update your wishlist", async () => existing
       ? await request<{ items: ApiWishlistItem[] }>(`wishlist/items/${existing.productVariantId}`, { method: "DELETE" })
-      : await request<{ items: ApiWishlistItem[] }>("wishlist/items", { method: "POST", body: JSON.stringify({ productVariantId }) });
+      : await request<{ items: ApiWishlistItem[] }>("wishlist/items", { method: "POST", body: JSON.stringify({ productVariantId }) }));
     setWishlist(data.items);
+    toast.success(existing ? "Removed from your wishlist" : "Saved to your wishlist", { description: existing?.productTitle || data.items.find((item) => item.productVariantId === productVariantId)?.productVariant.product.title });
   },
 };
 
@@ -146,11 +147,16 @@ export const Compare = {
     if (i > -1) {
       v.splice(i, 1);
       Compare.save(v);
+      toast.info("Removed from comparison", { description: product.name });
       return false;
     }
-    if (v.length >= COMPARE_MAX) return false;
+    if (v.length >= COMPARE_MAX) {
+      toast.warning("Comparison list is full", { id: "compare-full", description: `You can compare up to ${COMPARE_MAX} products. Remove an existing product before adding another.` });
+      return false;
+    }
     v.push(product);
     Compare.save(v);
+    toast.success("Added to comparison", { description: product.name });
     return true;
   },
   remove(id: number | string) {
@@ -174,14 +180,6 @@ export const Recent = {
     r.unshift(nid);
     lsSet("recent", r.slice(0, 10));
     notify();
-  },
-  products(n = 6, excludeId?: number | string): Product[] {
-    const ex = excludeId !== undefined ? Number(excludeId) : null;
-    return Recent.raw()
-      .filter((id) => id !== ex)
-      .map(byId)
-      .filter((p): p is Product => p !== null)
-      .slice(0, n);
   },
 };
 

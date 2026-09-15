@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Script from "next/script";
 import Sprite from "@/components/Sprite";
+import StoreToaster from "@/components/StoreToaster";
 import BackToTop from "@/components/BackToTop";
 import CookieBanner from "@/components/CookieBanner";
 import CompareBar from "@/components/CompareBar";
@@ -76,6 +77,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <DesignSlugProvider slug="">
           <CartDrawerProvider>
             <main id="main-content">{children}</main>
+            <StoreToaster />
             <BackToTop />
             <CookieBanner design={design} />
             <CompareBar />

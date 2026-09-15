@@ -6,12 +6,10 @@ import { Package, Plus, ShoppingCart } from "lucide-react";
 import type { Product } from "@/lib/types";
 import { money } from "@/lib/catalogue";
 import { Cart } from "@/lib/cart";
-import { useCartDrawer } from "@/components/CartDrawer";
 import { useHref } from "@/lib/design-context";
 
 export default function FrequentlyBoughtTogether({ product, companions, minimum = 1 }: { product: Product; companions: Product[]; minimum?: number }) {
   const href = useHref();
-  const openCart = useCartDrawer();
   const [excluded, setExcluded] = useState<number[]>([]);
   const [added, setAdded] = useState<number[]>([]);
   const [busy, setBusy] = useState(false);
@@ -27,10 +25,7 @@ export default function FrequentlyBoughtTogether({ product, companions, minimum 
 
   async function addSelected() {
     if (busy || !selected.length) return;
-    if (!pending.length) {
-      openCart();
-      return;
-    }
+    if (!pending.length) return;
     setBusy(true);
     setError("");
     try {
@@ -39,7 +34,6 @@ export default function FrequentlyBoughtTogether({ product, companions, minimum 
         await Cart.add(item.defaultVariantId!, quantity(item));
         setAdded((previous) => [...previous, item.id]);
       }
-      openCart();
     } catch (failure) {
       setError(`${failure instanceof Error ? failure.message : "Could not add the selected products."} Any items already added are in your basket; retrying will only add the remaining items.`);
     } finally {
@@ -67,7 +61,7 @@ export default function FrequentlyBoughtTogether({ product, companions, minimum 
         </article>
       </div>)}</div>
       <div className="product-together-summary"><p className="product-together-label">Combined total</p><div className="product-together-total" aria-live="polite" aria-atomic="true"><strong>{money(total)}</strong><span>inc. VAT</span></div>{regular > total && <><s>Regular total {money(regular)}</s><span className="product-together-saving">Save {money(regular - total)}</span></>}
-        <button type="button" className="product-add-button" disabled={busy || !selected.length} onClick={() => void addSelected()}><ShoppingCart size={16} aria-hidden="true" />{busy ? "Adding…" : selected.length && !pending.length ? "View basket" : `Add ${selected.length === items.length ? "all " : ""}${count} item${count === 1 ? "" : "s"} to Basket`}</button>
+        <button type="button" className="product-add-button" disabled={busy || !selected.length || !pending.length} onClick={() => void addSelected()}><ShoppingCart size={16} aria-hidden="true" />{busy ? "Adding…" : selected.length && !pending.length ? "Added to basket" : `Add ${selected.length === items.length ? "all " : ""}${count} item${count === 1 ? "" : "s"} to Basket`}</button>
         <p className="product-together-note">Select the products you need. Includes the configurations shown.</p>
         {error && <p className="product-purchase-error" role="alert">{error}</p>}
       </div>

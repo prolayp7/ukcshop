@@ -1,0 +1,33 @@
+.floating-basket {
+  position: fixed;
+  right: 20px;
+  z-index: 49;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--blue, #e2231a);
+  color: #fff;
+  box-shadow: 0 12px 30px -10px #0008;
+  cursor: pointer;
+}
+.floating-basket:hover { background: var(--blue-dark, #a8140d); }
+.floating-basket:focus-visible { outline: 3px solid var(--blue-dark, #a8140d); outline-offset: 4px; }
+.floating-basket-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #fff;
+  border-radius: 20px;
+  background: var(--navy, #16171a);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+}

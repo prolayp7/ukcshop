@@ -1,5 +1,7 @@
 "use client";
 
+import { toast } from "@/lib/notifications";
+
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -84,6 +86,7 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
 
     if (paypalWasCancelled) {
       setPlaceError("Payment was cancelled — you can try again below.");
+      toast.warning("Payment cancelled", { id: "payment-status", description: "You can try again below." });
       return;
     }
     if (!saved) {
@@ -95,12 +98,17 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
       .then((result) => {
         if (result.status === "CAPTURED") {
           setPaid(true);
+          toast.success("Payment successful", { id: "payment-status", description: `Order ${saved.orderNumber} has been paid.` });
           sessionStorage.removeItem(PAYPAL_RETURN_KEY);
         } else {
           setPlaceError(result.error?.message || "Payment could not be completed — please try again.");
+          toast.error("Payment was unsuccessful", { id: "payment-status", description: result.error?.message || "Please try again." });
         }
       })
-      .catch(() => setPlaceError("Payment could not be completed — please try again."))
+      .catch(() => {
+        setPlaceError("Payment could not be completed — please try again.");
+        toast.error("Unable to confirm payment", { id: "payment-status", description: "Check your order status before trying again, or contact support if you were charged." });
+      })
       .finally(() => setCapturing(false));
     // Intentionally runs once on mount only - paypalAttemptId/paypalWasCancelled are
     // stable for the lifetime of this page load (they come from the URL, which
@@ -145,6 +153,7 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
       window.location.href = attempt.redirectUrl;
     } catch {
       setPlaceError(order ? "We couldn't start PayPal payment — please try again." : "We couldn't place your order — check your details and try again.");
+      toast.error("Could not start payment", { description: "Check your details and try again." });
       setPlacing(false);
     }
   };
@@ -318,7 +327,7 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
                   <div className="ck-ship">
                     {shippingMethods.map((m) => (
                       <label className={`ck-card${m.id === shippingMethodId ? " on" : ""}`} key={m.id}>
-                        <input type="radio" name="ship" checked={m.id === shippingMethodId} onChange={() => setShippingMethodId(m.id)} />
+                        <input type="radio" name="ship" checked={m.id === shippingMethodId} onChange={() => { setShippingMethodId(m.id); toast.info("Delivery option updated", { id: "shipping-method", description: `${m.title} · ${money(m.rate)}` }); }} />
                         <span>
                           <b>{m.title}</b>
                           {m.estimatedDaysMin !== null ? `${m.estimatedDaysMin}–${m.estimatedDaysMax} working days` : m.carrier}

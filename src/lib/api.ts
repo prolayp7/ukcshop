@@ -321,22 +321,30 @@ export interface ProductListParams {
   brand?: string;
   priceMin?: number;
   priceMax?: number;
-  sort?: "newest" | "price_asc" | "price_desc" | "name_asc" | "name_desc";
+  sort?: "newest" | "price_asc" | "price_desc" | "name_asc" | "name_desc" | "discount_desc";
   onSale?: boolean;
   inStock?: boolean;
   specs?: string;
   page?: number;
   perPage?: number;
+  /** Fetch this exact, ordered set of product ids instead of filtering. */
+  ids?: number[];
 }
 
 export async function fetchProducts(params: ProductListParams = {}): Promise<{ items: Product[]; meta: ListMeta }> {
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== "") query.set(key, String(value));
+    if (value === undefined || value === "") continue;
+    query.set(key, Array.isArray(value) ? value.join(",") : String(value));
   }
   const qs = query.toString();
   const res = await apiGet<{ data: ApiProductBase[]; meta: ListMeta }>(`products${qs ? `?${qs}` : ""}`);
   return { items: res.data.map(toProduct), meta: res.meta };
+}
+
+export async function fetchRecommendedProducts(limit = 4): Promise<Product[]> {
+  const res = await apiGet<{ data: ApiProductBase[] }>(`products/recommended?limit=${limit}`);
+  return res.data.map(toProduct);
 }
 
 export async function fetchProductBySlug(slug: string): Promise<{ product: Product; api: ApiProductBase } | null> {

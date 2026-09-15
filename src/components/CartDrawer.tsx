@@ -1,5 +1,7 @@
 "use client";
 
+import { toast } from "@/lib/notifications";
+
 import Link from "next/link";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Cart, useCart, CartLine } from "@/lib/cart";
@@ -124,6 +126,7 @@ function CartDrawer({ open, onClose, closeButtonRef }: {
       const result = await Cart.validateCoupon(normalizedCode);
       setCouponResult({ code: result.code, discountAmount: result.discountAmount, freeShipping: result.freeShipping });
       setCouponOpen(false);
+      toast.success("Coupon validated", { description: `${result.code}: ${result.freeShipping ? "free shipping" : `${money(result.discountAmount)} discount`}.` });
     } catch {
       setCouponError("That code isn't valid for your basket.");
       couponInputRef.current?.focus();
@@ -209,12 +212,12 @@ function CartLineRow({ line, href, onClose }: { line: CartLine; href: ReturnType
         <Link href={productHref} onClick={onClose}>{line.variant.product.title}</Link>
         <b>{line.quantity} × <span>{money(line.unitPrice)}</span></b>
         <div className="cart-qty" aria-label={`Quantity for ${line.variant.product.title}`}>
-          <button type="button" onClick={() => void Cart.setQty(line.productVariantId, line.quantity - 1)} aria-label={`Decrease ${line.variant.product.title} quantity`}>−</button>
+          <button type="button" onClick={() => void Cart.setQty(line.productVariantId, line.quantity - 1).catch(() => {})} aria-label={`Decrease ${line.variant.product.title} quantity`}>−</button>
           <span aria-live="polite">{line.quantity}</span>
-          <button type="button" onClick={() => void Cart.setQty(line.productVariantId, line.quantity + 1)} aria-label={`Increase ${line.variant.product.title} quantity`}>+</button>
+          <button type="button" onClick={() => void Cart.setQty(line.productVariantId, line.quantity + 1).catch(() => {})} aria-label={`Increase ${line.variant.product.title} quantity`}>+</button>
         </div>
       </div>
-      <button className="cart-remove" type="button" onClick={() => void Cart.remove(line.productVariantId)} aria-label={`Remove ${line.variant.product.title}`}><Icon id="i-x" w={15} /></button>
+      <button className="cart-remove" type="button" onClick={() => void Cart.remove(line.productVariantId).catch(() => {})} aria-label={`Remove ${line.variant.product.title}`}><Icon id="i-x" w={15} /></button>
     </div>
   );
 }

@@ -7,12 +7,10 @@ import type { Product } from "@/lib/types";
 import { money } from "@/lib/catalogue";
 import { useHref } from "@/lib/design-context";
 import { WishlistButton } from "@/components/interactive";
-import { useCartDrawer } from "@/components/CartDrawer";
 import { Cart } from "@/lib/cart";
 
 export default function ProductSpecialOffer({ product }: { product: Product }) {
   const href = useHref();
-  const openCart = useCartDrawer();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const saving = product.was ? Math.round((product.was - product.price) / product.was * 100) : 0;
@@ -22,7 +20,6 @@ export default function ProductSpecialOffer({ product }: { product: Product }) {
     setError("");
     try {
       await Cart.add(product.defaultVariantId, 1);
-      openCart();
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : "Could not add this product. Please try again.");
     } finally { setBusy(false); }

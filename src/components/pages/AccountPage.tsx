@@ -7,7 +7,9 @@ import { DesignParts } from "@/lib/parts";
 import { useWishlist, Wishlist } from "@/lib/basket";
 import { useCustomerAuth, logout, updateProfile } from "@/lib/storefront-client";
 import { Address, Order, listAddresses, createAddress, deleteAddress, listOrders } from "@/lib/account-api";
-import { money, recommended } from "@/lib/catalogue";
+import { money } from "@/lib/catalogue";
+import { useApi } from "@/lib/use-api";
+import { Product } from "@/lib/types";
 import { useHref } from "@/lib/design-context";
 import { ProductVisual } from "@/components/Icon";
 
@@ -34,7 +36,8 @@ export default function AccountPage({ parts }: { parts: DesignParts }) {
 
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [addresses, setAddresses] = useState<Address[] | null>(null);
-  const rec = recommended(4, []);
+  const recRes = useApi<{ items: Product[] }>("/api/products/recommended?limit=4");
+  const rec = recRes.data?.items ?? [];
 
   // isLoggedIn's first client render always matches the server snapshot
   // (false, since there's no localStorage on the server) even for a
@@ -161,7 +164,7 @@ export default function AccountPage({ parts }: { parts: DesignParts }) {
                           <Link href={href.product(item.productSlug)}>{item.productTitle}</Link>
                           <em>{money(item.salePrice ?? item.price)}</em>
                         </span>
-                        <button className="ac-add" type="button" onClick={() => void Wishlist.toggle(item.productId, item.productVariantId)}>
+                        <button className="ac-add" type="button" onClick={() => void Wishlist.toggle(item.productId, item.productVariantId).catch(() => {})}>
                           Remove
                         </button>
                       </div>

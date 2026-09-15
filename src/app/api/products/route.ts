@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     onSale: sp.get("onSale") === "true" ? true : undefined,
     page: sp.get("page") ? Number(sp.get("page")) : undefined,
     perPage: sp.get("perPage") ? Number(sp.get("perPage")) : undefined,
+    ids: sp.get("ids") ? sp.get("ids")!.split(",").map(Number).filter(Number.isFinite) : undefined,
   };
   try {
     const result = await fetchProducts(params);

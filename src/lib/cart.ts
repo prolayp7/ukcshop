@@ -1,5 +1,7 @@
 "use client";
 
+import { showAddedToCart } from "@/components/AddedToCartToast";
+import { toast, notifyFailure } from "./notifications";
 import { useSyncExternalStore } from "react";
 import { request, ApiError } from "./storefront-client";
 
@@ -68,20 +70,29 @@ export const Cart = {
     return (cartCache?.items ?? []).reduce((n, l) => n + l.quantity, 0);
   },
   async add(productVariantId: number, quantity = 1): Promise<void> {
-    const next = await request<CartData>("cart/items", { method: "POST", body: JSON.stringify({ productVariantId, quantity }) });
+    const next = await notifyFailure("Could not add to your basket", () => request<CartData>("cart/items", { method: "POST", body: JSON.stringify({ productVariantId, quantity }) }));
     setCart(next);
+    const line = next.items.find((item) => item.productVariantId === productVariantId);
+    if (line) showAddedToCart(line, quantity, next.subtotal);
+    else toast.success("Added to your basket", { id: "added-to-cart", description: "Your basket has been updated." });
   },
   async setQty(productVariantId: number, quantity: number): Promise<void> {
     if (quantity <= 0) return Cart.remove(productVariantId);
-    const next = await request<CartData>(`cart/items/${productVariantId}`, { method: "PATCH", body: JSON.stringify({ quantity }) });
+    const next = await notifyFailure("Could not update your basket", () => request<CartData>(`cart/items/${productVariantId}`, { method: "PATCH", body: JSON.stringify({ quantity }) }));
     setCart(next);
+    toast.info("Basket updated", { id: `cart-quantity-${productVariantId}`, description: `Quantity changed to ${quantity}.` });
   },
   async remove(productVariantId: number): Promise<void> {
-    const next = await request<CartData>(`cart/items/${productVariantId}`, { method: "DELETE" });
+    const removed = cartCache?.items.find((item) => item.productVariantId === productVariantId);
+    const next = await notifyFailure("Could not remove this item", () => request<CartData>(`cart/items/${productVariantId}`, { method: "DELETE" }));
     setCart(next);
+    toast.info("Removed from your basket", {
+      description: removed ? `${removed.variant.product.title} was removed.` : "Your basket has been updated.",
+      action: removed ? { label: "Undo", onClick: () => { void Cart.add(productVariantId, removed.quantity).catch(() => {}); } } : undefined,
+    });
   },
   async validateCoupon(code: string): Promise<{ code: string; discountType: string; discountAmount: number; freeShipping: boolean }> {
-    return request("cart/coupon/validate", { method: "POST", body: JSON.stringify({ code }) });
+    return notifyFailure("This coupon cannot be applied", () => request("cart/coupon/validate", { method: "POST", body: JSON.stringify({ code }) }));
   },
   async refresh(): Promise<void> {
     await load();

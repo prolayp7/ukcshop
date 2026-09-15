@@ -1,5 +1,7 @@
 "use client";
 
+import { toast } from "@/lib/notifications";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -19,10 +21,22 @@ export default function RegisterPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const firstName = form.firstName.trim();
+    const lastName = form.lastName.trim();
+    const email = form.email.trim();
+    if (!firstName || !lastName) {
+      setError("First and last name can't be blank.");
+      return;
+    }
+    if (form.password.length < 10) {
+      setError("Password must be at least 10 characters.");
+      return;
+    }
     setBusy(true);
     setError("");
     try {
-      await register(form);
+      await register({ ...form, firstName, lastName, email });
+      toast.success("Account created");
       router.push(href.account());
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");
@@ -44,16 +58,16 @@ export default function RegisterPage() {
               <div className="ck-two">
                 <div className="ck-field">
                   <label>First name</label>
-                  <input required value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} autoComplete="given-name" />
+                  <input required maxLength={120} value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} autoComplete="given-name" />
                 </div>
                 <div className="ck-field">
                   <label>Last name</label>
-                  <input required value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} autoComplete="family-name" />
+                  <input required maxLength={120} value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} autoComplete="family-name" />
                 </div>
               </div>
               <div className="ck-field">
                 <label>Email address</label>
-                <input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} autoComplete="email" />
+                <input type="email" required maxLength={255} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} autoComplete="email" />
               </div>
               <div className="ck-field">
                 <label>Password</label>
@@ -61,6 +75,7 @@ export default function RegisterPage() {
                   type="password"
                   required
                   minLength={10}
+                  maxLength={128}
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   autoComplete="new-password"

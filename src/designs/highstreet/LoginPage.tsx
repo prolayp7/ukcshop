@@ -1,5 +1,7 @@
 "use client";
 
+import { toast } from "@/lib/notifications";
+
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -31,6 +33,7 @@ export default function LoginPage() {
     setError("");
     try {
       await login(email, password);
+      toast.success("Signed in successfully");
       router.push(next);
     } catch (err) {
       setError(err instanceof ApiError ? "Incorrect email or password." : "Something went wrong. Try again.");

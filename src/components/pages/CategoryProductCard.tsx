@@ -7,6 +7,7 @@ import { money, exVat } from "@/lib/catalogue";
 import { AddToBasketButton, WishlistButton } from "@/components/interactive";
 import { useHref } from "@/lib/design-context";
 import { useCompare } from "@/lib/basket";
+import { openQuickView } from "@/lib/quickview";
 import { BorderBeam } from "@/components/ui/border-beam";
 
 export default function CategoryProductCard({ product: p }: { product: Product }) {
@@ -33,7 +34,7 @@ export default function CategoryProductCard({ product: p }: { product: Product }
     <div className="category-product-buy">
       <div className="category-product-price"><strong>{money(p.price)}</strong>{p.was && p.was > p.price ? <s>{money(p.was)}</s> : null}</div>
       <div className="category-vat"><span>Inc. 20% VAT</span><b>{exVat(p.price)} ex. VAT</b></div>
-      <div className="category-product-actions"><AddToBasketButton product={p} disabled={p.stockStatus === "out"} className="category-add"><ShoppingCart size={18} />{p.stockStatus === "out" ? "Out of stock" : "Quick Add"}</AddToBasketButton><Link href={href.product(p.slug)} aria-label={`View ${p.name}`} className="category-view-product"><Eye size={18} /></Link></div>
+      <div className="category-product-actions"><AddToBasketButton product={p} disabled={p.stockStatus === "out"} className="category-add"><ShoppingCart size={18} />{p.stockStatus === "out" ? "Out of stock" : "Quick Add"}</AddToBasketButton><button type="button" aria-label={`Quick view ${p.name}`} className="category-view-product" onClick={() => openQuickView(p.id)}><Eye size={18} /></button></div>
       <button className="category-compare" aria-pressed={compare.has(p.id)} onClick={() => compare.toggle(p)}><ArrowLeftRight size={16} />{compare.has(p.id) ? "Added to compare" : "Compare"}</button>
     </div>
   </article>;

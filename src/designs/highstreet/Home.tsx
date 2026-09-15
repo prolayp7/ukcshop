@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { brands as allBrands, countIn, specialOffer, stars, money } from "@/lib/catalogue";
+import { stars, money } from "@/lib/catalogue";
 import { useApi } from "@/lib/use-api";
-import { ApiBlogPost, ApiCategory, ApiFaqCategory, ApiHomeBundle, ApiHomepageSectionType, ApiTestimonial, HomeBundle } from "@/lib/api";
+import { findCategory } from "@/lib/category";
+import { ApiBlogPost, ApiBrand, ApiCategory, ApiFaqCategory, ApiHomeBundle, ApiHomepageSectionType, ApiTestimonial, HomeBundle } from "@/lib/api";
 import { Product } from "@/lib/types";
 import { Icon, ProductVisual } from "@/components/Icon";
 import { AddToBasketButton, WishlistButton } from "@/components/interactive";
@@ -52,7 +53,9 @@ function bannerHref(banner: ApiHomeBundle["banners"][number], href: Href): strin
 function SpecialOfferCard() {
   const href = useHref();
   const t = useCountdown();
-  const p = specialOffer();
+  const offerRes = useApi<{ items: Product[] }>("/api/products?onSale=true&sort=discount_desc&perPage=1");
+  const p = offerRes.data?.items[0];
+  if (!p || !p.was) return null;
   const pct = Math.round(((p.was! - p.price) / p.was!) * 100);
   const soldPct = Math.round((p.sold / (p.sold + p.stock)) * 100);
 
@@ -122,7 +125,11 @@ function SpecialOfferCard() {
 export default function Home() {
   const href = useHref();
 
-  const brandList = allBrands().slice(0, 8);
+  const brandsRes = useApi<{ items: ApiBrand[] }>("/api/brands");
+  const brandList = (brandsRes.data?.items ?? []).slice(0, 8).map((b) => ({
+    brand: b.title, slug: b.slug, count: b.productCount ?? 0, rating: 0, min: b.priceFrom ?? 0, deals: 0,
+    note: b.description || b.shortDescription || `${b.productCount ?? 0} lines in the catalogue.`,
+  }));
 
   const homeRes = useApi<{ home: HomeBundle }>("/api/home");
   const dealsRes = useApi<{ items: Product[] }>("/api/products?onSale=true&perPage=8");
@@ -587,7 +594,7 @@ export default function Home() {
                     <h3>{c.title}</h3>
                     <p>{c.copy}</p>
                     <span>
-                      {countIn(c.sub)} products <Icon id="i-arr" w={12} h={12} />
+                      {findCategory(categoriesRes.data?.items ?? [], c.sub)?.productCount ?? 0} products <Icon id="i-arr" w={12} h={12} />
                     </span>
                   </Link>
                 ))}

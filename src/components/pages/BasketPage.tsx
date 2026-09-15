@@ -3,7 +3,8 @@
 import { DesignParts } from "@/lib/parts";
 import { Cart, useCart, CartLine } from "@/lib/cart";
 import { useRecentIds } from "@/lib/basket";
-import { money, recommended, byId } from "@/lib/catalogue";
+import { money } from "@/lib/catalogue";
+import { useApi } from "@/lib/use-api";
 import { theme } from "@/lib/theme.config";
 import { Product } from "@/lib/types";
 import { Icon, ProductVisual } from "@/components/Icon";
@@ -26,11 +27,11 @@ export default function BasketPage({ parts }: { parts: DesignParts }) {
   const subtotal = cart?.subtotal ?? 0;
   const toFreeDelivery = Math.max(0, theme.features.freeDeliveryThresholdGbp - subtotal);
 
-  const rec = recommended(4, []);
-  const recentlyViewed = recentIds
-    .map(byId)
-    .filter((p): p is Product => p !== null)
-    .slice(0, 4);
+  const recRes = useApi<{ items: Product[] }>("/api/products/recommended?limit=4");
+  const rec = recRes.data?.items ?? [];
+  const recentIdsSlice = recentIds.slice(0, 4);
+  const recentRes = useApi<{ items: Product[] }>(recentIdsSlice.length ? `/api/products?ids=${recentIdsSlice.join(",")}` : null);
+  const recentlyViewed = recentRes.data?.items ?? [];
 
   return (
     <>
@@ -124,15 +125,15 @@ function BasketLineRow({ line, href }: { line: CartLine; href: ReturnType<typeof
         </div>
       </div>
       <div className="bk-qty">
-        <button onClick={() => void Cart.setQty(line.productVariantId, line.quantity - 1)}>−</button>
+        <button onClick={() => void Cart.setQty(line.productVariantId, line.quantity - 1).catch(() => {})}>−</button>
         <input value={line.quantity} inputMode="numeric" readOnly />
-        <button onClick={() => void Cart.setQty(line.productVariantId, line.quantity + 1)}>+</button>
+        <button onClick={() => void Cart.setQty(line.productVariantId, line.quantity + 1).catch(() => {})}>+</button>
       </div>
       <div className="bk-money">
         <b>{money(lineTotal)}</b>
         {line.quantity > 1 ? <span>{money(line.unitPrice)} each</span> : null}
         {line.onSale ? <span className="bk-save">On sale</span> : null}
-        <button className="bk-rm" onClick={() => void Cart.remove(line.productVariantId)}>
+        <button className="bk-rm" onClick={() => void Cart.remove(line.productVariantId).catch(() => {})}>
           Remove
         </button>
       </div>

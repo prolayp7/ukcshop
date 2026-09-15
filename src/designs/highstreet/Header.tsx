@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CAT_ORDER, type Product } from "@/lib/types";
-import { tree, PRODUCTS, money } from "@/lib/catalogue";
+import { money } from "@/lib/catalogue";
 import { Icon, ProductVisual } from "@/components/Icon";
 import { BasketCount, BasketTotal } from "@/components/BasketBadge";
 import { CartTrigger } from "@/components/CartDrawer";
@@ -17,6 +17,7 @@ import { useCustomerAuth } from "@/lib/storefront-client";
 import { MEGA_PROMO, GAMING_MEGA } from "@/lib/homepage-content";
 import { theme } from "@/lib/theme.config";
 import QuickView from "./QuickView";
+import FloatingShopActions from "@/components/FloatingShopActions";
 
 /** Real top-level categories get a data-driven mega menu straight from the
  * catalogue, so it can never drift from what's actually stocked. */
@@ -39,6 +40,27 @@ export default function Header() {
   const { count: cmpCount } = useCompare();
   const { customer, isLoggedIn } = useCustomerAuth();
   const navRef = useRef<HTMLElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const search = searchRef.current;
+    const nav = navRef.current;
+    if (!search || !nav) return;
+    const alignMenu = () => {
+      const bounds = search.getBoundingClientRect();
+      nav.style.setProperty("--mega-center", `${bounds.left + bounds.width / 2 - nav.getBoundingClientRect().left}px`);
+      nav.style.setProperty("--mega-width", `${bounds.width}px`);
+    };
+    const observer = new ResizeObserver(alignMenu);
+    observer.observe(search);
+    observer.observe(nav);
+    window.addEventListener("resize", alignMenu);
+    alignMenu();
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", alignMenu);
+    };
+  }, []);
 
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
@@ -73,13 +95,8 @@ export default function Header() {
   // filtered client-side — same live source the category/brand pages use.
   const categoriesRes = useApi<{ items: ApiCategory[] }>("/api/categories");
   const brandsRes = useApi<{ items: ApiBrand[] }>("/api/brands");
-  // Falls back to the local mock tree only until the real one has loaded, so the
-  // nav renders instantly instead of flashing empty — the settled state is always
-  // the real department/subcategory list (this catalogue has 6 departments,
-  // "Software" included, not the mock's fixed "Accessories" set).
   const navTree = useMemo(() => {
-    const items = categoriesRes.data?.items;
-    if (!items) return tree();
+    const items = categoriesRes.data?.items ?? [];
     return items.map((c) => ({ category: c.title, subs: c.children.map((child) => child.title) }));
   }, [categoriesRes.data]);
   const suggestions = useMemo(() => {
@@ -116,9 +133,13 @@ export default function Header() {
             <a href="#">1440p 240Hz</a>
           </div>
           <div className="sep">
-            <span>
-              <strong>{statsRes.data?.meta.total ?? PRODUCTS.length}</strong> products in stock
-            </span>
+            {statsRes.data ? (
+              <span>
+                <strong>{statsRes.data.meta.total}</strong> products in stock
+              </span>
+            ) : (
+              <span />
+            )}
             <a href="#">Help centre</a>
             <a href="#">£ GBP · Inc. VAT</a>
           </div>
@@ -129,7 +150,7 @@ export default function Header() {
           <Link className="logo" href={href.home()}>
             <Image className="mark" src={settings.logo || "/images/logo/rigforge-mark.png"} alt={theme.brand.name} width={694} height={512} priority />
           </Link>
-          <div className="searchbox">
+          <div className="searchbox" ref={searchRef}>
             <form
               className="search"
               role="search"
@@ -243,7 +264,7 @@ export default function Header() {
                 <span className="val">My account</span>
               </span>
             </Link>
-            <CartTrigger className="act" ariaLabel="Open basket">
+            <CartTrigger className="act header-basket" ariaLabel="Open basket">
               <span className="ic">
                 <Icon id="i-bag" w={22} />
                 <span className="badge basket-badge"><BasketCount /></span>
@@ -348,6 +369,7 @@ export default function Header() {
         </div>
       </nav>
       <QuickView />
+      <FloatingShopActions />
     </>
   );
 }

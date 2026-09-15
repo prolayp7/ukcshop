@@ -1,10 +1,11 @@
 "use client";
 
+import { toast } from "@/lib/notifications";
+import { closeQuickView } from "@/lib/quickview";
 import { ButtonHTMLAttributes, useState } from "react";
 import { Product } from "@/lib/types";
 import { Cart } from "@/lib/cart";
 import { useWishlist, useCompare } from "@/lib/basket";
-import { useCartDrawer } from "@/components/CartDrawer";
 import { useHref } from "@/lib/design-context";
 import { useRouter } from "next/navigation";
 
@@ -21,18 +22,18 @@ interface AddToBasketProps extends BaseButtonProps {
  * visual parity comes entirely from the design's own CSS classes, which
  * don't care about tag name. */
 export function AddToBasketButton({ product, qty, qtyInputRef, children, disabled, ...rest }: AddToBasketProps) {
-  const openCartDrawer = useCartDrawer();
   const variantId = product.defaultVariantId;
+  const [busy, setBusy] = useState(false);
   return (
     <button
       type="button"
       {...rest}
-      disabled={disabled || variantId === null}
+      disabled={disabled || busy || variantId === null}
       onClick={() => {
         if (variantId === null) return;
         const n = qtyInputRef?.current ? Number(qtyInputRef.current.value) || 1 : qty || 1;
-        void Cart.add(variantId, n);
-        openCartDrawer();
+        setBusy(true);
+        void Cart.add(variantId, n).catch(() => {}).finally(() => setBusy(false));
       }}
     >
       {children}
@@ -52,10 +53,12 @@ export function WishlistButton({ product, children, ...rest }: { product: Produc
       className={[rest.className, on ? "on" : ""].filter(Boolean).join(" ")}
       onClick={() => {
         if (!isLoggedIn) {
+          closeQuickView();
+          toast.info("Sign in to continue", { description: "Sign in or create an account to save products to your wishlist.", id: "wishlist-sign-in" });
           router.push(href.login());
           return;
         }
-        if (product.defaultVariantId !== null) void toggle(product.id, product.defaultVariantId);
+        if (product.defaultVariantId !== null) void toggle(product.id, product.defaultVariantId).catch(() => {});
       }}
     >
       {children}
