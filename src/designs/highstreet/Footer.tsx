@@ -149,9 +149,6 @@ export default function Footer() {
               <h4>Resources</h4>
               <ul>
                 <li>
-                  <a href="/blog">Buying guides</a>
-                </li>
-                <li>
                   <a href="#">Tech hub</a>
                 </li>
                 <li>

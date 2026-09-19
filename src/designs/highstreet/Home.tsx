@@ -5,7 +5,7 @@ import Link from "next/link";
 import { stars, money } from "@/lib/catalogue";
 import { useApi } from "@/lib/use-api";
 import { findCategory } from "@/lib/category";
-import { ApiBlogPost, ApiBrand, ApiCategory, ApiFaqCategory, ApiHomeBundle, ApiHomepageSectionType, ApiTestimonial, HomeBundle } from "@/lib/api";
+import { ApiBrand, ApiCategory, ApiFaqCategory, ApiHomeBundle, ApiHomepageSectionType, ApiTestimonial, HomeBundle } from "@/lib/api";
 import { Product } from "@/lib/types";
 import { Icon, ProductVisual } from "@/components/Icon";
 import { AddToBasketButton, WishlistButton } from "@/components/interactive";
@@ -166,7 +166,6 @@ export default function Home() {
 
   const testimonialsRes = useApi<{ items: ApiTestimonial[] }>(sectionTypes.has("TESTIMONIALS") ? "/api/testimonials" : null);
   const faqsRes = useApi<{ items: ApiFaqCategory[] }>(sectionTypes.has("FAQS") ? "/api/faqs" : null);
-  const blogRes = useApi<{ items: ApiBlogPost[] }>(sectionTypes.has("BLOG_HIGHLIGHTS") ? "/api/blog?perPage=3" : null);
   const homepageFaqs = (faqsRes.data?.items ?? []).flatMap((category) => category.faqs);
 
   const ARRIVAL_TAB_CATEGORY: Record<string, string | undefined> = {
@@ -391,30 +390,6 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
-              </div>
-            </div>
-          </section>
-        );
-      }
-
-      case "BLOG_HIGHLIGHTS": {
-        const items = blogRes.data?.items ?? [];
-        if (!items.length) return null;
-        return (
-          <section style={{ paddingTop: 6 }} key={section.id}>
-            <div className="wrap">
-              <div className="head">
-                <div>
-                  <h2>Latest from the tech hub</h2>
-                </div>
-              </div>
-              <div className="hubrow">
-                {items.map((post) => (
-                  <a className="hubcard" href={`/blog/${post.slug}`} key={post.slug}>
-                    {post.blogCategory ? <span className="tg">{post.blogCategory.title}</span> : null}
-                    <h3>{post.title}</h3>
-                  </a>
-                ))}
               </div>
             </div>
           </section>

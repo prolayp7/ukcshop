@@ -172,7 +172,7 @@ export interface ApiProductBase {
   compatibility?: ApiCompatibility | null;
 }
 
-export type ApiHomepageSectionType = "HERO" | "TRUST_STRIP" | "DEALS" | "FEATURED_PRODUCTS" | "NEW_ARRIVALS" | "BRANDS" | "TESTIMONIALS" | "BLOG_HIGHLIGHTS" | "FAQS" | "BANNERS" | "NEWSLETTER" | "CATEGORY_SHOWCASE" | "SHOP_BY_NEED" | "GAMING_SHOWCASE" | "LAPTOP_SHOWCASE" | "BUYING_GUIDES" | "SEO_INTRO";
+export type ApiHomepageSectionType = "HERO" | "TRUST_STRIP" | "DEALS" | "FEATURED_PRODUCTS" | "NEW_ARRIVALS" | "BRANDS" | "TESTIMONIALS" | "FAQS" | "BANNERS" | "NEWSLETTER" | "CATEGORY_SHOWCASE" | "SHOP_BY_NEED" | "GAMING_SHOWCASE" | "LAPTOP_SHOWCASE" | "BUYING_GUIDES" | "SEO_INTRO";
 
 export interface ApiHomeBundle {
   // Ordering/visibility for the sections below, set from the admin panel's
@@ -196,17 +196,6 @@ export interface ApiHomeBundle {
   };
   banners: { id: number; title: string; slug: string; position: string; linkType: string; customUrl: string | null; product: ApiCategoryRef | null; category: ApiCategoryRef | null; brand: ApiCategoryRef | null }[];
   featuredSections: { id: number; title: string; slug: string; sectionType: string; products: ApiProductBase[] }[];
-}
-
-export interface ApiBlogPost {
-  id: number;
-  slug: string;
-  title: string;
-  excerpt: string | null;
-  content: string;
-  publishedAt: string | null;
-  blogCategory: ApiCategoryRef | null;
-  author: { id: number; name: string; role: string | null; bio?: string | null } | null;
 }
 
 export interface ApiPage {
@@ -405,23 +394,6 @@ export async function fetchHome(): Promise<HomeBundle> {
   };
 }
 
-export async function fetchBlogPosts(params: { category?: string; page?: number; perPage?: number } = {}): Promise<{ items: ApiBlogPost[]; meta: PaginationMeta }> {
-  const query = new URLSearchParams();
-  for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined) query.set(key, String(value));
-  }
-  const qs = query.toString();
-  const res = await apiGet<{ data: ApiBlogPost[]; meta: PaginationMeta }>(`blog${qs ? `?${qs}` : ""}`);
-  return { items: res.data, meta: res.meta };
-}
-
-export function fetchBlogPostBySlug(slug: string) {
-  return apiGetOrNull<ApiBlogPost>(`blog/${encodeURIComponent(slug)}`);
-}
-
-export function fetchBlogCategories() {
-  return apiGet<{ data: ApiCategoryRef[] }>("blog-categories").then((r) => r.data);
-}
 
 export function fetchPageBySlug(slug: string) {
   return apiGetOrNull<ApiPage>(`pages/${encodeURIComponent(slug)}`);

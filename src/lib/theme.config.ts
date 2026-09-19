@@ -2,7 +2,7 @@
  * Per-client theme config (brand tokens, copy, feature flags). Wired into
  * every design component that referenced these values directly (Header,
  * Footer, layout metadata, Home's delivery-benefits strip, Product
- * delivery-policy copy, Blog/Testimonials brand-name fallbacks). Marketing
+ * delivery-policy copy, Testimonials brand-name fallback). Marketing
  * copy that isn't a durable brand identity (e.g. the weekly deals price)
  * stays as page content, not a theme token.
  */
