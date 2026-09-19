@@ -2,14 +2,14 @@
 
 import { toast } from "@/lib/notifications";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { DesignParts } from "@/lib/parts";
 import { useCart } from "@/lib/cart";
 import { useCustomerAuth } from "@/lib/storefront-client";
 import { Address, ShippingQuote, Order, listAddresses, listShippingMethods, checkout, CheckoutAddress } from "@/lib/account-api";
-import { listPaymentMethods, createPaymentAttempt, capturePaymentAttempt } from "@/lib/payments-api";
+import { listPaymentMethods, createPaymentAttempt, capturePaymentAttempt, PaymentProvider } from "@/lib/payments-api";
 import { money } from "@/lib/catalogue";
 import { Icon, ProductVisual } from "@/components/Icon";
 import { useHref } from "@/lib/design-context";
@@ -18,11 +18,17 @@ const STEPS = ["Delivery", "Payment", "Review"];
 
 const EMPTY_ADDRESS: CheckoutAddress = { fullName: "", line1: "", line2: "", city: "", county: "", postcode: "", country: "GB", phone: "" };
 
-// Survives the full-page round trip to PayPal and back (sessionStorage, not
-// React state, since returning from PayPal is a fresh page load) - holds the
+// Survives the full-page round trip to PayPal/Stripe and back (sessionStorage, not
+// React state, since returning from the provider is a fresh page load) - holds the
 // placed order so the success screen and the capture call both have what
 // they need regardless of whether the customer was logged in or a guest.
 const PAYPAL_RETURN_KEY = "ukcs.paypalCheckout";
+
+type Provider = Extract<PaymentProvider, "STRIPE" | "PAYPAL">;
+const PROVIDERS: { id: Provider; label: string; blurb: string; redirect: string }[] = [
+  { id: "STRIPE", label: "Card payment (Stripe)", blurb: "Pay securely by debit or credit card", redirect: "Stripe" },
+  { id: "PAYPAL", label: "PayPal", blurb: "Pay securely with your PayPal account or a card via PayPal", redirect: "PayPal" },
+];
 
 export default function CheckoutPage({ parts }: { parts: DesignParts }) {
   const { Header, Footer, Crumbs } = parts;
@@ -30,8 +36,8 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
   const { isLoggedIn } = useCustomerAuth();
   const { cart, loaded } = useCart();
   const searchParams = useSearchParams();
-  const paypalAttemptId = searchParams.get("paypalAttempt");
-  const paypalWasCancelled = searchParams.get("paypalCancelled") === "1";
+  const paypalAttemptId = searchParams.get("paypalAttempt") ?? searchParams.get("stripeAttempt");
+  const paypalWasCancelled = searchParams.get("paypalCancelled") === "1" || searchParams.get("stripeCancelled") === "1";
 
   // step is safe to seed from paypalAttemptId directly (URL-derived, identical on
   // server and client). order/capturing/placeError are NOT seeded here even though
@@ -46,7 +52,10 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
   const [placing, setPlacing] = useState(false);
   const [placeError, setPlaceError] = useState("");
   const [capturing, setCapturing] = useState(false);
-  const [paypalEnabled, setPaypalEnabled] = useState(false);
+  const [enabledProviders, setEnabledProviders] = useState<Provider[]>([]);
+  const [chosen, setChosen] = useState<Provider | null>(null);
+  const provider = chosen && enabledProviders.includes(chosen) ? chosen : (enabledProviders[0] ?? null);
+  const providerInfo = PROVIDERS.find((p) => p.id === provider);
 
   const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
   const [selectedSavedId, setSelectedSavedId] = useState<number | null>(null);
@@ -68,7 +77,7 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
       setShippingMethods(methods);
       if (methods[0]) setShippingMethodId(methods[0].id);
     });
-    listPaymentMethods().then((methods) => setPaypalEnabled(methods.some((m) => m.provider === "PAYPAL" && m.enabled)));
+    listPaymentMethods().then((methods) => setEnabledProviders(PROVIDERS.filter((p) => methods.some((m) => m.provider === p.id && m.enabled)).map((p) => p.id)));
   }, [isLoggedIn]);
 
   // Handles the return trip from PayPal (redirect back to /checkout?paypalAttempt=...).
@@ -138,21 +147,23 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
 
   const crumbs = [{ label: "Home", href: href.home() }, { label: "Basket", href: href.basket() }, { label: "Checkout" }];
 
+  // one key per checkout page visit: a double click or retry returns the same order
+  const checkoutKey = useRef(crypto.randomUUID());
   const placeOrder = async () => {
-    if (!shippingAddress || !shippingMethodId) return;
+    if (!shippingAddress || !shippingMethodId || !provider) return;
     setPlacing(true);
     setPlaceError("");
     try {
       // Reuse the order from an earlier attempt in this session (e.g. the
-      // customer cancelled or PayPal declined) instead of creating a second one.
-      const currentOrder = order ?? (await checkout({ email: isLoggedIn ? undefined : email.trim(), shippingAddress, shippingMethodId }));
+      // customer cancelled or the provider declined) instead of creating a second one.
+      const currentOrder = order ?? (await checkout({ email: isLoggedIn ? undefined : email.trim(), shippingAddress, shippingMethodId }, checkoutKey.current));
       if (!order) setOrder(currentOrder);
-      const attempt = await createPaymentAttempt({ orderUuid: currentOrder.uuid, email: currentOrder.email, provider: "PAYPAL" });
-      if (!attempt.redirectUrl) throw new Error("PayPal did not return a redirect URL");
+      const attempt = await createPaymentAttempt({ orderUuid: currentOrder.uuid, email: currentOrder.email, provider });
+      if (!attempt.redirectUrl) throw new Error("No redirect URL returned");
       sessionStorage.setItem(PAYPAL_RETURN_KEY, JSON.stringify(currentOrder));
       window.location.href = attempt.redirectUrl;
     } catch {
-      setPlaceError(order ? "We couldn't start PayPal payment — please try again." : "We couldn't place your order — check your details and try again.");
+      setPlaceError(order ? `We couldn't start ${providerInfo?.redirect ?? "the"} payment — please try again.` : "We couldn't place your order — check your details and try again.");
       toast.error("Could not start payment", { description: "Check your details and try again." });
       setPlacing(false);
     }
@@ -353,24 +364,27 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
                 <section className="ck-block">
                   <h2>Payment</h2>
                   <div className="ck-pm">
-                    <label className={`ck-card${paypalEnabled ? " on" : ""}`}>
-                      <input type="radio" name="pay" checked={paypalEnabled} readOnly disabled={!paypalEnabled} />
-                      <span>
-                        <b>PayPal</b>Pay securely with your PayPal account or a card via PayPal
-                      </span>
-                    </label>
+                    {PROVIDERS.filter((p) => enabledProviders.includes(p.id)).map((p) => (
+                      <label className={`ck-card${provider === p.id ? " on" : ""}`} key={p.id}>
+                        <input type="radio" name="pay" checked={provider === p.id} onChange={() => setChosen(p.id)} />
+                        <span>
+                          <b>{p.label}</b>
+                          {p.blurb}
+                        </span>
+                      </label>
+                    ))}
                   </div>
-                  {!paypalEnabled ? (
+                  {!provider ? (
                     <p className="ck-disclaim">No payment method is currently available — please contact us to place this order.</p>
                   ) : (
-                    <p className="ck-disclaim">You&rsquo;ll be redirected to PayPal to complete payment securely, then brought back here.</p>
+                    <p className="ck-disclaim">You&rsquo;ll be redirected to {providerInfo?.redirect} to complete payment securely, then brought back here.</p>
                   )}
                 </section>
                 <div className="ck-actions">
                   <button className="ck-back" onClick={() => setStep(1)}>
                     ← Back to delivery
                   </button>
-                  <button className="ck-next" disabled={!paypalEnabled} onClick={() => setStep(3)}>
+                  <button className="ck-next" disabled={!provider} onClick={() => setStep(3)}>
                     Review order <Icon id="i-arr" w={15} />
                   </button>
                 </div>
@@ -403,7 +417,7 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
                     </div>
                     <div>
                       <h4>Paying by</h4>
-                      <p>PayPal</p>
+                      <p>{providerInfo?.label ?? "—"}</p>
                     </div>
                   </div>
                   <div className="ck-lines">
@@ -442,8 +456,8 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
                       ← Back to payment
                     </button>
                   ) : <span />}
-                  <button className="ck-next" disabled={placing || !paypalEnabled} onClick={() => void placeOrder()}>
-                    {placing ? "Redirecting to PayPal…" : `Pay with PayPal — ${money(order ? Number(order.total) : total)}`}
+                  <button className="ck-next" disabled={placing || !provider} onClick={() => void placeOrder()}>
+                    {placing ? `Redirecting to ${providerInfo?.redirect}…` : `Pay with ${providerInfo?.redirect} — ${money(order ? Number(order.total) : total)}`}
                   </button>
                 </div>
               </>

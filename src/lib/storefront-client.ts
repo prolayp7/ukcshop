@@ -103,6 +103,23 @@ async function rawRequest(path: string, init: RequestInit, accessToken?: string)
   return fetch(apiUrl(path), { ...init, headers });
 }
 
+// Some endpoints (guest-checkout-friendly ones like POST /orders) use an
+// optional-auth guard that swallows an expired access token and silently
+// proceeds as a guest instead of returning 401 - so the reactive refresh
+// below never fires for them, and the resulting order is never linked to
+// the account. Decoding the token's exp claim lets us refresh proactively
+// before that can happen. No signature check needed - the server verifies
+// it anyway, this is only a client-side hint.
+function isTokenExpired(token: string): boolean {
+  try {
+    const payload = token.split(".")[1];
+    const json = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
+    return typeof json.exp === "number" && json.exp * 1000 <= Date.now() + 5000;
+  } catch {
+    return false;
+  }
+}
+
 // Refresh tokens rotate server-side (each use revokes the old one), so two
 // requests that 401 at the same moment must share one refresh attempt -
 // otherwise the second call reuses an already-rotated-out token, fails, and
@@ -132,13 +149,14 @@ async function tryRefresh(refreshToken: string): Promise<StoredAuth | null> {
   }
 }
 
-/** Core request helper: attaches bearer/guest auth, refreshes an expired
- * access token once and retries, and captures a freshly-minted guest token
- * from cart-shaped responses. Returns the full response envelope - use
- * request() below to unwrap plain {data}, or read `.meta` directly for a
- * paginated list. */
-export async function requestRaw<T>(path: string, init: RequestInit = {}): Promise<{ data: T; meta?: unknown }> {
-  const auth = readAuth();
+/** Attaches bearer/guest auth, refreshes a stale access token first, and
+ * retries once after a 401 (see isTokenExpired above for why both). */
+async function authedFetch(path: string, init: RequestInit): Promise<Response> {
+  let auth = readAuth();
+  if (auth && isTokenExpired(auth.accessToken)) {
+    auth = await tryRefresh(auth.refreshToken);
+    if (!auth) writeAuth(null);
+  }
   let res = await rawRequest(path, init, auth?.accessToken);
 
   if (res.status === 401 && auth) {
@@ -149,6 +167,25 @@ export async function requestRaw<T>(path: string, init: RequestInit = {}): Promi
       writeAuth(null);
     }
   }
+  return res;
+}
+
+/** For non-JSON responses (e.g. a PDF) - same auth/refresh handling as request(). */
+export async function requestBlob(path: string): Promise<Blob> {
+  const res = await authedFetch(path, {});
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new ApiError(body?.error?.message ?? `Request failed (${res.status})`, body?.error?.code ?? "UNKNOWN", res.status);
+  }
+  return res.blob();
+}
+
+/** Core JSON request helper: captures a freshly-minted guest token from
+ * cart-shaped responses and returns the full response envelope - use
+ * request() below to unwrap plain {data}, or read `.meta` directly for a
+ * paginated list. */
+export async function requestRaw<T>(path: string, init: RequestInit = {}): Promise<{ data: T; meta?: unknown }> {
+  const res = await authedFetch(path, init);
 
   if (res.status === 204) return { data: undefined as T };
   const body = await res.json().catch(() => ({}));
@@ -180,8 +217,14 @@ export async function login(email: string, password: string): Promise<Customer> 
   return result.customer;
 }
 
-export async function register(input: { email: string; password: string; firstName: string; lastName: string; phone?: string }): Promise<Customer> {
-  const result = await request<{ accessToken: string; refreshToken: string; customer: Customer }>("auth/register", asJsonBody(input));
+/** Creates the account but does not log in - the account is unverified
+ * until verifyEmailOtp() below succeeds with the code sent to the address. */
+export async function register(input: { email: string; password: string; firstName: string; lastName: string; phone?: string }): Promise<void> {
+  await request("auth/register", asJsonBody(input));
+}
+
+export async function verifyEmailOtp(email: string, code: string): Promise<Customer> {
+  const result = await request<{ accessToken: string; refreshToken: string; customer: Customer }>("auth/otp/verify", asJsonBody({ email, purpose: "email_verification", code }));
   writeAuth(result);
   await mergeGuestCartIfAny();
   return result.customer;

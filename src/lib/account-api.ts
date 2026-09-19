@@ -1,6 +1,6 @@
 "use client";
 
-import { request, requestRaw } from "./storefront-client";
+import { request, requestRaw, requestBlob } from "./storefront-client";
 
 export interface Address {
   id: number;
@@ -72,6 +72,10 @@ export interface OrderItem {
   variantTitleSnapshot: string | null;
   quantity: number;
   unitPrice: string;
+  discount?: string;
+  vatRatePercent?: string;
+  vatAmount?: string;
+  skuSnapshot?: string | null;
   subtotal: string;
   status: string;
   returnEligible: boolean;
@@ -99,6 +103,7 @@ export interface Order {
   id: number;
   uuid: string;
   orderNumber: string;
+  invoice?: { invoiceNumber: string; issuedAt: string } | null;
   email: string;
   status: string;
   paymentStatus: string;
@@ -107,6 +112,12 @@ export interface Order {
   shippingLine2: string | null;
   shippingCity: string;
   shippingPostcode: string;
+  billingCompanyName?: string | null;
+  billingFullName?: string;
+  billingLine1?: string;
+  billingLine2?: string | null;
+  billingCity?: string;
+  billingPostcode?: string;
   subtotal: string;
   discountTotal: string;
   shippingCharge: string;
@@ -119,8 +130,8 @@ export interface Order {
   shipments?: Shipment[];
 }
 
-export function checkout(input: CheckoutInput): Promise<Order> {
-  return request("orders", { method: "POST", body: JSON.stringify(input) });
+export function checkout(input: CheckoutInput, idempotencyKey?: string): Promise<Order> {
+  return request("orders", { method: "POST", body: JSON.stringify(input), headers: idempotencyKey ? { "Idempotency-Key": idempotencyKey } : undefined });
 }
 export async function listOrders(page = 1): Promise<{ items: Order[]; meta: { page: number; perPage: number; total: number; totalPages: number } }> {
   const { data, meta } = await requestRaw<Order[]>(`orders?page=${page}`);
@@ -128,6 +139,9 @@ export async function listOrders(page = 1): Promise<{ items: Order[]; meta: { pa
 }
 export function getOrder(uuid: string): Promise<Order> {
   return request(`orders/${encodeURIComponent(uuid)}`);
+}
+export function downloadInvoice(uuid: string): Promise<Blob> {
+  return requestBlob(`orders/${encodeURIComponent(uuid)}/invoice`);
 }
 export function cancelOrder(uuid: string, reason?: string): Promise<Order> {
   return request(`orders/${encodeURIComponent(uuid)}/cancel`, { method: "PATCH", body: JSON.stringify({ reason }) });

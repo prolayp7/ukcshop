@@ -29,6 +29,7 @@ export function makeHref(slug = "") {
     register: () => `${base}/register`,
     forgotPassword: () => `${base}/forgot-password`,
     order: (uuid: string) => `${base}/account/orders/${uuid}`,
+    invoice: (uuid: string) => `${base}/account/orders/${uuid}/invoice`,
   };
 }
 export type Href = ReturnType<typeof makeHref>;

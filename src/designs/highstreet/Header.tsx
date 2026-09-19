@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CAT_ORDER, type Product } from "@/lib/types";
-import { money } from "@/lib/catalogue";
+import { money, CURRENCY, CURRENCY_SYMBOL } from "@/lib/catalogue";
 import { Icon, ProductVisual } from "@/components/Icon";
 import { BasketCount, BasketTotal } from "@/components/BasketBadge";
 import { CartTrigger } from "@/components/CartDrawer";
@@ -39,6 +39,9 @@ export default function Header() {
   const { count: wishCount } = useWishlist();
   const { count: cmpCount } = useCompare();
   const { customer, isLoggedIn } = useCustomerAuth();
+  const accountInitials = customer
+    ? [customer.firstName.trim()[0], customer.lastName.trim()[0]].filter(Boolean).join("") || customer.email[0]
+    : "";
   const navRef = useRef<HTMLElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
 
@@ -141,7 +144,7 @@ export default function Header() {
               <span />
             )}
             <a href="#">Help centre</a>
-            <a href="#">£ GBP · Inc. VAT</a>
+            <a href="#">{CURRENCY_SYMBOL} {CURRENCY} · Inc. VAT</a>
           </div>
         </div>
       </div>
@@ -256,11 +259,11 @@ export default function Header() {
               </span>
             </Link>
             <Link className="act" href={isLoggedIn ? href.account() : href.login()} aria-label="My account">
-              <span className="ic">
-                <Icon id="i-user" w={22} />
+              <span className={`ic${isLoggedIn ? " account-initials" : ""}`} aria-hidden="true">
+                {isLoggedIn ? accountInitials : <Icon id="i-user" w={22} />}
               </span>
               <span>
-                <span className="lbl">{isLoggedIn ? customer!.firstName : "Sign in"}</span>
+                <span className="lbl">{isLoggedIn ? customer?.firstName : "Sign in"}</span>
                 <span className="val">My account</span>
               </span>
             </Link>

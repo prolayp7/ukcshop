@@ -1,7 +1,12 @@
 import { Product } from "./types";
 
+// Must match the API's PAYMENT_CURRENCY (sandbox: INR, production: EUR).
+export const CURRENCY = (process.env.NEXT_PUBLIC_PAYMENT_CURRENCY || "GBP").toUpperCase();
+const formatter = new Intl.NumberFormat("en-GB", { style: "currency", currency: CURRENCY });
+export const CURRENCY_SYMBOL = formatter.formatToParts(0).find((part) => part.type === "currency")?.value ?? CURRENCY;
+
 export function money(n: number): string {
-  return "£" + Number(n).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return formatter.format(Number(n));
 }
 export function exVat(n: number): string {
   return money(n / 1.2);

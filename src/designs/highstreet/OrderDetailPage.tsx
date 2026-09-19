@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useCustomerAuth } from "@/lib/storefront-client";
 import { getOrder, cancelOrder, requestReturn, Order } from "@/lib/account-api";
 import { money } from "@/lib/catalogue";
+import { PAID_PAYMENT_STATUSES } from "@/lib/invoice";
 import { useHref } from "@/lib/design-context";
 import { Icon, ProductVisual } from "@/components/Icon";
 import Crumbs from "@/components/Crumbs";
@@ -99,13 +100,18 @@ export default function OrderDetailPage() {
   return (
     <>
       <Header />
-      <Crumbs items={[{ label: "Home", href: href.home() }, { label: "My account", href: href.account({ tab: "orders" }) }, { label: order.orderNumber }]} />
+      <Crumbs items={[{ label: "Home", href: href.home() }, { label: "My account", href: href.account() }, { label: "Orders & deliveries", href: href.account({ tab: "orders" }) }, { label: order.orderNumber }]} />
       <div className="wrap">
         <div className="ac-head">
           <h1>Order {order.orderNumber}</h1>
           <p>
             Placed {new Date(order.placedAt).toLocaleDateString("en-GB")} · <b>{order.status.replace(/_/g, " ")}</b>
           </p>
+          {PAID_PAYMENT_STATUSES.includes(order.paymentStatus) ? (
+            <Link className="bk-cta" href={href.invoice(order.uuid)} style={{ display: "inline-flex", padding: "10px 20px", marginTop: 8, marginRight: 8 }}>
+              View / download invoice
+            </Link>
+          ) : null}
           {CANCELLABLE.includes(order.status) ? (
             <>
               <button type="button" className="bk-cta" onClick={handleCancel} disabled={cancelling} style={{ display: "inline-flex", padding: "10px 20px", marginTop: 8 }}>

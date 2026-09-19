@@ -7,7 +7,7 @@ import { parts } from "@/designs/highstreet";
 import { useCategoryProducts } from "@/lib/use-category-products";
 import { useApi } from "@/lib/use-api";
 import type { ApiCategory, ListMeta, ProductListParams } from "@/lib/api";
-import { money } from "@/lib/catalogue";
+import { money, CURRENCY_SYMBOL } from "@/lib/catalogue";
 import type { Product } from "@/lib/types";
 import { useHref } from "@/lib/design-context";
 import { Icon } from "@/components/Icon";
@@ -126,7 +126,7 @@ export default function CategoryPage({ category, tree, initialMin, initialMax, i
         <aside id="category-filters" className={`category-sidebar${filtersOpen ? " is-open" : ""}`}>
           <div className="category-refine"><h2>Refine Results</h2><button onClick={reset}>Reset</button></div>
           <fieldset><legend>Manufacturer</legend>{facets?.brands.map((brand) => <label key={brand.slug}><input type="checkbox" checked={brands.includes(brand.slug)} onChange={() => { setBrands(brands.includes(brand.slug) ? brands.filter((b) => b !== brand.slug) : [...brands, brand.slug]); }} /><span>{brand.title}</span><small>{brand.count}</small></label>)}{!facets?.brands.length ? <p className="category-muted">{facetsRes.loading ? "Loading…" : "No manufacturers"}</p> : null}</fieldset>
-          <fieldset><legend>Price Range (£)</legend>
+          <fieldset><legend>Price Range ({CURRENCY_SYMBOL})</legend>
             <div className="category-price-inputs"><input aria-label="Minimum price" type="number" min="0" max={priceMax || undefined} placeholder="Min" value={priceMin} onChange={(event) => { setPriceMin(event.target.value); }} /><span>–</span><input aria-label="Maximum price" type="number" min={priceMin || "0"} placeholder="Max" value={priceMax} onChange={(event) => { setPriceMax(event.target.value); }} /></div>
             {maxPrice > 0 ? <><input aria-label="Maximum price slider" className="category-range" type="range" min="0" max={maxPrice} value={priceMax || maxPrice} onChange={(event) => { setPriceMax(event.target.value); }} /><small>Up to {money(Number(priceMax || maxPrice))}</small></> : null}
           </fieldset>

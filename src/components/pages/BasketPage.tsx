@@ -3,7 +3,7 @@
 import { DesignParts } from "@/lib/parts";
 import { Cart, useCart, CartLine } from "@/lib/cart";
 import { useRecentIds } from "@/lib/basket";
-import { money } from "@/lib/catalogue";
+import { money, CURRENCY_SYMBOL } from "@/lib/catalogue";
 import { useApi } from "@/lib/use-api";
 import { theme } from "@/lib/theme.config";
 import { Product } from "@/lib/types";
@@ -84,7 +84,7 @@ export default function BasketPage({ parts }: { parts: DesignParts }) {
               <ul className="bk-perks">
                 <li>
                   <Icon id="i-truck" w={14} />
-                  <span>Free next-day delivery over £{theme.features.freeDeliveryThresholdGbp}</span>
+                  <span>Free next-day delivery over {CURRENCY_SYMBOL}{theme.features.freeDeliveryThresholdGbp}</span>
                 </li>
                 <li>
                   <Icon id="i-shield" w={14} />

@@ -71,6 +71,7 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
 .act .val{font-size:12.5px;font-weight:700;line-height:1.25;white-space:nowrap}
 .act .ic{position:relative;width:42px;height:42px;flex:none;display:grid;place-items:center;border-radius:50%;background:#f5f6f8;color:#090d14;transition:background-color .22s ease,color .22s ease,transform .22s cubic-bezier(.16,1,.3,1)}
 .act:hover .ic{background:var(--blue-soft);color:var(--blue-dark);transform:translateY(-2px)}
+.act .ic.account-initials,.act:hover .ic.account-initials{background:var(--navy);color:#fff;font-size:17px;font-weight:700;line-height:1}
 .act:focus-visible{outline:none}
 .act:focus-visible .ic{outline:3px solid rgba(11,100,214,.25);outline-offset:2px}
 .badge{position:absolute;top:-3px;right:-3px;background:var(--deal);color:#fff;font-size:10.5px;font-weight:700;min-width:18px;height:18px;border:2px solid #fff;border-radius:99px;display:grid;place-items:center;padding:0 4px}
