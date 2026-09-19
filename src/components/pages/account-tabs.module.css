@@ -1,0 +1,111 @@
+.panel { background: var(--card); border-radius: 12px; padding: 26px; min-width: 0; }
+.panel > p { color: var(--body); font-size: 14px; }
+.panelHeading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
+.panelHeading h3 { display: flex; align-items: center; gap: 9px; font-size: 17px; font-weight: 700; margin: 0; }
+.panelHeading h3 svg { color: var(--body); }
+.panelHeading > button { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 5px; }
+.panelHeading > button:hover { background: var(--bg); }
+.panelHeading > span { margin: 0; }
+.summary { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; border: 1px solid var(--line); border-radius: 7px; padding: 16px 20px; background: var(--card); color: var(--body); font-size: 12px; }
+.summary span:first-child { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.summary svg { color: var(--blue); }
+.summary strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+.order { min-width: 0; background: var(--card); border: 1px solid #d7dfe5; border-radius: 12px; overflow: hidden; }
+.orderHeader { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 19px 24px; background: #111b22; color: white; }
+.orderNumber { font-size: 15px; font-weight: 700; }
+.orderHeader p { color: #c3cfd9; font-size: 12px; margin: 5px 0 0; }
+.orderStatus { display: flex; align-items: center; gap: 18px; }
+.orderStatus strong { font-size: 18px; font-variant-numeric: tabular-nums; }
+.orderProducts { padding: 0 24px; }
+.item { display: flex; align-items: center; gap: 16px; padding: 22px 0; }
+.item + .item { border-top: 1px solid var(--line); }
+.thumbnail, .savedImage { display: flex; align-items: center; justify-content: center; border-radius: 6px; background: var(--bg); color: var(--body); flex-shrink: 0; }
+.thumbnail { width: 66px; height: 66px; padding: 8px; }
+.thumbnail img, .savedImage img { width: 100%; height: 100%; object-fit: contain; }
+.itemInfo { flex: 1; min-width: 0; }
+.itemInfo > strong:first-child { font-size: 14px; line-height: 1.5; }
+.itemInfo p { color: var(--body); font-size: 12px; margin: 5px 0; }
+.itemInfo small { display: block; font-size: 12px; color: var(--body); margin-top: 6px; }
+.itemTotal { font-size: 14px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.orderBottom { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 17px 24px; border-top: 1px solid var(--line); }
+.orderBottom > div { display: flex; align-items: center; gap: 9px; font-size: 11px; color: var(--body); }
+.orderBottom strong { display: block; font-size: 12px; color: var(--ink); margin-top: 3px; }
+.orderBottom svg { flex-shrink: 0; }
+.pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 20px; padding: 8px; }
+.pagination p { color: var(--body); font-size: 12px; margin: 0; }
+.pagination > p:last-child:not(:first-child) { flex-basis: 100%; text-align: center; }
+.empty { text-align: center; padding: 32px 16px; color: var(--body); }
+.empty > svg { margin: 0 auto 16px; color: var(--blue); }
+.empty h3 { font-size: 20px; font-weight: 700; color: var(--ink); margin: 0 0 10px; }
+.empty p { font-size: 14px; line-height: 1.6; margin: 0 auto 22px; max-width: 45ch; }
+.savedList { display: grid; }
+.savedItem { display: flex; align-items: center; gap: 20px; padding: 22px 0; }
+.savedItem:first-child { padding-top: 0; }
+.savedItem:last-child { padding-bottom: 0; }
+.savedItem + .savedItem { border-top: 1px solid var(--line); }
+.savedImage { width: 96px; height: 96px; padding: 10px; }
+.savedItem h3 { font-size: 15px; font-weight: 650; line-height: 1.5; margin: 0; }
+.price { display: inline-block; font-size: 20px; color: var(--blue); margin-top: 8px; font-variant-numeric: tabular-nums; }
+.itemInfo s { font-size: 12px; color: var(--body); margin-left: 10px; }
+.savedActions { display: flex; flex-direction: column; align-items: center; gap: 8px; flex-shrink: 0; }
+.removeButton { display: inline-flex; align-items: center; justify-content: center; gap: 6px; color: var(--blue-dark); font-size: 12px; border-radius: 4px; padding: 9px 10px; min-height: 38px; }
+.removeButton:hover { background: var(--blue-soft); }
+.addressGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.addressCard { padding: 24px; background: var(--card); border: 1px solid #d7dfe5; border-radius: 12px; min-width: 0; }
+.addressHeading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 23px; }
+.addressHeading > span:first-child { display: flex; align-items: center; gap: 8px; font-size: 15px; }
+.addressHeading svg { flex-shrink: 0; color: var(--blue); }
+.addressHeading > span:last-child { margin-top: 0; }
+.addressCard > strong { font-size: 14px; }
+.addressCard address { font-size: 13px; line-height: 1.8; font-style: normal; color: var(--body); margin-top: 7px; overflow-wrap: anywhere; }
+.addressCard > p { font-size: 13px; color: var(--body); }
+.addressActions { border-top: 1px solid var(--line); margin-top: 22px; padding-top: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.addressActions > p { margin: 0 0 5px; font-size: 12px; flex-basis: 100%; }
+.form { display: grid; gap: 22px; }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 22px 18px; }
+.field { min-width: 0; }
+.field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+.field input { width: 100%; border: 1px solid var(--line); border-radius: 6px; min-height: 46px; background: var(--bg); color: var(--ink); padding: 11px 13px; font-family: inherit; font-size: 14px; caret-color: var(--blue); }
+.field input[readonly] { color: var(--body); background: #eeefed; }
+.formActions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding-top: 20px; border-top: 1px solid var(--line); }
+.description { color: var(--body); font-size: 13px; line-height: 1.7; margin: 0 0 24px; }
+.email { font-size: 16px !important; color: var(--ink) !important; font-weight: 600; overflow-wrap: anywhere; margin: 0 0 8px; }
+.panel > .description:last-child { margin-bottom: 0; }
+.sectionIcon { display: grid; place-items: center; width: 50px; height: 50px; border-radius: 10px; background: var(--blue-soft); color: var(--blue-dark); }
+.error { color: var(--blue-dark) !important; background: var(--blue-soft); border-radius: 5px; padding: 12px 14px; font-size: 13px; margin: 0; line-height: 1.5; }
+.success { display: flex; align-items: center; gap: 8px; background: #e3f5ec; color: #006b48; border-radius: 6px; padding: 14px 16px; margin: 0; font-size: 13px; }
+.success svg { flex-shrink: 0; }
+.form button:disabled, .addressActions button:disabled, .savedActions button:disabled, .pagination button:disabled { opacity: .6; cursor: wait; }
+@media (max-width: 1100px) {
+  .savedItem { flex-wrap: wrap; gap: 16px; }
+  .savedActions { flex-basis: 100%; flex-direction: row; justify-content: flex-end; }
+  .addressGrid { grid-template-columns: 1fr; }
+  .orderHeader, .orderBottom { padding-inline: 20px; }
+  .orderProducts { padding-inline: 20px; }
+}
+@media (max-width: 600px) {
+  .panel { padding: 22px 18px; }
+  .orderHeader { padding: 18px 16px; align-items: flex-start; gap: 12px; }
+  .orderStatus { flex-direction: column; align-items: flex-end; gap: 9px; }
+  .orderStatus strong { font-size: 17px; }
+  .orderProducts { padding-inline: 16px; }
+  .item { gap: 12px; flex-wrap: wrap; padding-block: 18px; }
+  .thumbnail { width: 54px; height: 54px; }
+  .itemInfo > strong:first-child { font-size: 13px; }
+  .itemTotal { margin-left: 66px; font-size: 13px; }
+  .orderBottom { flex-wrap: wrap; padding: 16px; }
+  .orderBottom > a { width: 100%; }
+  .savedImage { width: 75px; height: 75px; }
+  .savedItem { gap: 13px; }
+  .savedItem h3 { font-size: 14px; }
+  .savedActions { justify-content: space-between; }
+  .fields { grid-template-columns: 1fr; gap: 20px; }
+  .field input { font-size: 16px; }
+  .field label { font-size: 14px; }
+  .description { font-size: 14px; }
+  .addressCard { padding: 22px; }
+  .addressCard address { font-size: 14px; }
+  .empty { padding: 24px 0; }
+  .removeButton { min-height: 44px; }
+  .summary { padding: 15px; }
+}
