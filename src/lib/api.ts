@@ -429,3 +429,16 @@ export async function fetchGeneralSettings(): Promise<ApiGeneralSettings> {
   const settings = await apiGet<{ data: ApiGeneralSettings }>("settings/general").then((r) => r.data);
   return { ...settings, logo: resolveMediaUrl(settings.logo) ?? undefined, favicon: resolveMediaUrl(settings.favicon) ?? undefined, ogImage: resolveMediaUrl(settings.ogImage) ?? undefined, twitterImage: resolveMediaUrl(settings.twitterImage) ?? undefined };
 }
+
+export interface FooterColumn { title: string; links: { label: string; href: string }[] }
+interface ApiFooterLink { label: string; href: string | null; category: { slug: string } | null }
+
+/** Admin-managed footer link columns (Menus -> "footer"): top-level items are column titles, their children the links. Empty when the menu is missing. */
+export async function fetchFooterMenu(): Promise<FooterColumn[]> {
+  const menu = await apiGetOrNull<{ items: (ApiFooterLink & { children: ApiFooterLink[] })[] }>("menus/footer");
+  const toLink = (item: ApiFooterLink) => {
+    const href = item.href || (item.category ? `/category?cat=${encodeURIComponent(item.category.slug)}` : null);
+    return href ? { label: item.label, href } : null;
+  };
+  return (menu?.items ?? []).map((column) => ({ title: column.label, links: column.children.map(toLink).filter((link): link is { label: string; href: string } => link !== null) })).filter((column) => column.links.length > 0);
+}

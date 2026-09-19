@@ -6,7 +6,7 @@ import Link from "next/link";
 import { CAT_ORDER } from "@/lib/types";
 import { useHref } from "@/lib/design-context";
 import { useApi } from "@/lib/use-api";
-import { ApiGeneralSettings } from "@/lib/api";
+import { ApiGeneralSettings, FooterColumn } from "@/lib/api";
 import { theme } from "@/lib/theme.config";
 import { subscribeNewsletter } from "@/lib/storefront-client";
 
@@ -14,6 +14,8 @@ export default function Footer() {
   const href = useHref();
   const settingsRes = useApi<{ data: ApiGeneralSettings }>("/api/settings/general");
   const settings = settingsRes.data?.data ?? {};
+  // Admin-managed footer menu (Admin -> Menus -> Footer); the built-in columns below show while it is empty.
+  const menuColumns = useApi<{ data: FooterColumn[] }>("/api/menus/footer").data?.data ?? [];
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [newsletterState, setNewsletterState] = useState<"idle" | "submitting" | "done" | "error">("idle");
 
@@ -83,6 +85,19 @@ export default function Footer() {
                 </a>
               </div>
             </div>
+            {menuColumns.length ? menuColumns.map((column) => (
+              <div key={column.title}>
+                <h4>{column.title}</h4>
+                <ul>
+                  {column.links.map((link) => (
+                    <li key={link.label + link.href}>
+                      <Link href={link.href}>{link.label}</Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )) : (
+              <>
             <div>
               <h4>Shop</h4>
               <ul>
@@ -159,6 +174,8 @@ export default function Footer() {
                 </li>
               </ul>
             </div>
+              </>
+            )}
           </div>
           <div className="fcontact">
             <div>
