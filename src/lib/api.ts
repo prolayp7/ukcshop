@@ -108,6 +108,8 @@ export interface ApiBrand {
   slug: string;
   description: string | null;
   shortDescription: string | null;
+  logo: string | null;
+  logoAlt: string | null;
   /** Only present on the list endpoint, not the single-brand lookup. */
   productCount?: number;
   priceFrom?: number | null;
@@ -296,12 +298,16 @@ export function fetchCategoryBySlug(slug: string) {
   return apiGetOrNull<ApiCategory>(`categories/${encodeURIComponent(slug)}`).then((category) => category ? resolveCategoryImages(category) : null);
 }
 
+function resolveBrandImages(brand: ApiBrand): ApiBrand {
+  return { ...brand, logo: resolveMediaUrl(brand.logo) };
+}
+
 export function fetchBrands(): Promise<ApiBrand[]> {
-  return apiGet<{ data: ApiBrand[] }>("brands").then((r) => r.data);
+  return apiGet<{ data: ApiBrand[] }>("brands").then((r) => r.data.map(resolveBrandImages));
 }
 
 export function fetchBrandBySlug(slug: string) {
-  return apiGetOrNull<ApiBrand>(`brands/${encodeURIComponent(slug)}`);
+  return apiGetOrNull<ApiBrand>(`brands/${encodeURIComponent(slug)}`).then((brand) => (brand ? resolveBrandImages(brand) : null));
 }
 
 export interface ProductListParams {

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useParams, notFound } from "next/navigation";
 import { useApi } from "@/lib/use-api";
 import { ApiBrand, ListMeta } from "@/lib/api";
@@ -65,7 +66,11 @@ export default function BrandPage() {
       <div className="wrap">
         <div className="bhero" style={{ backgroundImage: `url(https://picsum.photos/seed/ukcs-a-brand-${encodeURIComponent(b.slug)}/1200/700)` }}>
           <div>
-            <div className="mark">{b.title.slice(0, 2).toUpperCase()}</div>
+            {b.logo ? (
+              <div className="mark"><Image src={b.logo} alt={b.logoAlt || b.title} width={64} height={64} unoptimized className="h-full w-full object-contain" /></div>
+            ) : (
+              <div className="mark">{b.title.slice(0, 2).toUpperCase()}</div>
+            )}
             <h1>{b.title}</h1>
             <p>{note}</p>
           </div>
@@ -116,7 +121,7 @@ export default function BrandPage() {
               {siblings.map((sib) => (
                 <BrandCard
                   key={sib.slug}
-                  brand={{ brand: sib.title, slug: sib.slug, count: sib.productCount ?? 0, rating: 0, min: sib.priceFrom ?? 0, deals: 0, note: sib.description || sib.shortDescription || `${sib.productCount ?? 0} lines in the catalogue.` }}
+                  brand={{ brand: sib.title, slug: sib.slug, count: sib.productCount ?? 0, rating: 0, min: sib.priceFrom ?? 0, deals: 0, note: sib.description || sib.shortDescription || `${sib.productCount ?? 0} lines in the catalogue.`, logo: sib.logo, logoAlt: sib.logoAlt }}
                 />
               ))}
             </div>

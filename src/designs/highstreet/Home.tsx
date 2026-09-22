@@ -129,6 +129,7 @@ export default function Home() {
   const brandList = (brandsRes.data?.items ?? []).slice(0, 8).map((b) => ({
     brand: b.title, slug: b.slug, count: b.productCount ?? 0, rating: 0, min: b.priceFrom ?? 0, deals: 0,
     note: b.description || b.shortDescription || `${b.productCount ?? 0} lines in the catalogue.`,
+    logo: b.logo, logoAlt: b.logoAlt,
   }));
 
   const homeRes = useApi<{ home: HomeBundle }>("/api/home");

@@ -46,6 +46,8 @@ export interface BrandSummary {
   min: number;
   deals: number;
   note: string;
+  logo: string | null;
+  logoAlt: string | null;
 }
 
 export interface CategoryTreeNode {

@@ -14,7 +14,7 @@ import ProductCard from "./ProductCard";
 const ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 function toSummary(b: ApiBrand): BrandSummary {
-  return { brand: b.title, slug: b.slug, count: b.productCount ?? 0, rating: 0, min: b.priceFrom ?? 0, deals: 0, note: b.description || b.shortDescription || `${b.productCount ?? 0} lines in the catalogue.` };
+  return { brand: b.title, slug: b.slug, count: b.productCount ?? 0, rating: 0, min: b.priceFrom ?? 0, deals: 0, note: b.description || b.shortDescription || `${b.productCount ?? 0} lines in the catalogue.`, logo: b.logo, logoAlt: b.logoAlt };
 }
 
 export default function BrandsPage() {
