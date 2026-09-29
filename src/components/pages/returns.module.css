@@ -62,6 +62,21 @@
 .summaryRow + .summaryRow { border-top: 1px solid var(--line); }
 .summaryTotal { font-size: 16px; font-weight: 700; }
 
+button.photo { padding: 0; cursor: zoom-in; }
+
+/* Photo viewer (evidence photos open in-page, with previous/next) */
+.viewer { border: 0; padding: 0; margin: 0; width: 100vw; height: 100vh; max-width: 100vw; max-height: 100vh; background: transparent; }
+.viewer[open] { display: grid; place-items: center; }
+.viewer::backdrop { background: rgba(10, 12, 16, .85); }
+.viewer img { max-width: min(92vw, 1100px); max-height: 82vh; object-fit: contain; border-radius: 8px; background: white; }
+.viewerButton { position: fixed; width: 44px; height: 44px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, .92); color: #111; display: grid; place-items: center; cursor: pointer; }
+.viewerButton:disabled { opacity: .35; cursor: default; }
+.viewerClose { top: 16px; right: 16px; }
+.viewerPrev, .viewerNext { top: 50%; transform: translateY(-50%); }
+.viewerPrev { left: 16px; }
+.viewerNext { right: 16px; }
+.viewerCount { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); margin: 0; color: white; font-size: 13px; font-weight: 600; }
+
 /* Timeline */
 .timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
 .timeline li { display: grid; grid-template-columns: 22px 1fr; gap: 12px; padding-bottom: 14px; position: relative; font-size: 13.5px; color: var(--body); }

@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { RotateCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight, RotateCcw, X } from "lucide-react";
 import { returnImage, type ReturnStatus, type ReturnView } from "@/lib/account-api";
 import { money } from "@/lib/catalogue";
 import { useHref } from "@/lib/design-context";
@@ -79,23 +79,56 @@ export function ReturnTimeline({ ret }: { ret: ReturnView }) {
   );
 }
 
-/** Evidence photos are private: fetched with the customer's credentials and shown from memory. */
-export function EvidencePhoto({ returnNumber, imageId }: { returnNumber: string; imageId: number }) {
-  const [url, setUrl] = useState<string | null>(null);
+/** Evidence photos are private: fetched with the customer's credentials and shown from memory.
+ * Clicking a thumbnail opens an in-page viewer with previous/next. */
+export function EvidenceGallery({ returnNumber, imageIds }: { returnNumber: string; imageIds: number[] }) {
+  const [urls, setUrls] = useState<Record<number, string>>({});
+  const [index, setIndex] = useState<number | null>(null);
+  const viewer = useRef<HTMLDialogElement>(null);
   useEffect(() => {
-    let objectUrl: string | null = null;
     let active = true;
-    returnImage(returnNumber, imageId).then((blob) => {
-      objectUrl = URL.createObjectURL(blob);
-      if (active) setUrl(objectUrl);
-    }).catch(() => undefined);
-    return () => { active = false; if (objectUrl) URL.revokeObjectURL(objectUrl); };
-  }, [returnNumber, imageId]);
+    const created: string[] = [];
+    imageIds.forEach((id) => returnImage(returnNumber, id).then((blob) => {
+      const url = URL.createObjectURL(blob);
+      if (!active) return URL.revokeObjectURL(url);
+      created.push(url);
+      setUrls((current) => ({ ...current, [id]: url }));
+    }).catch(() => undefined));
+    return () => { active = false; created.forEach((url) => URL.revokeObjectURL(url)); };
+  }, [returnNumber, imageIds]);
+
+  const count = imageIds.length;
+  const open = (i: number) => { setIndex(i); viewer.current?.showModal(); };
+  const step = (by: number) => setIndex((current) => current === null ? current : Math.min(count - 1, Math.max(0, current + by)));
   return (
-    <a className={styles.photo} href={url ?? undefined} target="_blank" rel="noopener noreferrer" aria-label="Open photo">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      {url ? <img src={url} alt="Return evidence" /> : null}
-    </a>
+    <>
+      <span className={styles.photos} style={{ marginTop: 10 }}>
+        {imageIds.map((id, i) => (
+          <button type="button" key={id} className={styles.photo} onClick={() => open(i)} aria-label={`View photo ${i + 1} of ${count}`}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {urls[id] ? <img src={urls[id]} alt="" /> : null}
+          </button>
+        ))}
+      </span>
+      <dialog ref={viewer} className={styles.viewer} aria-label="Return photos" onClose={() => setIndex(null)}
+        onClick={(event) => { if (event.target === event.currentTarget) viewer.current?.close(); }}
+        onKeyDown={(event) => { if (event.key === "ArrowLeft") step(-1); if (event.key === "ArrowRight") step(1); }}>
+        {index !== null ? (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {urls[imageIds[index]] ? <img src={urls[imageIds[index]]} alt={`Return photo ${index + 1} of ${count}`} /> : null}
+            <button type="button" className={`${styles.viewerButton} ${styles.viewerClose}`} onClick={() => viewer.current?.close()} aria-label="Close"><X size={22} /></button>
+            {count > 1 ? (
+              <>
+                <button type="button" className={`${styles.viewerButton} ${styles.viewerPrev}`} onClick={() => step(-1)} disabled={index === 0} aria-label="Previous photo"><ChevronLeft size={24} /></button>
+                <button type="button" className={`${styles.viewerButton} ${styles.viewerNext}`} onClick={() => step(1)} disabled={index === count - 1} aria-label="Next photo"><ChevronRight size={24} /></button>
+                <p className={styles.viewerCount} aria-live="polite">{index + 1} / {count}</p>
+              </>
+            ) : null}
+          </>
+        ) : null}
+      </dialog>
+    </>
   );
 }
 

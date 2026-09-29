@@ -9,7 +9,7 @@ import { money } from "@/lib/catalogue";
 import { useHref } from "@/lib/design-context";
 import { ProductVisual } from "@/components/Icon";
 import Crumbs from "@/components/Crumbs";
-import { EvidencePhoto, RETURN_STATUS_MESSAGE, ReturnStatusBadge, ReturnTimeline } from "@/components/pages/ReturnParts";
+import { EvidenceGallery, RETURN_STATUS_MESSAGE, ReturnStatusBadge, ReturnTimeline } from "@/components/pages/ReturnParts";
 import styles from "@/components/pages/returns.module.css";
 import Header from "./Header";
 import Footer from "./Footer";
@@ -106,7 +106,7 @@ export default function ReturnDetailPage() {
                         {item.description ? <p>{item.description}</p> : null}
                         {item.inspectionResult === "REJECTED" && item.inspectionRejectionReason ? <p><b>Not accepted at inspection:</b> {item.inspectionRejectionReason}</p> : null}
                         {item.deductionAmount > 0 ? <p><b>Deduction {money(item.deductionAmount)}:</b> {item.deductionReason}</p> : null}
-                        {item.imageIds.length ? <span className={styles.photos} style={{ marginTop: 10 }}>{item.imageIds.map((id) => <EvidencePhoto key={id} returnNumber={ret.returnNumber} imageId={id} />)}</span> : null}
+                        {item.imageIds.length ? <EvidenceGallery returnNumber={ret.returnNumber} imageIds={item.imageIds} /> : null}
                       </span>
                       <span className={styles.money}>{money(item.refundAmount)}</span>
                     </div>
