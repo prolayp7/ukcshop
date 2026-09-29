@@ -22,9 +22,8 @@ function getStorefrontApiUrl(path: string): string {
 // left untouched.
 function resolveMediaUrl(path: string | null | undefined): string | null {
   if (!path) return null;
-  if (!path.startsWith("/uploads/")) return path;
-  const apiOrigin = new URL(process.env.UKSHOP_API_URL ?? "http://localhost:3000/api/v1").origin;
-  return `${apiOrigin}${path}`;
+  // /uploads/* stays same-origin: next.config rewrites it to the private API.
+  return path;
 }
 
 export interface PaginationMeta {
@@ -388,9 +387,9 @@ export async function fetchHome(): Promise<HomeBundle> {
     ...home,
     hero: { ...home.hero, slides: home.hero.slides.map((slide) => ({ ...slide, image: resolveMediaUrl(slide.image) })) },
     // Hero side cards' images live in the HERO section's freeform config JSON
-    // (see ukshop-admin's Homepage page), so they need the same /uploads ->
-    // absolute-URL treatment as slide images, done here rather than per-card
-    // in the "use client" Home component, which can't see UKSHOP_API_URL.
+    // (see ukshop-admin's Homepage page), so they go through the same
+    // resolveMediaUrl as slide images, done here rather than per-card in the
+    // "use client" Home component.
     homepageSections: home.homepageSections.map((section) => {
       if (section.type !== "HERO" || !Array.isArray(section.config.cards)) return section;
       const cards = (section.config.cards as { image?: string | null }[]).map((card) => ({ ...card, image: resolveMediaUrl(card.image) }));
@@ -434,6 +433,18 @@ export interface ApiGeneralSettings {
 export async function fetchGeneralSettings(): Promise<ApiGeneralSettings> {
   const settings = await apiGet<{ data: ApiGeneralSettings }>("settings/general").then((r) => r.data);
   return { ...settings, logo: resolveMediaUrl(settings.logo) ?? undefined, favicon: resolveMediaUrl(settings.favicon) ?? undefined, ogImage: resolveMediaUrl(settings.ogImage) ?? undefined, twitterImage: resolveMediaUrl(settings.twitterImage) ?? undefined };
+}
+
+/** Admin-managed content of the account creation page (admin: Storefront > Account creation page); each section can be switched off. */
+export interface RegisterPageContent {
+  incentive: { enabled: boolean; heading: string; highlight: string; intro: string; noticeTitle: string; noticeText: string; offerEnabled: boolean; offerCode: string; offerText: string; offerAmount: string };
+  showcase: { enabled: boolean; title: string; description: string };
+  benefits: { enabled: boolean; items: { icon: string; title: string; text: string }[] };
+}
+/** null when the API is unreachable - the page then shows the plain sign-up form without the optional sections. */
+export async function fetchRegisterPageContent(): Promise<RegisterPageContent | null> {
+  const res = await apiGet<{ data: RegisterPageContent }>("settings/register-page", 20).catch(() => null);
+  return res?.data ?? null;
 }
 
 export interface FooterColumn { title: string; links: { label: string; href: string }[] }

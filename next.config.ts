@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: process.cwd(),
   },
+  // The API is private; browsers load admin-uploaded media from the storefront, which fetches it
+  // from the API server-side. (API calls go through src/app/api/v1/[...path] instead.)
+  async rewrites() {
+    return [{ source: "/uploads/:path*", destination: `${apiOrigin.origin}/uploads/:path*` }];
+  },
   images: {
     remotePatterns: [
       {

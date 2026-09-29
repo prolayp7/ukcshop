@@ -17,6 +17,8 @@ import "@/components/pages/category.css";
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await fetchGeneralSettings().catch(() => ({}) as ApiGeneralSettings);
   return {
+    // Resolves the same-origin /uploads/* image URLs in social-share tags; set SITE_URL in production.
+    ...(process.env.SITE_URL ? { metadataBase: new URL(process.env.SITE_URL) } : {}),
     title: {
       default: theme.brand.name,
       template: `%s | ${theme.brand.name}`,

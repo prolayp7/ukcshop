@@ -87,8 +87,8 @@ export class ApiError extends Error {
 }
 
 function apiUrl(path: string): string {
-  const base = process.env.NEXT_PUBLIC_UKSHOP_API_URL ?? "http://localhost:3000/api/v1";
-  return `${base.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
+  // Same-origin: the storefront forwards /api/v1/* to the private API (src/app/api/v1/[...path]).
+  return `/api/v1/${path.replace(/^\//, "")}`;
 }
 
 async function rawRequest(path: string, init: RequestInit, accessToken?: string): Promise<Response> {

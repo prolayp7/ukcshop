@@ -3,7 +3,8 @@
 import { useRef, useState, type ChangeEvent, type ClipboardEvent, type FormEvent, type KeyboardEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertCircle, ArrowRight, Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
+import { AlertCircle, ArrowRight, Eye, EyeOff, LockKeyhole, Mail, ShieldCheck, Tag } from "lucide-react";
+import type { RegisterPageContent } from "@/lib/api";
 import { ApiError, login, register, sendOtp, verifyEmailOtp } from "@/lib/storefront-client";
 import { toast } from "@/lib/notifications";
 import { useHref } from "@/lib/design-context";
@@ -67,7 +68,10 @@ function OtpBoxes({ value, onChange, disabled }: { value: string; onChange: (val
   </div>;
 }
 
-export default function AuthForm({ registration = false, next }: { registration?: boolean; next?: string }) {
+export default function AuthForm({ registration = false, next, content }: { registration?: boolean; next?: string; content?: RegisterPageContent | null }) {
+  // Registration copy is admin-managed; with the section off (or the settings unavailable) only a plain heading shows.
+  const incentive = registration && content?.incentive.enabled ? content.incentive : null;
+  const intro = registration ? incentive?.intro.replaceAll("{store}", theme.brand.name) : "Sign in to access your orders, revisit your wishlist and pick up where you left off.";
   const href = useHref();
   const router = useRouter();
   const [visible, setVisible] = useState(false);
@@ -170,9 +174,9 @@ export default function AuthForm({ registration = false, next }: { registration?
   </>;
 
   return <>
-    <h1 id="auth-heading">{registration ? <>Create your account.<br /><em>Make your next upgrade yours.</em></> : <>Welcome back.<br /><em>Your setup. Your account.</em></>}</h1>
-    <p className={styles.intro}>{registration ? `Join ${theme.brand.name} to save your favourite components, track orders and keep your details ready for checkout.` : "Sign in to access your orders, revisit your wishlist and pick up where you left off."}</p>
-    {registration && <div className={styles.security}><ShieldCheck size={19} /><p><strong>Everything for your next setup.</strong>One account for components, computers, laptops and accessories.</p></div>}
+    <h1 id="auth-heading">{registration ? (incentive ? <>{incentive.heading}{incentive.highlight && <><br /><em>{incentive.highlight}</em></>}</> : "Create your account.") : <>Welcome back.<br /><em>Your setup. Your account.</em></>}</h1>
+    {intro && <p className={styles.intro}>{intro}</p>}
+    {incentive && (incentive.noticeTitle || incentive.noticeText) && <div className={styles.security}><ShieldCheck size={19} /><p><strong>{incentive.noticeTitle}</strong>{incentive.noticeText}</p></div>}
     <form className={styles.form} noValidate onSubmit={submit} aria-busy={busy} onChange={event => {
       const name = event.target instanceof HTMLInputElement ? event.target.name : "";
       if (errors[name]) setErrors(previous => { const updated = { ...previous }; delete updated[name]; return updated; });
@@ -188,6 +192,7 @@ export default function AuthForm({ registration = false, next }: { registration?
         {registration && <><small id="password-hint" className={styles.hint}>Use at least 10 characters. A longer, unique password is best.</small>{password && <div className={styles.strength}><div>{[0, 1, 2, 3].map(index => <span key={index} data-filled={index < strength} />)}</div><small>{["Weak", "Weak", "Fair", "Good", "Strong"][strength]}</small></div>}</>}{fieldError("password")}
       </div>
       {!registration && <div className={styles.security}><LockKeyhole size={18} /><p><strong>Your account, in one place.</strong>Manage your orders, wishlist and saved delivery addresses.</p></div>}
+      {incentive?.offerEnabled && <div className={`${styles.security} ${styles.offer}`}><Tag size={18} /><p><strong>Welcome offer: use code {incentive.offerCode} at checkout</strong>{incentive.offerText}</p>{incentive.offerAmount && <b>{incentive.offerAmount}</b>}</div>}
       {error && <p className={styles.error} role="alert"><AlertCircle size={18} />{error}</p>}
       <button className={styles.submit} type="submit" disabled={busy}>{busy ? (registration ? "Creating account…" : "Signing in…") : (registration ? "Create free account" : `Sign in to ${theme.brand.name}`)}<ArrowRight size={18} /></button>
     </form>

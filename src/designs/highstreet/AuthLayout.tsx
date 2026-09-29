@@ -2,18 +2,31 @@
 
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { ArrowRight, Cpu, Heart, Home, Package, Search, ShoppingCart, Star } from "lucide-react";
+import { ArrowRight, Cpu, Heart, Home, Package, Search, ShieldCheck, ShoppingCart, Star, Truck, Undo2, type LucideIcon } from "lucide-react";
 import { useHref } from "@/lib/design-context";
 import { useApi } from "@/lib/use-api";
 import { money } from "@/lib/catalogue";
 import type { Product } from "@/lib/types";
+import type { RegisterPageContent } from "@/lib/api";
 import { AddToBasketButton } from "@/components/interactive";
 import Header from "./Header";
 import Footer from "./Footer";
 import styles from "./auth.module.css";
 
-export default function AuthLayout({ children, registration = false, pageTitle }: { children: ReactNode; registration?: boolean; pageTitle?: string }) {
+// Icon names the admin can pick for the registration benefits row (REGISTER_PAGE_ICONS in the API).
+const BENEFIT_ICONS: Record<string, LucideIcon> = { package: Package, heart: Heart, search: Search, truck: Truck, shield: ShieldCheck, cpu: Cpu, star: Star, undo: Undo2 };
+const SIGN_IN_BENEFITS = [
+  { icon: "package", title: "Your orders", text: "All in one place" },
+  { icon: "heart", title: "Your wishlist", text: "Save your favourites" },
+  { icon: "search", title: "Find your parts", text: "Search by specification" },
+];
+const SIGN_IN_SHOWCASE = { title: "Your next upgrade starts here", description: "Explore PC components, laptops and peripherals for work, play and everything in between." };
+
+export default function AuthLayout({ children, registration = false, pageTitle, content }: { children: ReactNode; registration?: boolean; pageTitle?: string; content?: RegisterPageContent | null }) {
   const href = useHref();
+  // Registration sections are admin-managed and hidden when switched off or when the settings are unavailable.
+  const benefits = registration ? (content?.benefits.enabled ? content.benefits.items : []) : SIGN_IN_BENEFITS;
+  const showcase = registration ? (content?.showcase.enabled ? content.showcase : null) : SIGN_IN_SHOWCASE;
   return <>
     <Header />
     <div className={styles.page}>
@@ -21,30 +34,28 @@ export default function AuthLayout({ children, registration = false, pageTitle }
         <Link href={href.home()} aria-label="Home"><Home size={16} /></Link><span aria-hidden="true">/</span>
         <span aria-current="page">{pageTitle ?? (registration ? "Create account" : "Sign in")}</span>
       </nav></div>
-      <div className={`wrap ${styles.layout}`}>
+      <div className={`wrap ${styles.layout} ${showcase ? "" : styles.single}`}>
         <div>
           <section className={styles.panel} aria-labelledby="auth-heading">{children}</section>
-          <div className={styles.benefits}>
-            <div><Package size={20} /><strong>Your orders</strong><span>All in one place</span></div>
-            <div><Heart size={20} /><strong>Your wishlist</strong><span>Save your favourites</span></div>
-            <div><Search size={20} /><strong>Find your parts</strong><span>Search by specification</span></div>
-          </div>
+          {benefits.length > 0 && <div className={styles.benefits}>
+            {benefits.map((benefit, index) => { const Icon = BENEFIT_ICONS[benefit.icon] ?? Package; return <div key={index}><Icon size={20} /><strong>{benefit.title}</strong>{benefit.text && <span>{benefit.text}</span>}</div>; })}
+          </div>}
         </div>
-        <AuthShowcase registration={registration} />
+        {showcase && <AuthShowcase registration={registration} title={showcase.title} description={showcase.description} />}
       </div>
     </div>
     <Footer />
   </>;
 }
 
-function AuthShowcase({ registration }: { registration: boolean }) {
+function AuthShowcase({ registration, title, description }: { registration: boolean; title: string; description: string }) {
   const href = useHref();
   const { data, loading, error } = useApi<{ items: Product[] }>("/api/products/recommended?limit=4");
   const products = data?.items ?? [];
   return <aside className={styles.showcase} aria-label="Explore computer products">
     <header className={styles.showcaseHeader}>
-      <h2><Cpu size={25} />{registration ? "Start your next setup" : "Your next upgrade starts here"}</h2>
-      <p>Explore PC components, laptops and peripherals for work, play and everything in between.</p>
+      <h2><Cpu size={25} />{title}</h2>
+      {description && <p>{description}</p>}
       <nav aria-label="Explore product categories">
         {["PC Components", "Laptops", "Peripherals", "Networking"].map(cat => <Link key={cat} href={href.category({ cat })}>{cat}</Link>)}
       </nav>
