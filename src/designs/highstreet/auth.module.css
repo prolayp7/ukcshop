@@ -51,7 +51,7 @@
 .field [aria-invalid=true] { outline: 1px solid var(--blue-dark); outline-offset: -1px; }
 .hint { display: block; margin-top: 8px; font-size: 12px; color: var(--body); }
 .otpRow { display: flex; gap: 8px; margin-top: 7px; }
-.otpRow input { width: 100%; aspect-ratio: 1; min-width: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); text-align: center; font: 700 22px/1 inherit; color: var(--ink); caret-color: var(--blue); }
+.otpRow input { width: 100%; aspect-ratio: 1; min-width: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); text-align: center; font-family: inherit; font-size: 28px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; color: var(--ink); caret-color: var(--blue); }
 .otpRow input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-soft); }
 .otpRow input:disabled { opacity: .6; }
 .strength { display: flex; align-items: center; gap: 10px; margin-top: 10px; }

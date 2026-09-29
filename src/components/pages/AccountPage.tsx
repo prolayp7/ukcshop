@@ -4,7 +4,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { useSearchParams } from "next/navigation";
 import { DesignParts } from "@/lib/parts";
 import { useWishlist } from "@/lib/basket";
-import { useCustomerAuth } from "@/lib/storefront-client";
+import { fetchMe, useCustomerAuth } from "@/lib/storefront-client";
 import { Address, Order, listAddresses, listOrders } from "@/lib/account-api";
 import { useApi } from "@/lib/use-api";
 import { Product } from "@/lib/types";
@@ -26,6 +26,7 @@ export default function AccountPage({ parts }: { parts: DesignParts }) {
   const raw = params.get("tab");
   const tab: Tab = (TABS as readonly string[]).includes(raw || "") ? (raw as Tab) : "overview";
   const { customer, isLoggedIn } = useCustomerAuth();
+  const customerPhone = customer?.phone;
   const { items: wishlist } = useWishlist();
 
   const [orders, setOrders] = useState<Order[] | null>(null);
@@ -45,6 +46,11 @@ export default function AccountPage({ parts }: { parts: DesignParts }) {
   // mount, by which point useSyncExternalStore has corrected to the real
   // client value.
   const mounted = useSyncExternalStore(subscribeToMount, clientMounted, serverMounted);
+  useEffect(() => {
+    if (!isLoggedIn || customerPhone !== undefined) return;
+    void fetchMe().catch(() => undefined);
+  }, [isLoggedIn, customerPhone]);
+
   useEffect(() => {
     // A hard navigation, not router.replace: this guard fires right after
     // sign-out, and a full reload guarantees every other bit of client

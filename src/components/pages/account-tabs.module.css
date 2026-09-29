@@ -47,6 +47,7 @@
 .savedItem h3 { font-size: 15px; font-weight: 650; line-height: 1.5; margin: 0; }
 .price { display: inline-block; font-size: 20px; color: var(--blue); margin-top: 8px; font-variant-numeric: tabular-nums; }
 .itemInfo s { font-size: 12px; color: var(--body); margin-left: 10px; }
+.addAllButton:disabled { opacity: .6; cursor: wait; }
 .savedActions { display: flex; flex-direction: column; align-items: center; gap: 8px; flex-shrink: 0; }
 .removeButton { display: inline-flex; align-items: center; justify-content: center; gap: 6px; color: var(--blue-dark); font-size: 12px; border-radius: 4px; padding: 9px 10px; min-height: 38px; }
 .removeButton:hover { background: var(--blue-soft); }
@@ -67,6 +68,11 @@
 .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
 .field input { width: 100%; border: 1px solid var(--line); border-radius: 6px; min-height: 46px; background: var(--bg); color: var(--ink); padding: 11px 13px; font-family: inherit; font-size: 14px; caret-color: var(--blue); }
 .field input[readonly] { color: var(--body); background: #eeefed; }
+.passwordStrength { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.passwordStrength > div { display: grid; grid-template-columns: repeat(4, 1fr); flex: 1; gap: 5px; }
+.passwordStrength span { height: 4px; border-radius: 2px; background: var(--line); }
+.passwordStrength span[data-filled=true] { background: var(--green); }
+.passwordStrength small { font-size: 12px; color: var(--body); }
 .formActions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding-top: 20px; border-top: 1px solid var(--line); }
 .description { color: var(--body); font-size: 13px; line-height: 1.7; margin: 0 0 24px; }
 .email { font-size: 16px !important; color: var(--ink) !important; font-weight: 600; overflow-wrap: anywhere; margin: 0 0 8px; }
@@ -75,10 +81,17 @@
 .error { color: var(--blue-dark) !important; background: var(--blue-soft); border-radius: 5px; padding: 12px 14px; font-size: 13px; margin: 0; line-height: 1.5; }
 .success { display: flex; align-items: center; gap: 8px; background: #e3f5ec; color: #006b48; border-radius: 6px; padding: 14px 16px; margin: 0; font-size: 13px; }
 .success svg { flex-shrink: 0; }
+.deletionPending, .deletionConfirm { border-radius: 6px; background: #edf3fa; color: #36516d; padding: 14px; font-size: 13px; line-height: 1.55; }
+.deletionPending { display: grid; gap: 4px; }
+.deletionPending strong { color: #263e57; }
+.deletionConfirm p { margin: 0; }
+.deletionActions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.requestDeletion { min-height: 40px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; color: var(--blue-dark); font-size: 13px; font-weight: 600; }
+.requestDeletion:hover { background: var(--blue-soft); }
 .form button:disabled, .addressActions button:disabled, .savedActions button:disabled, .pagination button:disabled { opacity: .6; cursor: wait; }
 @media (max-width: 1100px) {
   .savedItem { flex-wrap: wrap; gap: 16px; }
-  .savedActions { flex-basis: 100%; flex-direction: row; justify-content: flex-end; }
+  .savedActions { flex-basis: 100%; flex-direction: row; flex-wrap: wrap; justify-content: flex-end; }
   .addressGrid { grid-template-columns: 1fr; }
   .orderHeader, .orderBottom { padding-inline: 20px; }
   .orderProducts { padding-inline: 20px; }

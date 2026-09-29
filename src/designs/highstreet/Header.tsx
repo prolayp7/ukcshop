@@ -19,6 +19,9 @@ import QuickView from "./QuickView";
 import FloatingShopActions from "@/components/FloatingShopActions";
 
 /** Icons for the category-tree fallback navigation (the admin menu sets its own). */
+/** Quick searches in the top bar; each runs a normal product search. */
+const POPULAR_SEARCHES = ["RTX 4070", "Ryzen 7", "DDR5", "NVMe"];
+
 const MEGA_ICON: Record<string, string> = {
   "PC Components": "i-gpu",
   Computers: "i-pc",
@@ -133,15 +136,10 @@ export default function Header() {
     <>
       <div className="util">
         <div className="wrap">
-          <a href="#">Track my order</a>
-          <a href="#">Business &amp; Education</a>
-          <a href="#">Trade accounts</a>
+          <Link href={href.account({ tab: "orders" })}>Track my order</Link>
           <div className="hints">
             <b>Popular:</b>
-            <a href="#">RTX 5080</a>
-            <a href="#">DDR5 32GB</a>
-            <a href="#">9800X3D</a>
-            <a href="#">1440p 240Hz</a>
+            {POPULAR_SEARCHES.map((term) => <Link key={term} href={href.category({ q: term })}>{term}</Link>)}
           </div>
           <div className="sep">
             {statsRes.data ? (
@@ -151,8 +149,8 @@ export default function Header() {
             ) : (
               <span />
             )}
-            <a href="#">Help centre</a>
-            <a href="#">{CURRENCY_SYMBOL} {CURRENCY} · Inc. VAT</a>
+            <Link href="/faqs">Help centre</Link>
+            <span>{CURRENCY_SYMBOL} {CURRENCY} · Inc. VAT</span>
           </div>
         </div>
       </div>

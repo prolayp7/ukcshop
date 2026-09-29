@@ -23,6 +23,12 @@ export interface Customer {
   phone?: string | null;
   emailVerified?: boolean;
 }
+export type AccountDeletionRequest = { id: number; status: "PENDING"; requestedAt: string };
+export type AccountDeletionRequestResult = {
+  request: AccountDeletionRequest;
+  alreadyRequested: boolean;
+  emailSent: boolean | null;
+};
 interface StoredAuth {
   accessToken: string;
   refreshToken: string;
@@ -255,6 +261,14 @@ export async function fetchMe(): Promise<Customer> {
   const current = readAuth();
   if (current) writeAuth({ ...current, customer });
   return customer;
+}
+
+export function getAccountDeletionRequest(): Promise<AccountDeletionRequest | null> {
+  return request("me/deletion-request");
+}
+
+export function requestAccountDeletion(): Promise<AccountDeletionRequestResult> {
+  return request("me/deletion-request", asJsonBody({}));
 }
 
 export async function updateProfile(patch: { firstName?: string; lastName?: string; phone?: string }): Promise<Customer> {

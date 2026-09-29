@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Heart, LockKeyhole, Mail, MapPin, Package, Plus, Save, Settings, ShoppingBag, Trash2, Truck, UserRound, X } from "lucide-react";
+import { ArrowRight, CheckCircle2, Heart, LockKeyhole, Mail, MapPin, Package, Plus, Save, Settings, ShoppingBag, ShoppingCart, Trash2, Truck, UserRound, X } from "lucide-react";
 import { useHref } from "@/lib/design-context";
 import { money } from "@/lib/catalogue";
 import { Wishlist, type WishlistItem } from "@/lib/basket";
+import { Cart } from "@/lib/cart";
 import { createAddress, deleteAddress, type Address, type Order } from "@/lib/account-api";
-import { changePassword, updateProfile, type Customer } from "@/lib/storefront-client";
+import { changePassword, getAccountDeletionRequest, requestAccountDeletion, updateProfile, type AccountDeletionRequest, type Customer } from "@/lib/storefront-client";
 import { productImageUrl } from "@/lib/productImages";
 import { PAID_PAYMENT_STATUSES } from "@/lib/invoice";
 import shared from "./account-overview.module.css";
@@ -33,18 +34,44 @@ export function OrdersTab({ orders, total, error, onRetry, onLoadMore, loadingMo
 
 export function WishlistTab({ items }: { items: WishlistItem[] }) {
   const href = useHref();
+  const [cartAction, setCartAction] = useState<"all" | number | null>(null);
+  const [itemError, setItemError] = useState<{ variantId: number; message: string } | null>(null);
+  const [bulkResult, setBulkResult] = useState<{ added: number; failed: number } | null>(null);
+  const cartBusy = cartAction !== null;
+
+  async function addItem(item: WishlistItem) {
+    if (cartBusy) return;
+    setCartAction(item.productVariantId); setItemError(null); setBulkResult(null);
+    try { await Cart.add(item.productVariantId); }
+    catch (error) { setItemError({ variantId: item.productVariantId, message: errorMessage(error, "Couldn’t add this product. Please try again.") }); }
+    finally { setCartAction(null); }
+  }
+
+  async function addAll() {
+    if (cartBusy || !items.length) return;
+    setCartAction("all"); setItemError(null); setBulkResult(null);
+    let added = 0;
+    let failed = 0;
+    for (const item of items) {
+      try { await Cart.add(item.productVariantId); added += 1; }
+      catch { failed += 1; }
+    }
+    setBulkResult({ added, failed });
+    setCartAction(null);
+  }
+
   return <>
-    <section className={shared.welcome}><div><h2>Saved products</h2><p>A shortlist for your next setup. Keep your favourite components and accessories close at hand.</p></div><Link href={href.category()} className={shared.primaryButton}><Plus size={14} />Find more products</Link></section>
+    <section className={shared.welcome}><div><h2>Saved products</h2><p>A shortlist for your next setup. Keep your favourite components and accessories close at hand.</p></div><div className={shared.welcomeActions}>{items.length > 0 && <button type="button" className={`${shared.primaryButton} ${styles.addAllButton}`} disabled={cartBusy} aria-busy={cartAction === "all"} onClick={() => void addAll()}><ShoppingCart size={14} />{cartAction === "all" ? "Adding products…" : "Add all to basket"}</button>}<Link href={href.category()} className={items.length ? shared.secondaryButton : shared.primaryButton}><Plus size={14} />Find more products</Link></div></section>
     <div className={styles.summary}><span><Heart size={18} /><strong>{items.length}</strong> saved {items.length === 1 ? "product" : "products"}</span><span>Your personal shortlist</span></div>
-    <section className={styles.panel}>{items.length ? <div className={styles.savedList}>{items.map(item => <SavedItem key={item.productVariantId} item={item} />)}</div> : <div className={styles.empty}><Heart size={32} /><h3>Make room for your next upgrade</h3><p>Use the heart on any product to save it to your wishlist.</p><Link href={href.category()} className={shared.primaryButton}>Explore products <ArrowRight size={14} /></Link></div>}</section>
+    <section className={styles.panel}>{bulkResult && <p className={bulkResult.failed ? styles.error : styles.success} role={bulkResult.failed ? "alert" : "status"}>{!bulkResult.failed && <CheckCircle2 size={17} />}{bulkResult.failed ? bulkResult.added ? `Added ${bulkResult.added} of ${items.length} products. ${bulkResult.failed} couldn’t be added; check availability and try again.` : "None of these products could be added. Check availability and try again." : `${bulkResult.added} ${bulkResult.added === 1 ? "product" : "products"} added to your basket.`}</p>}{items.length ? <div className={styles.savedList}>{items.map(item => <SavedItem key={item.productVariantId} item={item} cartBusy={cartBusy} adding={cartAction === item.productVariantId} cartError={itemError?.variantId === item.productVariantId ? itemError.message : ""} onAdd={() => void addItem(item)} />)}</div> : <div className={styles.empty}><Heart size={32} /><h3>Make room for your next upgrade</h3><p>Use the heart on any product to save it to your wishlist.</p><Link href={href.category()} className={shared.primaryButton}>Explore products <ArrowRight size={14} /></Link></div>}</section>
   </>;
 }
 
-function SavedItem({ item }: { item: WishlistItem }) {
+function SavedItem({ item, cartBusy, adding, cartError, onAdd }: { item: WishlistItem; cartBusy: boolean; adding: boolean; cartError: string; onAdd: () => void }) {
   const href = useHref();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  return <article className={styles.savedItem}><Link className={styles.savedImage} href={href.product(item.productSlug)} aria-label={item.productTitle}><ProductThumbnail id={item.productId} /></Link><div className={styles.itemInfo}><h3><Link href={href.product(item.productSlug)}>{item.productTitle}</Link></h3><p>{item.variantTitle}</p><strong className={styles.price}>{money(item.salePrice ?? item.price)}</strong>{item.salePrice !== null && item.salePrice < item.price && <s>{money(item.price)}</s>}{error && <p role="alert" className={styles.error}>{error}</p>}</div><div className={styles.savedActions}><Link className={shared.primaryButton} href={href.product(item.productSlug)}>View product <ArrowRight size={14} /></Link><button type="button" className={styles.removeButton} disabled={busy} aria-label={`Remove ${item.productTitle} from wishlist`} onClick={async () => { setBusy(true); setError(""); try { await Wishlist.toggle(item.productId, item.productVariantId); } catch { setError("Couldn’t remove this product. Please try again."); } finally { setBusy(false); } }}><Trash2 size={14} />{busy ? "Removing…" : "Remove"}</button></div></article>;
+  return <article className={styles.savedItem}><Link className={styles.savedImage} href={href.product(item.productSlug)} aria-label={item.productTitle}><ProductThumbnail id={item.productId} /></Link><div className={styles.itemInfo}><h3><Link href={href.product(item.productSlug)}>{item.productTitle}</Link></h3><p>{item.variantTitle}</p><strong className={styles.price}>{money(item.salePrice ?? item.price)}</strong>{item.salePrice !== null && item.salePrice < item.price && <s>{money(item.price)}</s>}{cartError && <p role="alert" className={styles.error}>{cartError}</p>}{error && <p role="alert" className={styles.error}>{error}</p>}</div><div className={styles.savedActions}><button type="button" className={shared.primaryButton} disabled={cartBusy || busy} aria-busy={adding} aria-label={`Add ${item.productTitle} to basket`} onClick={onAdd}><ShoppingCart size={14} />{adding ? "Adding…" : "Add to basket"}</button><Link className={shared.secondaryButton} href={href.product(item.productSlug)}>View product <ArrowRight size={14} /></Link><button type="button" className={styles.removeButton} disabled={busy || cartBusy} aria-label={`Remove ${item.productTitle} from wishlist`} onClick={async () => { setBusy(true); setError(""); try { await Wishlist.toggle(item.productId, item.productVariantId); } catch { setError("Couldn’t remove this product. Please try again."); } finally { setBusy(false); } }}><Trash2 size={14} />{busy ? "Removing…" : "Remove"}</button></div></article>;
 }
 
 const emptyAddress = { label: "", fullName: "", line1: "", line2: "", city: "", postcode: "", phone: "" };
@@ -89,6 +116,8 @@ function AddressCard({ address, onDelete }: { address: Address; onDelete: () => 
 
 export function DetailsTab({ customer }: { customer: Customer }) {
   const [form, setForm] = useState({ firstName: customer.firstName, lastName: customer.lastName, phone: customer.phone || "" });
+  const [phoneEdited, setPhoneEdited] = useState(false);
+  const phoneValue = phoneEdited ? form.phone : customer.phone ?? form.phone;
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
@@ -96,6 +125,26 @@ export function DetailsTab({ customer }: { customer: Customer }) {
   const [passwordBusy, setPasswordBusy] = useState(false);
   const [passwordSaved, setPasswordSaved] = useState(false);
   const [passwordError, setPasswordError] = useState("");
+  const [deletionRequest, setDeletionRequest] = useState<AccountDeletionRequest | null>(null);
+  const [deletionRequestLoading, setDeletionRequestLoading] = useState(true);
+  const [deletionRequestBusy, setDeletionRequestBusy] = useState(false);
+  const [confirmDeletionRequest, setConfirmDeletionRequest] = useState(false);
+  const [deletionRequestError, setDeletionRequestError] = useState("");
+  const [deletionRequestNotice, setDeletionRequestNotice] = useState("");
+  const passwordStrength = Number(passwordForm.newPassword.length >= 10)
+    + Number(passwordForm.newPassword.length >= 14)
+    + Number(/[a-z]/.test(passwordForm.newPassword) && /[A-Z]/.test(passwordForm.newPassword))
+    + Number(/\d/.test(passwordForm.newPassword) && /[^A-Za-z0-9]/.test(passwordForm.newPassword));
+
+  useEffect(() => {
+    let active = true;
+    getAccountDeletionRequest()
+      .then(request => { if (active) setDeletionRequest(request); })
+      .catch(error => { if (active) setDeletionRequestError(errorMessage(error, "Deletion request status could not be loaded.")); })
+      .finally(() => { if (active) setDeletionRequestLoading(false); });
+    return () => { active = false; };
+  }, [customer.id]);
+
   async function submitPassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (passwordBusy) return;
@@ -109,17 +158,40 @@ export function DetailsTab({ customer }: { customer: Customer }) {
     } catch (error) { setPasswordError(errorMessage(error, "Couldn’t update your password. Please try again.")); }
     finally { setPasswordBusy(false); }
   }
+
+  async function submitDeletionRequest() {
+    if (deletionRequestBusy) return;
+    setDeletionRequestBusy(true); setDeletionRequestError(""); setDeletionRequestNotice("");
+    try {
+      const result = await requestAccountDeletion();
+      setDeletionRequest(result.request);
+      setConfirmDeletionRequest(false);
+      setDeletionRequestNotice(result.emailSent === false
+        ? "Your request is recorded, but we couldn’t send the acknowledgment email. Please contact support."
+        : result.alreadyRequested
+          ? "You already have a deletion request under review."
+          : "Your request has been received. We sent an acknowledgment email.");
+    } catch (error) {
+      setDeletionRequestError(errorMessage(error, "Your deletion request could not be submitted. Please try again."));
+    } finally { setDeletionRequestBusy(false); }
+  }
+
   return <>
     <section className={shared.welcome}><div><h2>Account details</h2><p>Keep your personal information up to date for your next order.</p></div><span className={styles.sectionIcon}><UserRound size={24} /></span></section>
     <section className={styles.panel}><div className={styles.panelHeading}><h3><Settings size={19} />Personal information</h3></div><p className={styles.description}>These details belong to your account. Manage delivery addresses in the Addresses tab.</p><form className={styles.form} aria-busy={busy} onChange={() => setSaved(false)} onSubmit={async event => { event.preventDefault(); if (busy) return; const input = { firstName: form.firstName.trim(), lastName: form.lastName.trim(), phone: form.phone.trim() }; if (!input.firstName || !input.lastName) { setError("Enter your first and last name."); return; } setBusy(true); setError(""); setSaved(false); try { await updateProfile(input); setSaved(true); } catch (error) { setError(errorMessage(error, "Couldn’t update your details. Please try again.")); } finally { setBusy(false); } }}>
-      <div className={styles.fields}>{[{ key: "firstName", label: "First name", complete: "given-name" }, { key: "lastName", label: "Last name", complete: "family-name" }, { key: "phone", label: "Phone number (optional)", complete: "tel" }].map(field => <div className={styles.field} key={field.key}><label htmlFor={`details-${field.key}`}>{field.label}</label><input id={`details-${field.key}`} name={field.key} type={field.key === "phone" ? "tel" : "text"} maxLength={field.key === "phone" ? 30 : 120} required={field.key !== "phone"} autoComplete={field.complete} value={form[field.key as keyof typeof form]} onChange={event => setForm({ ...form, [field.key]: event.target.value })} /></div>)}</div>
+      <div className={styles.fields}>{[{ key: "firstName", label: "First name", complete: "given-name" }, { key: "lastName", label: "Last name", complete: "family-name" }, { key: "phone", label: "Phone number (optional)", complete: "tel" }].map(field => <div className={styles.field} key={field.key}><label htmlFor={`details-${field.key}`}>{field.label}</label><input id={`details-${field.key}`} name={field.key} type={field.key === "phone" ? "tel" : "text"} maxLength={field.key === "phone" ? 30 : 120} required={field.key !== "phone"} autoComplete={field.complete} value={field.key === "phone" ? phoneValue : form[field.key as keyof typeof form]} onChange={event => { if (field.key === "phone") setPhoneEdited(true); setForm({ ...form, [field.key]: event.target.value }); }} /></div>)}</div>
       {error && <p className={styles.error} role="alert">{error}</p>}{saved && <p className={styles.success} role="status"><CheckCircle2 size={17} />Your account details have been updated.</p>}<div className={styles.formActions}><button type="submit" className={shared.primaryButton} disabled={busy}><Save size={15} />{busy ? "Saving changes…" : "Save changes"}</button></div>
     </form></section>
     <section className={styles.panel}><div className={styles.panelHeading}><h3><Mail size={19} />Sign-in email</h3>{customer.emailVerified && <span className={shared.addressBadge}>Verified</span>}</div><p className={styles.email}>{customer.email}</p><p className={styles.description}>This is the email address you use to sign in and receive order updates.</p></section>
+    <section className={styles.panel}><div className={styles.panelHeading}><h3><Trash2 size={19} />Delete account</h3></div><p className={styles.description}>You can request account deletion here. Your account will remain active while our team reviews the request.</p>
+      {deletionRequestNotice && <p className={styles.success} role="status"><CheckCircle2 size={17} />{deletionRequestNotice}</p>}
+      {deletionRequestError && <p className={styles.error} role="alert">{deletionRequestError}</p>}
+      {deletionRequestLoading ? <p role="status">Checking for an existing request…</p> : deletionRequest ? <div className={styles.deletionPending} role="status"><strong>Deletion request under review</strong><span>Received {new Date(deletionRequest.requestedAt).toLocaleDateString("en-GB")}. Your account remains active; we’ll email you when it has been deleted.</span></div> : confirmDeletionRequest ? <div className={styles.deletionConfirm}><p>This sends a request for our team to review. Your account will not be deleted immediately.</p><div className={styles.deletionActions}><button type="button" className={shared.secondaryButton} disabled={deletionRequestBusy} onClick={() => setConfirmDeletionRequest(false)}>Keep account</button><button type="button" className={shared.primaryButton} disabled={deletionRequestBusy} onClick={() => void submitDeletionRequest()}>{deletionRequestBusy ? "Sending request…" : "Confirm request"}</button></div></div> : <button type="button" className={styles.requestDeletion} onClick={() => { setConfirmDeletionRequest(true); setDeletionRequestError(""); setDeletionRequestNotice(""); }}>Request account deletion</button>}
+    </section>
     <section className={styles.panel}><div className={styles.panelHeading}><h3><LockKeyhole size={19} />Change password</h3></div><p className={styles.description}>Use a strong password you don’t use anywhere else.</p><form className={styles.form} aria-busy={passwordBusy} onChange={() => setPasswordSaved(false)} onSubmit={submitPassword}>
       <div className={styles.fields}>
         <div className={styles.field}><label htmlFor="password-current">Current password</label><input id="password-current" type="password" autoComplete="current-password" required value={passwordForm.currentPassword} onChange={event => setPasswordForm({ ...passwordForm, currentPassword: event.target.value })} /></div>
-        <div className={styles.field}><label htmlFor="password-new">New password</label><input id="password-new" type="password" autoComplete="new-password" minLength={10} maxLength={128} required value={passwordForm.newPassword} onChange={event => setPasswordForm({ ...passwordForm, newPassword: event.target.value })} /></div>
+        <div className={styles.field}><label htmlFor="password-new">New password</label><input id="password-new" type="password" autoComplete="new-password" minLength={10} maxLength={128} required value={passwordForm.newPassword} onChange={event => setPasswordForm({ ...passwordForm, newPassword: event.target.value })} />{passwordForm.newPassword && <div className={styles.passwordStrength} role="status" aria-label={`Password strength: ${["Weak", "Weak", "Fair", "Good", "Strong"][passwordStrength]}`}><div aria-hidden="true">{[0, 1, 2, 3].map(index => <span key={index} data-filled={index < passwordStrength} />)}</div><small>{["Weak", "Weak", "Fair", "Good", "Strong"][passwordStrength]}</small></div>}</div>
         <div className={styles.field}><label htmlFor="password-confirm">Confirm new password</label><input id="password-confirm" type="password" autoComplete="new-password" minLength={10} maxLength={128} required value={passwordForm.confirmPassword} onChange={event => setPasswordForm({ ...passwordForm, confirmPassword: event.target.value })} /></div>
       </div>
       {passwordError && <p className={styles.error} role="alert">{passwordError}</p>}{passwordSaved && <p className={styles.success} role="status"><CheckCircle2 size={17} />Your password has been updated.</p>}<div className={styles.formActions}><button type="submit" className={shared.primaryButton} disabled={passwordBusy}><Save size={15} />{passwordBusy ? "Updating password…" : "Update password"}</button></div>

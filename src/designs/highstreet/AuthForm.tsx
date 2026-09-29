@@ -15,7 +15,7 @@ const OTP_LENGTH = 6;
 
 /** Six single-digit boxes standing in for one code value, auto-advancing on
  * type/backspace and accepting a full pasted code in any box. */
-function OtpBoxes({ value, onChange, disabled }: { value: string; onChange: (value: string) => void; disabled?: boolean }) {
+function OtpBoxes({ value, onChange, onComplete, disabled }: { value: string; onChange: (value: string) => void; onComplete?: (value: string) => void; disabled?: boolean }) {
   const refs = useRef<Array<HTMLInputElement | null>>([]);
   const digits = Array.from({ length: OTP_LENGTH }, (_, index) => value[index] ?? "");
 
@@ -24,7 +24,9 @@ function OtpBoxes({ value, onChange, disabled }: { value: string; onChange: (val
     if (!digitsOnly) return;
     const next = digits.slice();
     for (let i = 0; i < digitsOnly.length && index + i < OTP_LENGTH; i++) next[index + i] = digitsOnly[i];
-    onChange(next.join(""));
+    const nextValue = next.join("");
+    onChange(nextValue);
+    if (next.every(Boolean)) onComplete?.(nextValue);
     refs.current[Math.min(index + digitsOnly.length, OTP_LENGTH - 1)]?.focus();
   }
 
@@ -127,19 +129,23 @@ export default function AuthForm({ registration = false, next, content }: { regi
     } finally { setBusy(false); }
   }
 
-  async function submitCode(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function verifyCode(value: string) {
     if (busy) return;
-    if (code.length < OTP_LENGTH) { setError("Enter all 6 digits."); return; }
+    if (value.length < OTP_LENGTH) { setError("Enter all 6 digits."); return; }
     setBusy(true);
     setError("");
     try {
-      await verifyEmailOtp(pendingEmail, code);
+      await verifyEmailOtp(pendingEmail, value);
       toast.success("Account verified");
       router.push(next || href.account());
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "We couldn’t connect. Please try again.");
     } finally { setBusy(false); }
+  }
+
+  function submitCode(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void verifyCode(code);
   }
 
   async function resendCode() {
@@ -164,7 +170,7 @@ export default function AuthForm({ registration = false, next, content }: { regi
     <form className={styles.form} noValidate onSubmit={submitCode} aria-busy={busy}>
       <div className={styles.field}>
         <div className={styles.labelRow}><label>Verification code <b>*</b></label><button type="button" className={styles.recoveryAction} disabled={busy} onClick={() => { setStep(1); setCode(""); setError(""); setResent(false); }}>Change email</button></div>
-        <OtpBoxes value={code} onChange={setCode} disabled={busy} />
+        <OtpBoxes value={code} onChange={setCode} onComplete={value => void verifyCode(value)} disabled={busy} />
       </div>
       {error && <p className={styles.error} role="alert"><AlertCircle size={18} />{error}</p>}
       {resent && !error && <p className={styles.hint}>A new code is on its way.</p>}

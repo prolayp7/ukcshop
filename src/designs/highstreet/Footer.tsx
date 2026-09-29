@@ -8,6 +8,7 @@ import { useApi } from "@/lib/use-api";
 import { ApiGeneralSettings, FooterColumn } from "@/lib/api";
 import { theme } from "@/lib/theme.config";
 import NewsletterForm from "./NewsletterForm";
+import { reopenCookieBanner } from "@/components/CookieBanner";
 
 export default function Footer() {
   const href = useHref();
@@ -15,6 +16,12 @@ export default function Footer() {
   const settings = settingsRes.data?.data ?? {};
   // Admin-managed footer menu (Admin -> Menus -> Footer); the built-in columns below show while it is empty.
   const menuColumns = useApi<{ data: FooterColumn[] }>("/api/menus/footer").data?.data ?? [];
+  const socialLinks = [
+    { label: "Facebook", short: "FB", url: settings.socialFacebook },
+    { label: "Instagram", short: "IG", url: settings.socialInstagram },
+    { label: "X (Twitter)", short: "X", url: settings.socialTwitter },
+    { label: "YouTube", short: "YT", url: settings.socialYoutube },
+  ].filter((social): social is { label: string; short: string; url: string } => Boolean(social.url?.trim()));
   return (
     <>
       <section style={{ paddingTop: 6 }}>
@@ -37,20 +44,16 @@ export default function Footer() {
                 <Image className="mark" src={settings.logo || "/images/logo/rigforge-mark.png"} alt={theme.brand.name} width={694} height={512} />
               </Link>
               <p style={{ margin: "0 0 16px", maxWidth: 300 }}>{theme.brand.about}</p>
-              <div className="fsocial">
-                <a href={settings.socialFacebook || "#"} aria-label="Facebook">
-                  FB
-                </a>
-                <a href={settings.socialInstagram || "#"} aria-label="Instagram">
-                  IG
-                </a>
-                <a href={settings.socialTwitter || "#"} aria-label="X (Twitter)">
-                  X
-                </a>
-                <a href={settings.socialYoutube || "#"} aria-label="YouTube">
-                  YT
-                </a>
-              </div>
+              {/* Only the profiles set in Admin > Settings; the row hides when none are. */}
+              {socialLinks.length ? (
+                <div className="fsocial">
+                  {socialLinks.map((social) => (
+                    <a key={social.label} href={social.url} aria-label={social.label} target="_blank" rel="noopener noreferrer">
+                      {social.short}
+                    </a>
+                  ))}
+                </div>
+              ) : null}
             </div>
             {menuColumns.length ? menuColumns.map((column) => (
               <div key={column.title}>
@@ -85,22 +88,13 @@ export default function Footer() {
               <h4>Customer Service</h4>
               <ul>
                 <li>
-                  <a href="#">Contact us</a>
-                </li>
-                <li>
-                  <a href="#">Delivery &amp; returns</a>
-                </li>
-                <li>
                   <Link href={href.account({ tab: "orders" })}>Warranty &amp; RMA</Link>
                 </li>
                 <li>
-                  <a href="#">Track my order</a>
+                  <Link href={href.account({ tab: "orders" })}>Track my order</Link>
                 </li>
                 <li>
-                  <a href="#">Payment methods</a>
-                </li>
-                <li>
-                  <a href="/faqs">FAQs</a>
+                  <Link href="/faqs">FAQs</Link>
                 </li>
               </ul>
             </div>
@@ -108,19 +102,10 @@ export default function Footer() {
               <h4>Company</h4>
               <ul>
                 <li>
-                  <a href="/pages/about-us">About us</a>
+                  <Link href="/pages/about-us">About us</Link>
                 </li>
                 <li>
-                  <a href="/testimonials">Reviews</a>
-                </li>
-                <li>
-                  <a href="#">Careers</a>
-                </li>
-                <li>
-                  <a href="#">Business &amp; education</a>
-                </li>
-                <li>
-                  <a href="#">Services</a>
+                  <Link href="/testimonials">Reviews</Link>
                 </li>
                 <li>
                   <Link href={href.brands()}>All brands</Link>
@@ -130,12 +115,6 @@ export default function Footer() {
             <div>
               <h4>Resources</h4>
               <ul>
-                <li>
-                  <a href="#">Tech hub</a>
-                </li>
-                <li>
-                  <a href="#">Trade-in</a>
-                </li>
                 <li>
                   <Link href={href.compare()}>Compare products</Link>
                 </li>
@@ -174,11 +153,12 @@ export default function Footer() {
                 {settings.copyright || `© 2026 ${theme.brand.legalName}`}
                 {settings.vatNumber ? ` · VAT ${settings.vatNumber}` : ""}
               </span>
+              {/* Legal pages are linked from the "Legal" column in Admin > Menus > Footer. This button lets a
+                  visitor change or withdraw their cookie choice as easily as they gave it (PECR). */}
               <div className="flegal">
-                <a href="#">Terms &amp; conditions</a>
-                <a href="#">Privacy policy</a>
-                <a href="#">Cookies</a>
-                <a href="#">Accessibility</a>
+                <button type="button" onClick={reopenCookieBanner} style={{ background: "none", border: 0, padding: 0, color: "inherit", font: "inherit", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 2 }}>
+                  Cookie preferences
+                </button>
               </div>
             </div>
             <div className="pay">

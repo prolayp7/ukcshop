@@ -8,14 +8,19 @@ import Crumbs from "@/components/Crumbs";
 import Header from "./Header";
 import Footer from "./Footer";
 
-// contentBlocks is an admin-authored free-form JSON field. Until the admin
-// panel's page editor settles on a block shape, render defensively: a plain
-// string renders as paragraphs, an array of {heading?, body} blocks renders
-// as sections, anything else is skipped rather than crashing the page.
+// contentBlocks is admin-authored: a plain string (paragraphs split by blank
+// lines) or an array of {heading?, body} sections, where body is either plain
+// text or rich text from the admin's page editor. Rich text arrives already
+// sanitised by the API (ukshop-api storefront/cms/page-content.ts), which is
+// what makes rendering it as HTML safe. Anything else is skipped rather than
+// crashing the page.
+const isHtml = (text: string) => /<[a-z][\s\S]*>/i.test(text);
+function renderBody(text: string, key?: number) {
+  if (isHtml(text)) return <div key={key} className="info-rich" dangerouslySetInnerHTML={{ __html: text }} />;
+  return text.split("\n\n").map((para, i) => <p key={`${key ?? ""}-${i}`}>{para}</p>);
+}
 function renderBlocks(blocks: unknown) {
-  if (typeof blocks === "string") {
-    return blocks.split("\n\n").map((para, i) => <p key={i}>{para}</p>);
-  }
+  if (typeof blocks === "string") return renderBody(blocks);
   if (Array.isArray(blocks)) {
     return blocks.map((block, i) => {
       if (block && typeof block === "object" && "body" in block) {
@@ -23,7 +28,7 @@ function renderBlocks(blocks: unknown) {
         return (
           <section key={i}>
             {b.heading ? <h2>{b.heading}</h2> : null}
-            {b.body?.split("\n\n").map((para, j) => <p key={j}>{para}</p>)}
+            {b.body ? renderBody(b.body) : null}
           </section>
         );
       }
