@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, CheckCircle2, ChevronRight, CircleHelp, CreditCard, Heart, LogOut, MapPin, Package, Search, Settings, ShieldCheck, ShoppingBag, ShoppingCart, Truck, UserRound, Zap } from "lucide-react";
+import { ArrowRight, Check, CheckCircle2, ChevronRight, CircleHelp, CreditCard, Heart, LogOut, MapPin, Package, Search, Settings, ShieldCheck, ShoppingBag, ShoppingCart, Truck, UserRound, Zap, RotateCcw } from "lucide-react";
 import { useHref } from "@/lib/design-context";
 import type { Customer } from "@/lib/storefront-client";
 import { logout } from "@/lib/storefront-client";
@@ -14,7 +14,7 @@ import { AddToBasketButton } from "@/components/interactive";
 import styles from "./account-overview.module.css";
 
 interface Props {
-  activeTab?: "overview" | "orders" | "wishlist" | "addresses" | "details";
+  activeTab?: "overview" | "orders" | "returns" | "wishlist" | "addresses" | "details";
   children?: ReactNode;
   customer: Customer;
   orders: Order[] | null;
@@ -57,6 +57,7 @@ export default function AccountOverview({ activeTab = "overview", children, cust
   const tabs = [
     { tab: "overview", label: "Account overview", Icon: UserRound },
     { tab: "orders", label: "Orders & deliveries", Icon: Truck },
+    { tab: "returns", label: "Returns", Icon: RotateCcw },
     { tab: "wishlist", label: "Saved products", Icon: Heart },
     { tab: "addresses", label: "Delivery addresses", Icon: MapPin },
     { tab: "details", label: "Account details", Icon: Settings },

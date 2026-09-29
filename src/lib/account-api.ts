@@ -80,7 +80,7 @@ export interface OrderItem {
   status: string;
   returnEligible: boolean;
   returnDeadline: string | null;
-  returns?: { id: number; returnStatus: string }[];
+  returnItems?: { quantity: number; approvedQuantity: number | null; receivedQuantity: number | null; acceptedQuantity: number | null; inspectionResult: string | null; returnRequest: { returnNumber: string; status: ReturnStatus } }[];
 }
 export interface ShipmentEvent {
   id: number;
@@ -146,6 +146,69 @@ export function downloadInvoice(uuid: string): Promise<Blob> {
 export function cancelOrder(uuid: string, reason?: string): Promise<Order> {
   return request(`orders/${encodeURIComponent(uuid)}/cancel`, { method: "PATCH", body: JSON.stringify({ reason }) });
 }
-export function requestReturn(orderItemId: number, reason: string, comment?: string): Promise<{ id: number; returnStatus: string }> {
-  return request("returns", { method: "POST", body: JSON.stringify({ orderItemId, reason, comment }) });
+// ---- Returns (order-item level: partial quantities, several returns per order) ----
+
+export type ReturnStatus = "RETURN_REQUESTED" | "RETURN_APPROVED" | "RETURN_REJECTED" | "PICKUP_SCHEDULED" | "PICKED_UP" | "RETURN_RECEIVED" | "INSPECTION" | "REFUND_APPROVED" | "REFUND_PROCESSING" | "COMPLETED" | "CANCELLED";
+export type ReturnReason = "DAMAGED" | "DEFECTIVE" | "WRONG_ITEM" | "MISSING_PARTS" | "NOT_AS_DESCRIBED" | "POOR_CONDITION" | "CHANGED_MIND" | "OTHER";
+
+export interface ReturnAddress { fullName: string; line1: string; line2: string | null; city: string; county: string | null; postcode: string; phone: string | null }
+export interface ReturnableItem {
+  orderItemId: number; title: string; variant: string; sku: string | null; productId: number;
+  ordered: number; delivered: number; previouslyReturned: number; returnable: number;
+  eligible: boolean; reason: string | null; returnDeadline: string | null; unitRefund: number;
+}
+export interface ReturnableOrder {
+  order: { uuid: string; orderNumber: string; status: string };
+  deliveryAddress: ReturnAddress;
+  savedAddresses: (ReturnAddress & { id: number; label: string | null })[];
+  reasons: { value: ReturnReason; label: string }[];
+  items: ReturnableItem[];
+}
+export interface ReturnItemView {
+  id: number; orderItemId: number; title: string; variant: string; sku: string | null; productId: number;
+  orderedQuantity: number; quantity: number; approvedQuantity: number | null; receivedQuantity: number | null; acceptedQuantity: number | null;
+  reason: ReturnReason; reasonLabel: string; reasonOther: string | null; description: string | null;
+  inspectionResult: "ACCEPTED" | "PARTIALLY_ACCEPTED" | "REJECTED" | null; inspectionRejectionReason: string | null;
+  deductionAmount: number; deductionReason: string | null; refundAmount: number; refundIsFinal: boolean; imageIds: number[];
+}
+export interface ReturnView {
+  returnNumber: string; status: ReturnStatus; createdAt: string;
+  order: { uuid: string; orderNumber: string };
+  pickupAddress: ReturnAddress;
+  pickup: { courier: string | null; date: string | null; window: string | null; trackingNumber: string | null } | null;
+  rejectionReason: string | null;
+  items: ReturnItemView[];
+  shippingRefund: number; refundTotal: number;
+  refunds: { amount: number; status: "PENDING" | "PROCESSING" | "PROCESSED" | "FAILED" | "CANCELLED"; providerRefundId: string | null; method: string; processedAt: string | null; createdAt: string }[];
+  events: { status: ReturnStatus | null; action: string; note: string | null; createdAt: string }[];
+  estimatedRefund?: number;
+}
+export interface NewReturnItem { orderItemId: number; quantity: number; reason: ReturnReason; reasonOther?: string; description?: string; photos: File[] }
+
+export function getReturnable(orderUuid: string): Promise<ReturnableOrder> {
+  return request(`returns/orders/${encodeURIComponent(orderUuid)}`);
+}
+/** One multipart request: the details as JSON plus each item's photos as evidence_<index>. */
+export function createReturn(input: { orderUuid: string; addressId?: number; items: NewReturnItem[] }): Promise<ReturnView> {
+  const form = new FormData();
+  form.append("data", JSON.stringify({
+    orderUuid: input.orderUuid,
+    ...(input.addressId ? { addressId: input.addressId } : {}),
+    items: input.items.map((item) => ({ orderItemId: item.orderItemId, quantity: item.quantity, reason: item.reason, reasonOther: item.reasonOther, description: item.description })),
+  }));
+  input.items.forEach((item, index) => item.photos.forEach((photo) => form.append(`evidence_${index}`, photo, photo.name)));
+  return request("returns", { method: "POST", body: form });
+}
+export function listReturns(): Promise<ReturnView[]> {
+  return request("returns");
+}
+export function getReturn(returnNumber: string): Promise<ReturnView> {
+  return request(`returns/${encodeURIComponent(returnNumber)}`);
+}
+export function cancelReturn(returnNumber: string): Promise<ReturnView> {
+  return request(`returns/${encodeURIComponent(returnNumber)}/cancel`, { method: "POST" });
+}
+/** Evidence photos are private, so they are fetched with the customer's credentials, not as plain URLs. */
+export function returnImage(returnNumber: string, imageId: number): Promise<Blob> {
+  return requestBlob(`returns/${encodeURIComponent(returnNumber)}/images/${imageId}`);
 }

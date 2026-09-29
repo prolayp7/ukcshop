@@ -99,7 +99,8 @@ function apiUrl(path: string): string {
 
 async function rawRequest(path: string, init: RequestInit, accessToken?: string): Promise<Response> {
   const headers = new Headers(init.headers);
-  if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+  // FormData (e.g. return photos) gets its multipart boundary from the browser, so never override it.
+  if (init.body && !(init.body instanceof FormData) && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
   if (accessToken) {
     headers.set("Authorization", `Bearer ${accessToken}`);
   } else {

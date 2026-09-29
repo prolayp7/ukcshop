@@ -41,6 +41,8 @@ export function makeHref(slug = "", categoryPaths: CategoryPaths = {}) {
     register: () => `${base}/register`,
     forgotPassword: () => `${base}/forgot-password`,
     order: (uuid: string) => `${base}/account/orders/${uuid}`,
+    returnNew: (orderUuid: string) => `${base}/account/returns/new?order=${encodeURIComponent(orderUuid)}`,
+    returnDetail: (returnNumber: string) => `${base}/account/returns/${encodeURIComponent(returnNumber)}`,
     invoice: (uuid: string) => `${base}/account/orders/${uuid}/invoice`,
   };
 }

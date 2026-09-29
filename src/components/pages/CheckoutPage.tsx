@@ -64,6 +64,7 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
 
   const [shippingMethods, setShippingMethods] = useState<ShippingQuote[]>([]);
   const [shippingMethodId, setShippingMethodId] = useState<number | null>(null);
+  const placingRef = useRef(false);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -150,7 +151,8 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
   // one key per checkout page visit: a double click or retry returns the same order
   const checkoutKey = useRef(crypto.randomUUID());
   const placeOrder = async () => {
-    if (!shippingAddress || !shippingMethodId || !provider) return;
+    if (!shippingAddress || !shippingMethodId || !provider || placingRef.current) return;
+    placingRef.current = true;
     setPlacing(true);
     setPlaceError("");
     try {
@@ -163,6 +165,7 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
       sessionStorage.setItem(PAYPAL_RETURN_KEY, JSON.stringify(currentOrder));
       window.location.href = attempt.redirectUrl;
     } catch {
+      placingRef.current = false;
       setPlaceError(order ? `We couldn't start ${providerInfo?.redirect ?? "the"} payment — please try again.` : "We couldn't place your order — check your details and try again.");
       toast.error("Could not start payment", { description: "Check your details and try again." });
       setPlacing(false);
@@ -456,7 +459,7 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
                       ← Back to payment
                     </button>
                   ) : <span />}
-                  <button className="ck-next" disabled={placing || !provider} onClick={() => void placeOrder()}>
+                  <button className="ck-next" disabled={placing || !provider} aria-busy={placing} onClick={() => void placeOrder()}>
                     {placing ? `Redirecting to ${providerInfo?.redirect}…` : `Pay with ${providerInfo?.redirect} — ${money(order ? Number(order.total) : total)}`}
                   </button>
                 </div>

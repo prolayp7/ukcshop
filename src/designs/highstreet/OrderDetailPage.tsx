@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useCustomerAuth } from "@/lib/storefront-client";
-import { getOrder, cancelOrder, requestReturn, Order } from "@/lib/account-api";
+import { getOrder, cancelOrder, getReturnable, Order, type ReturnableItem } from "@/lib/account-api";
+import { ReturnStatusBadge } from "@/components/pages/ReturnParts";
 import { money } from "@/lib/catalogue";
 import { PAID_PAYMENT_STATUSES } from "@/lib/invoice";
 import { useHref } from "@/lib/design-context";
@@ -21,11 +22,7 @@ export default function OrderDetailPage() {
   const [error, setError] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
-  const [returnItemId, setReturnItemId] = useState<number | null>(null);
-  const [returnReason, setReturnReason] = useState("");
-  const [returnComment, setReturnComment] = useState("");
-  const [returnSubmitting, setReturnSubmitting] = useState(false);
-  const [returnError, setReturnError] = useState<string | null>(null);
+  const [returnable, setReturnable] = useState<Map<number, ReturnableItem> | null>(null);
 
   // See the equivalent note in AccountPage: isLoggedIn's first client
   // render always matches the server's logged-out snapshot, even for a
@@ -44,6 +41,12 @@ export default function OrderDetailPage() {
       .then(setOrder)
       .catch(() => setError(true));
   }, [isLoggedIn, params.uuid]);
+  // Per-item return eligibility (quantities already returned, deadline) once goods have arrived.
+  const delivered = order ? ["DELIVERED", "PARTIALLY_RETURNED", "RETURNED"].includes(order.status) : false;
+  useEffect(() => {
+    if (!isLoggedIn || !delivered) return;
+    getReturnable(params.uuid).then((data) => setReturnable(new Map(data.items.map((item) => [item.orderItemId, item])))).catch(() => undefined);
+  }, [isLoggedIn, delivered, params.uuid]);
 
   const CANCELLABLE = ["PENDING", "AWAITING_PAYMENT", "PROCESSING"];
   async function handleCancel() {
@@ -57,24 +60,6 @@ export default function OrderDetailPage() {
       setCancelError(err instanceof Error ? err.message : "Couldn't cancel this order.");
     } finally {
       setCancelling(false);
-    }
-  }
-
-  async function handleReturnSubmit(e: React.FormEvent, itemId: number) {
-    e.preventDefault();
-    setReturnSubmitting(true);
-    setReturnError(null);
-    try {
-      await requestReturn(itemId, returnReason, returnComment || undefined);
-      const updated = await getOrder(params.uuid);
-      setOrder(updated);
-      setReturnItemId(null);
-      setReturnReason("");
-      setReturnComment("");
-    } catch (err) {
-      setReturnError(err instanceof Error ? err.message : "Couldn't submit the return request.");
-    } finally {
-      setReturnSubmitting(false);
     }
   }
 
@@ -96,6 +81,9 @@ export default function OrderDetailPage() {
   if (!order) return <div className="wrap" style={{ padding: "60px 0", textAlign: "center", color: "var(--body)" }}>Loading…</div>;
 
   const shipment = order.shipments?.[0];
+  const canStartReturn = !!returnable && [...returnable.values()].some((item) => item.eligible);
+  // Every return made against this order (an order can have several).
+  const orderReturns = [...new Map(order.items.flatMap((item) => item.returnItems ?? []).map((ri) => [ri.returnRequest.returnNumber, ri.returnRequest])).values()];
 
   return (
     <>
@@ -112,6 +100,11 @@ export default function OrderDetailPage() {
               View / download invoice
             </Link>
           ) : null}
+          {canStartReturn ? (
+            <Link className="bk-cta" href={href.returnNew(order.uuid)} style={{ display: "inline-flex", padding: "10px 20px", marginTop: 8, marginRight: 8 }}>
+              Return products
+            </Link>
+          ) : null}
           {CANCELLABLE.includes(order.status) ? (
             <>
               <button type="button" className="bk-cta" onClick={handleCancel} disabled={cancelling} style={{ display: "inline-flex", padding: "10px 20px", marginTop: 8 }}>
@@ -124,12 +117,7 @@ export default function OrderDetailPage() {
         <div className="ac-order" style={{ marginBottom: 16 }}>
           <div className="ac-orderitems">
             {order.items.map((item) => {
-              const existingReturn = item.returns?.[0];
-              const canReturn =
-                order.status === "DELIVERED" &&
-                item.returnEligible &&
-                !existingReturn &&
-                (!item.returnDeadline || new Date(item.returnDeadline) >= new Date());
+              const info = returnable?.get(item.id);
               return (
                 <div className="ac-oi" key={item.id} style={{ flexWrap: "wrap" }}>
                   <span>
@@ -140,43 +128,14 @@ export default function OrderDetailPage() {
                     <em>
                       Qty {item.quantity} · {money(Number(item.unitPrice))}
                     </em>
+                    {info ? (
+                      <em style={{ display: "block", marginTop: 4 }}>
+                        Delivered {info.delivered} · Previously returned {info.previouslyReturned} · Returnable {info.returnable}
+                        {info.eligible && info.returnDeadline ? ` · Return by ${new Date(info.returnDeadline).toLocaleDateString("en-GB")}` : ""}
+                        {!info.eligible && info.reason ? ` · ${info.reason}` : ""}
+                      </em>
+                    ) : null}
                   </span>
-                  {existingReturn ? (
-                    <span style={{ fontSize: 13, color: "var(--body)" }}>Return {existingReturn.returnStatus.toLowerCase()}</span>
-                  ) : canReturn && returnItemId !== item.id ? (
-                    <button
-                      type="button"
-                      className="bk-cta"
-                      style={{ padding: "6px 14px", fontSize: 13 }}
-                      onClick={() => {
-                        setReturnItemId(item.id);
-                        setReturnReason("");
-                        setReturnComment("");
-                        setReturnError(null);
-                      }}
-                    >
-                      Request return
-                    </button>
-                  ) : null}
-                  {returnItemId === item.id ? (
-                    <form onSubmit={(e) => handleReturnSubmit(e, item.id)} style={{ width: "100%", marginTop: 10 }}>
-                      <div className="ck-field">
-                        <label htmlFor={`return-reason-${item.id}`}>Reason</label>
-                        <input id={`return-reason-${item.id}`} value={returnReason} onChange={(e) => setReturnReason(e.target.value)} maxLength={500} required />
-                      </div>
-                      <div className="ck-field">
-                        <label htmlFor={`return-comment-${item.id}`}>Comment (optional)</label>
-                        <textarea id={`return-comment-${item.id}`} value={returnComment} onChange={(e) => setReturnComment(e.target.value)} maxLength={2000} rows={3} />
-                      </div>
-                      {returnError ? <p style={{ color: "#c0392b", fontSize: 13, margin: "0 0 10px" }}>{returnError}</p> : null}
-                      <button className="bk-cta" type="submit" disabled={returnSubmitting} style={{ display: "inline-flex", padding: "8px 16px", marginRight: 8 }}>
-                        {returnSubmitting ? "Submitting…" : "Submit request"}
-                      </button>
-                      <button type="button" onClick={() => setReturnItemId(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--body)" }}>
-                        Cancel
-                      </button>
-                    </form>
-                  ) : null}
                 </div>
               );
             })}
@@ -202,6 +161,19 @@ export default function OrderDetailPage() {
             </div>
           </div>
         </div>
+        {orderReturns.length ? (
+          <div className="ac-block" style={{ marginBottom: 16 }}>
+            <div className="ac-blockhead">
+              <h2>Returns for this order</h2>
+            </div>
+            {orderReturns.map((ret) => (
+              <div key={ret.returnNumber} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid var(--c-line)", fontSize: 13 }}>
+                <Link href={href.returnDetail(ret.returnNumber)} style={{ fontWeight: 700 }}>{ret.returnNumber}</Link>
+                <ReturnStatusBadge status={ret.status} />
+              </div>
+            ))}
+          </div>
+        ) : null}
         <div className="ck-rev" style={{ marginBottom: 16 }}>
           <div>
             <h4>Delivering to</h4>

@@ -5,14 +5,15 @@ import { useSearchParams } from "next/navigation";
 import { DesignParts } from "@/lib/parts";
 import { useWishlist } from "@/lib/basket";
 import { fetchMe, useCustomerAuth } from "@/lib/storefront-client";
-import { Address, Order, listAddresses, listOrders } from "@/lib/account-api";
+import { Address, Order, ReturnView, listAddresses, listOrders, listReturns } from "@/lib/account-api";
 import { useApi } from "@/lib/use-api";
 import { Product } from "@/lib/types";
 import { useHref } from "@/lib/design-context";
 import AccountOverview from "./AccountOverview";
 import { OrdersTab, WishlistTab, AddressesTab, DetailsTab } from "./AccountTabs";
+import { ReturnsTab } from "./ReturnParts";
 
-const TABS = ["overview", "orders", "wishlist", "addresses", "details"] as const;
+const TABS = ["overview", "orders", "returns", "wishlist", "addresses", "details"] as const;
 type Tab = (typeof TABS)[number];
 
 const subscribeToMount = () => () => {};
@@ -37,6 +38,8 @@ export default function AccountPage({ parts }: { parts: DesignParts }) {
   const [totalOrders, setTotalOrders] = useState<number | null>(null);
   const [addressesError, setAddressesError] = useState(false);
   const [addresses, setAddresses] = useState<Address[] | null>(null);
+  const [returns, setReturns] = useState<ReturnView[] | null>(null);
+  const [returnsError, setReturnsError] = useState(false);
   const recRes = useApi<{ items: Product[] }>("/api/products/recommended?limit=4");
   const rec = recRes.data?.items ?? [];
 
@@ -70,6 +73,10 @@ export default function AccountPage({ parts }: { parts: DesignParts }) {
     if (!isLoggedIn) return;
     if (!addresses && !addressesError) listAddresses().then(setAddresses).catch(() => setAddressesError(true));
   }, [isLoggedIn, addresses, addressesError]);
+  useEffect(() => {
+    if (!isLoggedIn || tab !== "returns" || returns || returnsError) return;
+    listReturns().then(setReturns).catch(() => setReturnsError(true));
+  }, [isLoggedIn, tab, returns, returnsError]);
 
   async function loadMoreOrders() {
     if (loadingMore) return;
@@ -89,12 +96,13 @@ export default function AccountPage({ parts }: { parts: DesignParts }) {
   }
 
   if (!isLoggedIn || !customer) return null;
-  const labels = { overview: "Account overview", orders: "Orders & deliveries", wishlist: "Saved products", addresses: "Delivery addresses", details: "Account details" };
+  const labels = { overview: "Account overview", orders: "Orders & deliveries", returns: "Returns", wishlist: "Saved products", addresses: "Delivery addresses", details: "Account details" };
   return <>
     <Header />
     <Crumbs items={[{ label: "Home", href: href.home() }, { label: "My account", href: href.account() }, { label: labels[tab] }]} />
     <AccountOverview activeTab={tab} customer={customer} orders={orders} totalOrders={totalOrders} ordersError={ordersError} onRetry={() => setOrdersError(false)} addresses={addresses} addressesError={addressesError} wishlist={wishlist} products={rec} productsLoading={recRes.loading} productsError={recRes.error}>
       {tab === "orders" ? <OrdersTab orders={orders} total={totalOrders} error={ordersError} onRetry={() => setOrdersError(false)} onLoadMore={loadMoreOrders} loadingMore={loadingMore} moreError={moreError} /> :
+        tab === "returns" ? <ReturnsTab returns={returns} error={returnsError} onRetry={() => setReturnsError(false)} /> :
         tab === "wishlist" ? <WishlistTab items={wishlist} /> :
         tab === "addresses" ? <AddressesTab addresses={addresses} error={addressesError} onRetry={() => setAddressesError(false)} onChange={setAddresses} /> :
         tab === "details" ? <DetailsTab customer={customer} /> : undefined}
