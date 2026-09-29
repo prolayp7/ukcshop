@@ -10,7 +10,8 @@ import { CartDrawerProvider } from "@/components/CartDrawer";
 import { DesignSlugProvider } from "@/lib/design-context";
 import { getActiveDesign } from "@/lib/designs";
 import { theme } from "@/lib/theme.config";
-import { fetchGeneralSettings, type ApiGeneralSettings } from "@/lib/api";
+import { fetchCategoryTree, fetchGeneralSettings, type ApiGeneralSettings } from "@/lib/api";
+import { buildCategoryPaths } from "@/lib/category-paths";
 import "./globals.css";
 import "@/components/pages/category.css";
 
@@ -35,7 +36,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const design = getActiveDesign();
-  const settings = await fetchGeneralSettings().catch(() => ({}) as ApiGeneralSettings);
+  const [settings, categoryTree] = await Promise.all([
+    fetchGeneralSettings().catch(() => ({}) as ApiGeneralSettings),
+    fetchCategoryTree().catch(() => []),
+  ]);
   return (
     <html lang="en-GB">
       <head>
@@ -76,7 +80,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           <noscript><img height="1" width="1" alt="" style={{ display: "none" }} src={`https://www.facebook.com/tr?id=${settings.metaPixelId}&ev=PageView&noscript=1`} /></noscript>
         ) : null}
         <Sprite />
-        <DesignSlugProvider slug="">
+        <DesignSlugProvider slug="" categoryPaths={buildCategoryPaths(categoryTree)}>
           <CartDrawerProvider>
             <main id="main-content">{children}</main>
             <StoreToaster />

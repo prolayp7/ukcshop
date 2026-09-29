@@ -64,7 +64,7 @@ export default function BrandPage() {
       <Header />
       <Crumbs items={[{ label: "Home", href: href.home() }, { label: "Brands", href: href.brands() }, { label: b.title }]} />
       <div className="wrap">
-        <div className="bhero" style={{ backgroundImage: `url(https://picsum.photos/seed/ukcs-a-brand-${encodeURIComponent(b.slug)}/1200/700)` }}>
+        <div className="bhero">
           <div>
             {b.logo ? (
               <div className="mark"><Image src={b.logo} alt={b.logoAlt || b.title} width={64} height={64} unoptimized className="h-full w-full object-contain" /></div>

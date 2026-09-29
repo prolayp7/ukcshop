@@ -8,6 +8,7 @@
  * client-side interactivity or auth cookie involved.
  */
 import { Product } from "./types";
+import { buildCategoryPaths, canonicalCategoryHref } from "./category-paths";
 
 function getStorefrontApiUrl(path: string): string {
   const baseUrl = process.env.UKSHOP_API_URL ?? "http://localhost:3000/api/v1";
@@ -364,6 +365,11 @@ export interface ApiReview {
   orderItemId: number | null;
 }
 
+/** Store-wide rating over every approved review; `average` is null when there are none. */
+export function fetchReviewSummary(): Promise<{ count: number; average: number | null }> {
+  return apiGet<{ data: { count: number; average: number | null } }>("reviews/summary", 300).then((r) => r.data);
+}
+
 export async function fetchReviews(productId: number, page = 1, perPage = 20): Promise<{ items: ApiReview[]; meta: PaginationMeta }> {
   const res = await apiGet<{ data: ApiReview[]; meta: PaginationMeta }>(`reviews?productId=${productId}&page=${page}&perPage=${perPage}`, 30);
   return { items: res.data, meta: res.meta };
@@ -447,14 +453,66 @@ export async function fetchRegisterPageContent(): Promise<RegisterPageContent | 
   return res?.data ?? null;
 }
 
+/** One tab of the header navigation, resolved from the admin "header" menu (Menus in the admin). */
+export interface HeaderNavLink { label: string; href: string }
+export interface HeaderNavPromo { title: string; text: string | null; cta: string; href: string }
+export interface HeaderNavItem {
+  label: string;
+  href: string;
+  icon: string | null;
+  highlight: boolean;
+  /** "auto": one grid of the category's sub-categories; "custom": admin-built columns with headings. */
+  panel: null | { kind: "auto"; eyebrow: string | null; links: HeaderNavLink[]; promo: HeaderNavPromo | null } | { kind: "custom"; eyebrow: string | null; columns: { title: string | null; links: HeaderNavLink[] }[]; promo: HeaderNavPromo | null };
+}
+type ApiMenuCategory = { title: string; slug: string; parentId: number | null };
+interface ApiHeaderMenuItem {
+  label: string; href: string | null; icon: string | null; highlight: boolean; category: ApiMenuCategory | null;
+  megaMenuPanel: null | { mode: "AUTO" | "CUSTOM"; eyebrow: string | null; promoEnabled: boolean; promoTitle: string | null; promoText: string | null; promoCta: string | null; promoHref: string | null; promoCategory: ApiMenuCategory | null; columns: { title: string | null; links: { label: string; href: string | null; category: ApiMenuCategory | null }[] }[] };
+}
+
+
+/** The header navigation, or null when the menu is missing/empty or the API is unavailable (the header then falls back to the category tree). */
+export async function fetchHeaderNav(): Promise<HeaderNavItem[] | null> {
+  const [menu, tree] = await Promise.all([
+    apiGetOrNull<{ items: ApiHeaderMenuItem[] }>("menus/header", 20).catch(() => null),
+    fetchCategoryTree().catch(() => [] as ApiCategory[]),
+  ]);
+  const items = menu?.items ?? [];
+  if (!items.length) return null;
+  const paths = buildCategoryPaths(tree);
+  const categoryPath = (slug: string) => paths[slug.toLowerCase()] ?? `/category?cat=${encodeURIComponent(slug)}`;
+  const linkTo = (category: ApiMenuCategory | null, href: string | null) => (category ? categoryPath(category.slug) : href ? canonicalCategoryHref(href, paths) : null);
+  return items.flatMap((item): HeaderNavItem[] => {
+    const href = linkTo(item.category, item.href);
+    if (!href) return [];
+    const panel = item.megaMenuPanel;
+    const promoHref = panel?.promoEnabled ? linkTo(panel.promoCategory, panel.promoHref) : null;
+    const promo = panel && promoHref && panel.promoTitle ? { title: panel.promoTitle, text: panel.promoText, cta: panel.promoCta || "Shop now", href: promoHref } : null;
+    const base = { label: item.label, href, icon: item.icon, highlight: item.highlight };
+    if (!panel) return [{ ...base, panel: null }];
+    if (panel.mode === "AUTO") {
+      // Built from the live category tree so new sub-categories appear without editing the menu.
+      const department = item.category && tree.find((category) => category.title === item.category!.title);
+      const links = (department?.children ?? []).map((child) => ({ label: child.title, href: categoryPath(child.slug) }));
+      return [{ ...base, panel: links.length ? { kind: "auto", eyebrow: panel.eyebrow, links, promo } : null }];
+    }
+    const columns = panel.columns.map((column) => ({ title: column.title, links: column.links.flatMap((link) => { const target = linkTo(link.category, link.href); return target ? [{ label: link.label, href: target }] : []; }) })).filter((column) => column.links.length);
+    return [{ ...base, panel: columns.length ? { kind: "custom", eyebrow: panel.eyebrow, columns, promo } : null }];
+  });
+}
+
 export interface FooterColumn { title: string; links: { label: string; href: string }[] }
 interface ApiFooterLink { label: string; href: string | null; category: { slug: string } | null }
 
 /** Admin-managed footer link columns (Menus -> "footer"): top-level items are column titles, their children the links. Empty when the menu is missing. */
 export async function fetchFooterMenu(): Promise<FooterColumn[]> {
-  const menu = await apiGetOrNull<{ items: (ApiFooterLink & { children: ApiFooterLink[] })[] }>("menus/footer");
+  const [menu, tree] = await Promise.all([
+    apiGetOrNull<{ items: (ApiFooterLink & { children: ApiFooterLink[] })[] }>("menus/footer"),
+    fetchCategoryTree().catch(() => [] as ApiCategory[]),
+  ]);
+  const paths = buildCategoryPaths(tree);
   const toLink = (item: ApiFooterLink) => {
-    const href = item.href || (item.category ? `/category?cat=${encodeURIComponent(item.category.slug)}` : null);
+    const href = item.href ? canonicalCategoryHref(item.href, paths) : item.category ? paths[item.category.slug.toLowerCase()] ?? `/category?cat=${encodeURIComponent(item.category.slug)}` : null;
     return href ? { label: item.label, href } : null;
   };
   return (menu?.items ?? []).map((column) => ({ title: column.label, links: column.children.map(toLink).filter((link): link is { label: string; href: string } => link !== null) })).filter((column) => column.links.length > 0);

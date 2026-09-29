@@ -11,16 +11,14 @@ import { BasketCount, BasketTotal } from "@/components/BasketBadge";
 import { CartTrigger } from "@/components/CartDrawer";
 import { useHref } from "@/lib/design-context";
 import { useApi } from "@/lib/use-api";
-import { ApiGeneralSettings, type ApiCategory, type ApiBrand, type ListMeta } from "@/lib/api";
+import { ApiGeneralSettings, type ApiCategory, type ApiBrand, type HeaderNavItem, type ListMeta } from "@/lib/api";
 import { useWishlist, useCompare } from "@/lib/basket";
 import { useCustomerAuth } from "@/lib/storefront-client";
-import { MEGA_PROMO, GAMING_MEGA } from "@/lib/homepage-content";
 import { theme } from "@/lib/theme.config";
 import QuickView from "./QuickView";
 import FloatingShopActions from "@/components/FloatingShopActions";
 
-/** Real top-level categories get a data-driven mega menu straight from the
- * catalogue, so it can never drift from what's actually stocked. */
+/** Icons for the category-tree fallback navigation (the admin menu sets its own). */
 const MEGA_ICON: Record<string, string> = {
   "PC Components": "i-gpu",
   Computers: "i-pc",
@@ -98,10 +96,20 @@ export default function Header() {
   // filtered client-side — same live source the category/brand pages use.
   const categoriesRes = useApi<{ items: ApiCategory[] }>("/api/categories");
   const brandsRes = useApi<{ items: ApiBrand[] }>("/api/brands");
-  const navTree = useMemo(() => {
-    const items = categoriesRes.data?.items ?? [];
-    return items.map((c) => ({ category: c.title, subs: c.children.map((child) => child.title) }));
-  }, [categoriesRes.data]);
+  // Top navigation is the admin-managed "header" menu (admin: Storefront > Menus). If that menu is
+  // missing or the API is down, fall back to the category tree so the shop stays navigable.
+  const menuRes = useApi<{ data: HeaderNavItem[] | null }>("/api/menus/header");
+  const nav = useMemo<HeaderNavItem[]>(() => {
+    if (menuRes.loading) return [];
+    if (menuRes.data?.data) return menuRes.data.data;
+    return (categoriesRes.data?.items ?? []).map((c) => ({
+      label: c.title,
+      href: href.category({ cat: c.title }),
+      icon: MEGA_ICON[c.title] || "i-gpu",
+      highlight: false,
+      panel: c.children.length ? { kind: "auto" as const, eyebrow: "Shop department", links: c.children.map((child) => ({ label: child.title, href: href.category({ sub: child.title }) })), promo: null } : null,
+    }));
+  }, [menuRes.loading, menuRes.data, categoriesRes.data, href]);
   const suggestions = useMemo(() => {
     const s = q.trim().toLowerCase();
     if (s.length < 2) return null;
@@ -286,83 +294,61 @@ export default function Header() {
         if (!event.currentTarget.contains(event.relatedTarget)) setOpenMega(null);
       }}>
         <div className="wrap">
-          {navTree.map((node) => (
-            <div className={`has-mega${openMega === node.category ? " is-open" : ""}`} key={node.category} onMouseEnter={() => setOpenMega(node.category)}>
-              <Link className="top" href={href.category({ cat: node.category })} aria-expanded={openMega === node.category} aria-controls={`mega-${node.category.replace(/\s+/g, "-").toLowerCase()}`} onFocus={() => setOpenMega(node.category)}>
-                <Icon id={MEGA_ICON[node.category] || "i-gpu"} w={14} h={14} />
-                {node.category} <Icon className="mega-chevron" id="i-chev" w={14} />
-              </Link>
-              <div className="mega" id={`mega-${node.category.replace(/\s+/g, "-").toLowerCase()}`} aria-hidden={openMega !== node.category}>
-                <div className="wrap">
-                  <div className="mega-main">
-                    <div className="mega-head">
-                      <div><span>Shop department</span><h3>{node.category}</h3></div>
-                      <Link href={href.category({ cat: node.category })} onClick={() => setOpenMega(null)}>View all <Icon id="i-arr" w={13} /></Link>
-                    </div>
-                    <div className="megagrid">
-                      {node.subs.map((s) => (
-                        <Link className="mega-item" href={href.category({ sub: s })} key={s} onClick={() => setOpenMega(null)}>
-                          <span className="mega-item-icon"><Icon id={MEGA_ICON[node.category] || "i-gpu"} w={18} h={18} /></span>
-                          <span><b>{s}</b><em>Browse {s.toLowerCase()}</em></span>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                  {MEGA_PROMO[node.category] ? (
-                    <Link className="promo" href={href.category(MEGA_PROMO[node.category].href)} onClick={() => setOpenMega(null)}>
-                      <span>Featured</span>
-                      <p>{MEGA_PROMO[node.category].label}</p>
-                      <em>{MEGA_PROMO[node.category].sub}</em>
-                      <b>
-                        Shop now <Icon id="i-arr" w={14} />
-                      </b>
-                    </Link>
-                  ) : null}
-                </div>
-              </div>
-            </div>
-          ))}
-
-          <div className={`has-mega${openMega === "Gaming" ? " is-open" : ""}`} onMouseEnter={() => setOpenMega("Gaming")}>
-            <Link className="top hot" href={href.category({ sub: "Gaming PCs" })} aria-expanded={openMega === "Gaming"} aria-controls="mega-gaming" onFocus={() => setOpenMega("Gaming")}>
-              Gaming <Icon className="mega-chevron" id="i-chev" w={14} />
-            </Link>
-            <div className="mega" id="mega-gaming" aria-hidden={openMega !== "Gaming"}>
-              <div className="wrap">
-                <div className="mega-main">
-                  <div className="mega-head">
-                    <div><span>Play your way</span><h3>Gaming</h3></div>
-                    <Link href={href.category({ sub: "Gaming PCs" })} onClick={() => setOpenMega(null)}>View all <Icon id="i-arr" w={13} /></Link>
-                  </div>
-                  <div className="megagrid megagrid-labeled">
-                    {GAMING_MEGA.map((col) => (
-                      <div key={col.heading}>
-                        <h4>{col.heading}</h4>
-                        {col.subs.map((s) => (
-                          <Link href={href.category({ sub: s })} key={s} onClick={() => setOpenMega(null)}>{s}</Link>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <Link className="promo" href={href.category({ cat: "PC Components" })} onClick={() => setOpenMega(null)}>
-                  <span>Featured</span>
-                  <p>Level up your gaming</p>
-                  <em>Prebuilt rigs, tested and benchmarked before they ship.</em>
-                  <b>
-                    Explore gaming <Icon id="i-arr" w={14} />
-                  </b>
+          {nav.map((item) => {
+            const topClass = `top${item.highlight ? " hot" : ""}`;
+            const icon = item.icon ? <Icon id={item.icon} w={14} h={14} /> : null;
+            if (!item.panel) return <Link className={topClass} href={item.href} key={item.label}>{icon}{item.label}</Link>;
+            const panel = item.panel;
+            const panelId = `mega-${item.label.replace(/\W+/g, "-").toLowerCase()}`;
+            const close = () => setOpenMega(null);
+            return (
+              <div className={`has-mega${openMega === item.label ? " is-open" : ""}`} key={item.label} onMouseEnter={() => setOpenMega(item.label)}>
+                <Link className={topClass} href={item.href} aria-expanded={openMega === item.label} aria-controls={panelId} onFocus={() => setOpenMega(item.label)}>
+                  {icon}
+                  {item.label} <Icon className="mega-chevron" id="i-chev" w={14} />
                 </Link>
+                <div className="mega" id={panelId} aria-hidden={openMega !== item.label}>
+                  <div className="wrap">
+                    <div className="mega-main">
+                      <div className="mega-head">
+                        <div>{panel.eyebrow ? <span>{panel.eyebrow}</span> : null}<h3>{item.label}</h3></div>
+                        <Link href={item.href} onClick={close}>View all <Icon id="i-arr" w={13} /></Link>
+                      </div>
+                      {panel.kind === "auto" ? (
+                        <div className="megagrid">
+                          {panel.links.map((link) => (
+                            <Link className="mega-item" href={link.href} key={link.href} onClick={close}>
+                              <span className="mega-item-icon"><Icon id={item.icon || "i-gpu"} w={18} h={18} /></span>
+                              <span><b>{link.label}</b><em>Browse {link.label.toLowerCase()}</em></span>
+                            </Link>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="megagrid megagrid-labeled">
+                          {panel.columns.map((column, index) => (
+                            <div key={index}>
+                              {column.title ? <h4>{column.title}</h4> : null}
+                              {column.links.map((link) => <Link href={link.href} key={`${link.label}-${link.href}`} onClick={close}>{link.label}</Link>)}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {panel.promo ? (
+                      <Link className="promo" href={panel.promo.href} onClick={close}>
+                        <span>Featured</span>
+                        <p>{panel.promo.title}</p>
+                        {panel.promo.text ? <em>{panel.promo.text}</em> : null}
+                        <b>
+                          {panel.promo.cta} <Icon id="i-arr" w={14} />
+                        </b>
+                      </Link>
+                    ) : null}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-
-          <Link className="top" href={href.brands()}>
-            Brands
-          </Link>
-          <Link className="top hot" href={href.category({ deals: 1 })}>
-            Deals
-          </Link>
+            );
+          })}
           <div className="right">
             <Icon id="i-truck" w={16} />
             <span>

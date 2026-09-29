@@ -62,7 +62,7 @@ export const CAT_ORDER = [
   "Laptops",
   "Peripherals",
   "Networking",
-  "Accessories",
+  "Software",
 ] as const;
 
 export type Category = (typeof CAT_ORDER)[number];

@@ -16,19 +16,18 @@ import { Href } from "@/lib/urls";
 import { useCountdown } from "@/lib/countdown";
 import Header from "./Header";
 import Footer from "./Footer";
+import NewsletterForm from "./NewsletterForm";
 import ProductCard from "./ProductCard";
 import BrandCard from "./BrandCard";
 import Hero, { HeroSideCard } from "./Hero";
 import {
   GAMING_CHIPS,
   NETWORK_CHIPS,
-  ACCESSORY_CHIPS,
+  SETUP_CHIPS,
   LAPTOP_CARDS,
   NEED_CARDS,
   RIGS,
   GUIDES,
-  SEO_COPY_TITLE,
-  SEO_COPY,
 } from "@/lib/homepage-content";
 
 const CAT_ICON: Record<string, string> = {
@@ -50,9 +49,17 @@ function bannerHref(banner: ApiHomeBundle["banners"][number], href: Href): strin
   return banner.customUrl ?? href.home();
 }
 
+/** Default featured-rail subtitle, by how the rail picks its products (Merchandising > Featured sections). */
+const FEATURED_SUBTITLE: Record<string, string> = {
+  BEST_SELLER: "Popular with UK customers, ranked by units sold.",
+  NEWLY_ADDED: "The latest additions to the catalogue.",
+  TOP_RATED: "Our highest-rated products.",
+  FEATURED: "Hand-picked by our team.",
+  MANUAL: "Hand-picked by our team.",
+};
+
 function SpecialOfferCard() {
   const href = useHref();
-  const t = useCountdown();
   const offerRes = useApi<{ items: Product[] }>("/api/products?onSale=true&sort=discount_desc&perPage=1");
   const p = offerRes.data?.items[0];
   if (!p || !p.was) return null;
@@ -64,20 +71,8 @@ function SpecialOfferCard() {
       <div className="offer-head">
         <div>
           <b>Special offer</b>
-          <p>Ends this week — reduced until Sunday midnight.</p>
-        </div>
-        <div className="offer-clock">
-          {[
-            ["Days", t.d],
-            ["Hrs", t.h],
-            ["Min", t.m],
-            ["Sec", t.s],
-          ].map(([label, v]) => (
-            <div key={label}>
-              <b>{v}</b>
-              <span>{label}</span>
-            </div>
-          ))}
+          {/* No countdown: products carry no sale end date, so any deadline shown here would be invented. */}
+          <p>Our biggest saving right now.</p>
         </div>
       </div>
       <div className="offer-body">
@@ -157,16 +152,21 @@ export default function Home() {
         image: typeof card?.image === "string" ? card.image : null,
       }))
     : [];
-  const newsletterConfig = sections.find((section) => section.type === "NEWSLETTER")?.config ?? {};
-  const newsletterHeading = typeof newsletterConfig.heading === "string" ? newsletterConfig.heading : "Get restock alerts & deal notifications";
-  const newsletterBody = typeof newsletterConfig.body === "string" ? newsletterConfig.body : "One email a week, mostly about stock drops and price cuts. No spam.";
-  const dealsConfig = sections.find((section) => section.type === "DEALS")?.config ?? {};
-  const dealsHeading = typeof dealsConfig.heading === "string" ? dealsConfig.heading : "Today's Best Deals";
-  const dealsBody = typeof dealsConfig.body === "string" ? dealsConfig.body : `${deals.length} lines reduced across components, storage and displays — sorted by the biggest saving first.`;
-  const dealsCountdown = useCountdown(typeof dealsConfig.endsAt === "string" ? dealsConfig.endsAt : null);
+  // Each section's heading and body come from Admin > Homepage > Edit content. The API fills in the
+  // original copy as defaults; null means "work it out from live data", "" hides the line.
+  const sectionText = (section: { config: Record<string, unknown> }, key: "heading" | "body") => {
+    const value = section.config[key];
+    return typeof value === "string" ? value : null;
+  };
+  const dealsConfig = sections.find((section) => section.type === "DEALS") ?? { config: {} as Record<string, unknown> };
+  const dealsHeading = sectionText(dealsConfig, "heading") || "Today's Best Deals";
+  const dealsBody = sectionText(dealsConfig, "body") ?? `${deals.length} lines reduced across components, storage and displays — sorted by the biggest saving first.`;
+  const dealsCountdown = useCountdown(typeof dealsConfig.config.endsAt === "string" ? dealsConfig.config.endsAt : null);
 
   const testimonialsRes = useApi<{ items: ApiTestimonial[] }>(sectionTypes.has("TESTIMONIALS") ? "/api/testimonials" : null);
   const faqsRes = useApi<{ items: ApiFaqCategory[] }>(sectionTypes.has("FAQS") ? "/api/faqs" : null);
+  // Real store-wide score from approved product reviews; hidden when there are none.
+  const reviewSummary = useApi<{ data: { count: number; average: number | null } }>(sectionTypes.has("TESTIMONIALS") ? "/api/reviews/summary" : null).data?.data;
   const homepageFaqs = (faqsRes.data?.items ?? []).flatMap((category) => category.faqs);
 
   const ARRIVAL_TAB_CATEGORY: Record<string, string | undefined> = {
@@ -196,7 +196,9 @@ export default function Home() {
       image: c.thumbnailImage,
     }));
 
-  function renderSection(section: { id: number; type: ApiHomepageSectionType }) {
+  function renderSection(section: { id: number; type: ApiHomepageSectionType; config: Record<string, unknown> }) {
+    const heading = sectionText(section, "heading");
+    const body = sectionText(section, "body");
     switch (section.type) {
       case "HERO":
         return <Hero key={section.id} slides={homeRes.data?.home.hero.slides ?? []} sideCards={heroSideCards} />;
@@ -231,16 +233,19 @@ export default function Home() {
                 <Link className="deals" href={href.category({ deals: 1 })}>
                   <div>
                     <h2>{dealsHeading}</h2>
-                    <p>{dealsBody}</p>
+                    {dealsBody ? <p>{dealsBody}</p> : null}
                   </div>
-                  <div className="timer">
-                    {[[dealsCountdown.d, "Days"], [dealsCountdown.h, "Hours"], [dealsCountdown.m, "Mins"], [dealsCountdown.s, "Secs"]].map(([v, label]) => (
-                      <div key={label}>
-                        <b>{v}</b>
-                        <span>{label}</span>
-                      </div>
-                    ))}
-                  </div>
+                  {/* Only when the admin set a real end date (Homepage > Today's deals) that hasn't passed. */}
+                  {dealsCountdown ? (
+                    <div className="timer">
+                      {[[dealsCountdown.d, "Days"], [dealsCountdown.h, "Hours"], [dealsCountdown.m, "Mins"], [dealsCountdown.s, "Secs"]].map(([v, label]) => (
+                        <div key={label}>
+                          <b>{v}</b>
+                          <span>{label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
                   <BorderBeam className="deals-border-beam" size={160} duration={9} colorFrom="#e8b8b5" colorTo="#ffffff" borderWidth={1.5} />
                 </Link>
               </Backlight>
@@ -265,8 +270,8 @@ export default function Home() {
             <div className="wrap">
               <div className="head">
                 <div>
-                  <h2>{featured.title}</h2>
-                  <p>Popular with UK customers, ranked by units sold.</p>
+                  <h2>{heading || featured.title}</h2>
+                  {(body ?? FEATURED_SUBTITLE[featured.sectionType] ?? FEATURED_SUBTITLE.MANUAL) ? <p>{body ?? FEATURED_SUBTITLE[featured.sectionType] ?? FEATURED_SUBTITLE.MANUAL}</p> : null}
                 </div>
                 <Link href={href.category({ sort: "best" })}>
                   View all <Icon id="i-arr" w={15} />
@@ -287,8 +292,8 @@ export default function Home() {
             <div className="wrap">
               <div className="head">
                 <div>
-                  <h2>New arrivals</h2>
-                  <p>Just landed — added to the catalogue most recently.</p>
+                  <h2>{heading}</h2>
+                  {body ? <p>{body}</p> : null}
                 </div>
                 <Link href={href.category({ sort: "newest" })}>
                   View all new arrivals <Icon id="i-arr" w={15} />
@@ -316,7 +321,8 @@ export default function Home() {
             <div className="wrap">
               <div className="head">
                 <div>
-                  <h2>Shop by brand</h2>
+                  <h2>{heading}</h2>
+                  {body ? <p>{body}</p> : null}
                 </div>
                 <Link href={href.brands()}>
                   All brands <Icon id="i-arr" w={15} />
@@ -358,7 +364,7 @@ export default function Home() {
             <div className="wrap">
               <div className="whygrid">
                 <div className="whycol">
-                  <h2>Built by people who build PCs</h2>
+                  <h2>{heading}</h2>
                   <ul className="whylist">
                     <li>
                       <Icon id="i-truck" w={16} /> Fast UK-wide delivery, despatched from Manchester
@@ -378,11 +384,13 @@ export default function Home() {
                   </ul>
                 </div>
                 <div className="revcol">
-                  <div className="revscore">
-                    <b>4.8</b>
-                    <span className="s">★★★★★</span>
-                    <span>Based on verified customer reviews</span>
-                  </div>
+                  {reviewSummary?.average ? (
+                    <div className="revscore">
+                      <b>{reviewSummary.average.toFixed(1)}</b>
+                      <span className="s">{stars(reviewSummary.average)}</span>
+                      <span>Based on {reviewSummary.count.toLocaleString("en-GB")} customer review{reviewSummary.count === 1 ? "" : "s"}</span>
+                    </div>
+                  ) : null}
                   {items.map((r) => (
                     <div className="revcard" key={r.name}>
                       <span className="s">{"★".repeat(r.stars)}</span>
@@ -404,7 +412,8 @@ export default function Home() {
             <div className="wrap">
               <div className="head">
                 <div>
-                  <h2>Frequently asked questions</h2>
+                  <h2>{heading}</h2>
+                  {body ? <p>{body}</p> : null}
                 </div>
               </div>
               <div className="faqlist">
@@ -428,15 +437,10 @@ export default function Home() {
             <div className="wrap">
               <div className="newsletter">
                 <div>
-                  <h3>{newsletterHeading}</h3>
-                  <p>{newsletterBody}</p>
+                  <h3>{heading}</h3>
+                  {body ? <p>{body}</p> : null}
                 </div>
-                <form className="newsform" onSubmit={(e) => e.preventDefault()}>
-                  <input type="email" required placeholder="you@example.com" aria-label="Email address" />
-                  <button type="submit" className="btn btn-p">
-                    Subscribe
-                  </button>
-                </form>
+                <NewsletterForm />
               </div>
             </div>
           </section>
@@ -449,8 +453,8 @@ export default function Home() {
             <div className="wrap">
               <div className="head">
                 <div>
-                  <h2>Shop by category</h2>
-                  <p>{categoryTiles.length} departments, one catalogue — from single components to complete systems.</p>
+                  <h2>{heading}</h2>
+                  {body ? <p>{body.replaceAll("{count}", String(categoryTiles.length))}</p> : null}
                 </div>
               </div>
               <div className="cats">
@@ -459,7 +463,7 @@ export default function Home() {
                     className="cat"
                     href={href.category(c.href)}
                     key={c.slug}
-                    style={{ backgroundImage: `url(${c.image ?? `https://picsum.photos/seed/ukcs-cat-${c.slug}/380/280`})` }}
+                    style={c.image ? { backgroundImage: `url(${c.image})` } : undefined}
                   >
                     <span className="ic">
                       <Icon id={CAT_ICON[c.label] || "i-gpu"} w={18} h={16} />
@@ -482,8 +486,8 @@ export default function Home() {
             <div className="wrap">
               <div className="head">
                 <div>
-                  <h2>Shop by need</h2>
-                  <p>Not sure which category you need? Start from what you&rsquo;re actually trying to do.</p>
+                  <h2>{heading}</h2>
+                  {body ? <p>{body}</p> : null}
                 </div>
               </div>
               <div className="needgrid">
@@ -507,8 +511,8 @@ export default function Home() {
             <div className="wrap">
               <div className="head">
                 <div>
-                  <h2>Level up your gaming</h2>
-                  <p>Three pre-built tiers, each stress-tested for 48 hours before it ships. Customise any part before you check out.</p>
+                  <h2>{heading}</h2>
+                  {body ? <p>{body}</p> : null}
                 </div>
                 <Link href={href.category({ sub: "Gaming PCs" })}>
                   All gaming PCs <Icon id="i-arr" w={15} />
@@ -558,13 +562,14 @@ export default function Home() {
             <div className="wrap">
               <div className="head">
                 <div>
-                  <h2>Laptops for work, study &amp; play</h2>
+                  <h2>{heading}</h2>
+                  {body ? <p>{body}</p> : null}
                 </div>
                 <Link href={href.category({ cat: "Laptops" })}>
                   All laptops <Icon id="i-arr" w={15} />
                 </Link>
               </div>
-              <div className="laprow">
+              <div className="laprow three">
                 {LAPTOP_CARDS.map((c) => (
                   <Link className="lapcard" href={href.category({ sub: c.sub })} key={c.sub}>
                     <h3>{c.title}</h3>
@@ -579,33 +584,34 @@ export default function Home() {
           </section>
         );
 
-      case "BUYING_GUIDES":
+      case "BUYING_GUIDES": {
+        // Only guides that link to a real page; with none linked yet the section stays hidden.
+        const guides = GUIDES.filter((guide) => guide.href);
+        if (!guides.length) return null;
         return (
           <section style={{ paddingTop: 6 }} key={section.id}>
             <div className="wrap">
               <div className="head">
                 <div>
-                  <h2>Not sure what you need? Start here.</h2>
-                  <p>Computer buying guides</p>
+                  <h2>{heading}</h2>
+                  {body ? <p>{body}</p> : null}
                 </div>
-                <a href="#">
-                  View all guides <Icon id="i-arr" w={15} />
-                </a>
               </div>
               <div className="guidegrid">
-                {GUIDES.map((g) => (
-                  <a className="guidecard" href="#" key={g.title}>
+                {guides.map((g) => (
+                  <Link className="guidecard" href={g.href!} key={g.title}>
                     <span className="tg">{g.tag}</span>
                     <h3>{g.title}</h3>
                     <em>
                       Read guide <Icon id="i-arr" w={12} h={12} />
                     </em>
-                  </a>
+                  </Link>
                 ))}
               </div>
             </div>
           </section>
         );
+      }
 
       case "SEO_INTRO":
         return (
@@ -613,9 +619,9 @@ export default function Home() {
             <div className="wrap">
               <div className="seo-split">
                 <div className="seo">
-                  <h2>{SEO_COPY_TITLE}</h2>
-                  {SEO_COPY.map((para, i) => (
-                    <p key={i}>{para}</p>
+                  <h2>{heading}</h2>
+                  {(body ?? "").split(/\n\s*\n/).filter((para) => para.trim()).map((para, i) => (
+                    <p key={i}>{para.trim()}</p>
                   ))}
                 </div>
                 <SpecialOfferCard />
@@ -637,19 +643,12 @@ export default function Home() {
 
       <section style={{ paddingTop: 6 }}>
         <div className="wrap">
-          <div className="bizsplit">
-            <Link className="bx biz" href={href.category({ sub: "Business PCs" })}>
+          <div className="bizsplit single">
+            <Link className="bx biz" href={href.category({ sub: "Desktop PCs" })}>
               <h3>Reliable computers for modern UK businesses</h3>
-              <p>Business PCs, workstations, laptops and monitors — with volume pricing on multi-unit orders.</p>
+              <p>Desktop PCs, workstations, laptops and monitors — with volume pricing on multi-unit orders.</p>
               <span className="btn">
                 Shop business computing <Icon id="i-arr" w={16} />
-              </span>
-            </Link>
-            <Link className="bx refurb" href={href.category({ sub: "Refurbished PCs" })}>
-              <h3>Smart tech. Better value.</h3>
-              <p>Refurbished PCs and laptops — tested, graded and clearly marked, at a lower price than new.</p>
-              <span className="btn">
-                Shop refurbished <Icon id="i-arr" w={16} />
               </span>
             </Link>
           </div>
@@ -661,7 +660,7 @@ export default function Home() {
           <div className="minisplit">
             <div>
               <h3>Build a better network</h3>
-              <p>Routers, mesh Wi-Fi, switches and cabling for a network that keeps up.</p>
+              <p>Routers, switches and wireless adapters for a network that keeps up.</p>
               <div className="cat-chips">
                 {NETWORK_CHIPS.map((c) => (
                   <Link key={c} className="cat-chip" href={href.category({ sub: c })}>
@@ -675,16 +674,16 @@ export default function Home() {
             </div>
             <div>
               <h3>Complete your setup</h3>
-              <p>Cables, hubs, docking stations and chargers to finish the job.</p>
+              <p>Keyboards, mice, headsets and webcams to finish the job.</p>
               <div className="cat-chips">
-                {ACCESSORY_CHIPS.map((c) => (
+                {SETUP_CHIPS.map((c) => (
                   <Link key={c} className="cat-chip" href={href.category({ sub: c })}>
                     {c}
                   </Link>
                 ))}
               </div>
-              <Link className="lk" href={href.category({ cat: "Accessories" })}>
-                Shop accessories <Icon id="i-arr" w={15} />
+              <Link className="lk" href={href.category({ cat: "Peripherals" })}>
+                Shop peripherals <Icon id="i-arr" w={15} />
               </Link>
             </div>
           </div>

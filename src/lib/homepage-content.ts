@@ -5,42 +5,24 @@
  * this file only holds copy and hand-curated cross-cutting groupings (like
  * "Gaming") that don't exist as a literal catalogue category. */
 
-export const MEGA_PROMO: Record<string, { label: string; sub: string; href: { cat?: string; sub?: string } }> = {
-  "PC Components": { label: "Build your own", sub: "Every part, compatibility checked before it ships.", href: { cat: "PC Components" } },
-  Computers: { label: "Business fleets", sub: "Volume pricing on Business PCs and Workstations.", href: { sub: "Business PCs" } },
-  Laptops: { label: "Student laptops", sub: "Lightweight, long battery life, ready for lectures.", href: { sub: "Student Laptops" } },
-  Peripherals: { label: "Build your battlestation", sub: "Monitors, keyboards and headsets that match.", href: { sub: "Monitors" } },
-  Networking: { label: "Whole-home Wi-Fi", sub: "Mesh access points for dead-zone-free coverage.", href: { cat: "Networking" } },
-  Accessories: { label: "Docking stations", sub: "One cable, full desk setup.", href: { sub: "Docking Stations" } },
-};
-
-/** "Gaming" is a cross-cutting lens over several real categories, not a
- * catalogue category on its own — hand-picked from subcategories that
- * genuinely exist in the data (see lib/types.ts). */
-export const GAMING_MEGA = [
-  { heading: "Systems", subs: ["Gaming PCs", "Gaming Laptops"] },
-  { heading: "Build it yourself", subs: ["Graphics Cards", "CPUs / Processors", "Motherboards"] },
-  { heading: "Gear", subs: ["Monitors", "Gaming Accessories", "Headsets", "Keyboards", "Mice"] },
-];
-
 export const GAMING_CHIPS = ["Gaming PCs", "Gaming Laptops", "Graphics Cards", "Monitors", "Keyboards", "Mice", "Headsets"];
-export const NETWORK_CHIPS = ["Routers", "Wi-Fi Adapters", "Network Switches", "Ethernet Cables", "Access Points"];
-export const ACCESSORY_CHIPS = ["USB Hubs", "Cables", "Adapters", "Laptop Chargers", "Docking Stations", "Storage Accessories"];
+// Chip lists link to catalogue categories by title, so every entry must be a real category.
+export const NETWORK_CHIPS = ["Routers", "Network Switches", "Wireless Adapters"];
+export const SETUP_CHIPS = ["Keyboards", "Mice", "Headsets", "Webcams"];
 
 export const LAPTOP_CARDS = [
   { sub: "Gaming Laptops", title: "Gaming Laptops", copy: "RTX-powered, high refresh screens, desktop-class performance you can close and carry." },
   { sub: "Business Laptops", title: "Business Laptops", copy: "Long battery life, sturdy chassis and the security features IT teams ask for." },
-  { sub: "Student Laptops", title: "Student Laptops", copy: "Light, affordable and built to survive a full timetable of lectures." },
-  { sub: "Refurbished Laptops", title: "Refurbished Laptops", copy: "Fully tested, visibly graded and priced well below new." },
+  { sub: "Ultrabooks", title: "Ultrabooks", copy: "Thin, light and long-lasting — built for lectures, commutes and working on the move." },
 ];
 
 export const NEED_CARDS = [
   { key: "gaming", title: "Gaming", copy: "High-performance PCs and components for 1080p, 1440p and 4K gaming.", href: { sub: "Gaming PCs" } },
-  { key: "business", title: "Business", copy: "Reliable desktops, laptops and monitors for teams that need uptime.", href: { sub: "Business PCs" } },
+  { key: "business", title: "Business", copy: "Reliable desktops, laptops and monitors for teams that need uptime.", href: { sub: "Desktop PCs" } },
   { key: "creative", title: "Creative Work", copy: "Colour-accurate displays and fast storage for photo and video editing.", href: { sub: "Workstations" } },
   { key: "ai", title: "AI & Workstations", copy: "High core-count CPUs and workstation-class GPUs for serious workloads.", href: { sub: "Workstations" } },
-  { key: "home", title: "Home Computing", copy: "Compact, quiet machines for browsing, streaming and everyday admin.", href: { sub: "All-in-One PCs" } },
-  { key: "student", title: "Student", copy: "Budget-friendly laptops and accessories built for lecture halls, not boardrooms.", href: { sub: "Student Laptops" } },
+  { key: "home", title: "Home Computing", copy: "Compact, quiet machines for browsing, streaming and everyday admin.", href: { sub: "Mini PCs" } },
+  { key: "student", title: "Student", copy: "Thin, light laptops built for lecture halls, not boardrooms.", href: { sub: "Ultrabooks" } },
 ];
 
 export const RIGS = [
@@ -91,7 +73,8 @@ export const RIGS = [
   },
 ];
 
-export const GUIDES = [
+// No guide pages exist yet: a guide shows on the homepage only once it has an `href` to a real page.
+export const GUIDES: { title: string; tag: string; href?: string }[] = [
   { title: "How to Choose a Gaming PC", tag: "Buying guide" },
   { title: "Best GPU for 1440p Gaming", tag: "Buying guide" },
   { title: "How Much RAM Do You Need?", tag: "Buying guide" },
@@ -125,12 +108,5 @@ export const FAQS = [
   { q: "Do you offer business computer solutions?", a: "Yes — we supply single units or fleets of business PCs, laptops and monitors, with volume pricing available on request." },
 ];
 
-export const SEO_COPY_TITLE = "UK Computer Shop for PC Hardware, Gaming & Business Technology";
-export const SEO_COPY = [
-  "UK Computer Shop stocks computer hardware and complete systems for every kind of buyer, not just gaming enthusiasts. Our PC components range covers CPUs, graphics cards, motherboards, memory, storage and power supplies from the brands UK builders already trust, alongside cases, cooling and the small parts that finish a build properly.",
-  "If you'd rather buy a finished machine, our computers range spans gaming PCs, business PCs, workstations, mini PCs and all-in-one desktops, each benchmarked and stress-tested before it leaves our Manchester warehouse. Laptops are split the same way — gaming, business, student and refurbished — so a student replacing a lecture-hall laptop and a business buying ten units for a new office both land on the right page quickly.",
-  "Beyond the desk, we stock monitors, keyboards, mice, headsets and webcams under peripherals, plus the networking hardware — routers, mesh Wi-Fi, switches and cabling — that keeps a home or small office online. Our accessories range covers the cables, docking stations, USB hubs and chargers that tend to get forgotten until the day they're needed.",
-  "Every product page lists real specifications, current stock and manufacturer warranty terms, and every \"goes well with\" suggestion on the site is checked against socket, memory and power compatibility first — so what we recommend together actually works together. Whether you're upgrading a single graphics card or fitting out a business, UK Computer Shop is built to get you to the right product quickly.",
-];
 
 export const HOME_H1 = "PC Components, Gaming PCs, Laptops & Computer Hardware";

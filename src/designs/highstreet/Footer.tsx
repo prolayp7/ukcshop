@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { CAT_ORDER } from "@/lib/types";
@@ -8,7 +7,7 @@ import { useHref } from "@/lib/design-context";
 import { useApi } from "@/lib/use-api";
 import { ApiGeneralSettings, FooterColumn } from "@/lib/api";
 import { theme } from "@/lib/theme.config";
-import { subscribeNewsletter } from "@/lib/storefront-client";
+import NewsletterForm from "./NewsletterForm";
 
 export default function Footer() {
   const href = useHref();
@@ -16,21 +15,6 @@ export default function Footer() {
   const settings = settingsRes.data?.data ?? {};
   // Admin-managed footer menu (Admin -> Menus -> Footer); the built-in columns below show while it is empty.
   const menuColumns = useApi<{ data: FooterColumn[] }>("/api/menus/footer").data?.data ?? [];
-  const [newsletterEmail, setNewsletterEmail] = useState("");
-  const [newsletterState, setNewsletterState] = useState<"idle" | "submitting" | "done" | "error">("idle");
-
-  async function handleNewsletterSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setNewsletterState("submitting");
-    try {
-      await subscribeNewsletter(newsletterEmail);
-      setNewsletterEmail("");
-      setNewsletterState("done");
-    } catch {
-      setNewsletterState("error");
-    }
-  }
-
   return (
     <>
       <section style={{ paddingTop: 6 }}>
@@ -41,24 +25,7 @@ export default function Footer() {
               <h3>Get restock alerts &amp; deal notifications</h3>
               <p>One email a week, mostly about stock drops and price cuts. No spam.</p>
             </div>
-            {newsletterState === "done" ? (
-              <p style={{ margin: 0, fontWeight: 600 }}>Thanks for subscribing!</p>
-            ) : (
-              <form className="newsform" onSubmit={handleNewsletterSubmit}>
-                <input
-                  type="email"
-                  required
-                  placeholder="Email address for deals"
-                  aria-label="Email address for deals"
-                  value={newsletterEmail}
-                  onChange={(e) => setNewsletterEmail(e.target.value)}
-                />
-                <button type="submit" className="btn btn-p" disabled={newsletterState === "submitting"}>
-                  {newsletterState === "submitting" ? "Subscribing…" : "Subscribe"}
-                </button>
-              </form>
-            )}
-            {newsletterState === "error" ? <p style={{ margin: "6px 0 0", color: "#c0392b", fontSize: 13 }}>Couldn&rsquo;t subscribe right now — please try again.</p> : null}
+            <NewsletterForm />
           </div>
         </div>
       </section>
