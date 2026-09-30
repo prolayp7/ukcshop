@@ -22,8 +22,6 @@ import BrandCard from "./BrandCard";
 import Hero, { HeroSideCard } from "./Hero";
 import {
   GAMING_CHIPS,
-  NETWORK_CHIPS,
-  SETUP_CHIPS,
   LAPTOP_CARDS,
   NEED_CARDS,
   RIGS,
@@ -132,9 +130,7 @@ export default function Home() {
   const deals = dealsRes.data?.items ?? [];
 
   // Which of the admin-composed sections are visible, and in what order -
-  // set from ukshop-admin's Homepage page. The six marketing sections below
-  // (category showcase through the SEO/special-offer split) aren't part of
-  // that system yet and always render, in their current fixed order.
+  // set from ukshop-admin's Homepage page.
   const sections = homeRes.data?.home.homepageSections ?? [];
   const sectionTypes = new Set(sections.map((section) => section.type));
   const featuredSlug = sections.find((section) => section.type === "FEATURED_PRODUCTS")?.config.slug;
@@ -613,6 +609,74 @@ export default function Home() {
         );
       }
 
+      // Admin > Homepage (heading/text), items seeded in config: ctaLabel + categorySlug.
+      case "BUSINESS_BANNER": {
+        const ctaLabel = typeof section.config.ctaLabel === "string" ? section.config.ctaLabel : "";
+        const categorySlug = typeof section.config.categorySlug === "string" ? section.config.categorySlug : "";
+        if (!heading || !categorySlug) return null;
+        return (
+          <section style={{ paddingTop: 6 }} key={section.id}>
+            <div className="wrap">
+              <div className="bizsplit single">
+                <Link className="bx biz" href={href.category({ sub: categorySlug })}>
+                  <h3>{heading}</h3>
+                  {body ? <p>{body}</p> : null}
+                  {ctaLabel ? (
+                    <span className="btn">
+                      {ctaLabel} <Icon id="i-arr" w={16} />
+                    </span>
+                  ) : null}
+                </Link>
+              </div>
+            </div>
+          </section>
+        );
+      }
+
+      // Two columns of category chips (config.columns, seeded); chips for unknown categories are skipped.
+      case "CATEGORY_SPLIT": {
+        const categories = categoriesRes.data?.items ?? [];
+        const columns = (Array.isArray(section.config.columns) ? section.config.columns : []).flatMap((column) => {
+          if (!column || typeof column !== "object") return [];
+          const c = column as Record<string, unknown>;
+          const text = (key: string) => (typeof c[key] === "string" ? (c[key] as string) : "");
+          const chips = (Array.isArray(c.chips) ? c.chips : []).flatMap((slug) => {
+            const category = typeof slug === "string" ? findCategory(categories, slug) : null;
+            return category ? [{ slug: category.slug, title: category.title }] : [];
+          });
+          return text("heading") ? [{ heading: text("heading"), text: text("text"), linkLabel: text("linkLabel"), categorySlug: text("categorySlug"), chips }] : [];
+        });
+        if (!columns.length) return null;
+        return (
+          <section style={{ paddingTop: 6 }} key={section.id}>
+            <div className="wrap">
+              <div className="minisplit">
+                {columns.map((column) => (
+                  <div key={column.heading}>
+                    <h3>{column.heading}</h3>
+                    {column.text ? <p>{column.text}</p> : null}
+                    {column.chips.length ? (
+                      <div className="cat-chips">
+                        {column.chips.map((chip) => (
+                          <Link key={chip.slug} className="cat-chip" href={href.category({ sub: chip.slug })}>
+                            {chip.title}
+                          </Link>
+                        ))}
+                      </div>
+                    ) : null}
+                    {column.linkLabel && column.categorySlug ? (
+                      <Link className="lk" href={href.category({ cat: column.categorySlug })}>
+                        {column.linkLabel} <Icon id="i-arr" w={15} />
+                      </Link>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        );
+      }
+
       case "SEO_INTRO":
         return (
           <section style={{ paddingTop: 6 }} key={section.id}>
@@ -640,55 +704,6 @@ export default function Home() {
       <Header />
 
       {sections.map((section) => renderSection(section))}
-
-      <section style={{ paddingTop: 6 }}>
-        <div className="wrap">
-          <div className="bizsplit single">
-            <Link className="bx biz" href={href.category({ sub: "Desktop PCs" })}>
-              <h3>Reliable computers for modern UK businesses</h3>
-              <p>Desktop PCs, workstations, laptops and monitors — with volume pricing on multi-unit orders.</p>
-              <span className="btn">
-                Shop business computing <Icon id="i-arr" w={16} />
-              </span>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <section style={{ paddingTop: 6 }}>
-        <div className="wrap">
-          <div className="minisplit">
-            <div>
-              <h3>Build a better network</h3>
-              <p>Routers, switches and wireless adapters for a network that keeps up.</p>
-              <div className="cat-chips">
-                {NETWORK_CHIPS.map((c) => (
-                  <Link key={c} className="cat-chip" href={href.category({ sub: c })}>
-                    {c}
-                  </Link>
-                ))}
-              </div>
-              <Link className="lk" href={href.category({ cat: "Networking" })}>
-                Shop networking <Icon id="i-arr" w={15} />
-              </Link>
-            </div>
-            <div>
-              <h3>Complete your setup</h3>
-              <p>Keyboards, mice, headsets and webcams to finish the job.</p>
-              <div className="cat-chips">
-                {SETUP_CHIPS.map((c) => (
-                  <Link key={c} className="cat-chip" href={href.category({ sub: c })}>
-                    {c}
-                  </Link>
-                ))}
-              </div>
-              <Link className="lk" href={href.category({ cat: "Peripherals" })}>
-                Shop peripherals <Icon id="i-arr" w={15} />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <Footer />
     </>

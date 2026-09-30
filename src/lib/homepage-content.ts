@@ -6,9 +6,6 @@
  * "Gaming") that don't exist as a literal catalogue category. */
 
 export const GAMING_CHIPS = ["Gaming PCs", "Gaming Laptops", "Graphics Cards", "Monitors", "Keyboards", "Mice", "Headsets"];
-// Chip lists link to catalogue categories by title, so every entry must be a real category.
-export const NETWORK_CHIPS = ["Routers", "Network Switches", "Wireless Adapters"];
-export const SETUP_CHIPS = ["Keyboards", "Mice", "Headsets", "Webcams"];
 
 export const LAPTOP_CARDS = [
   { sub: "Gaming Laptops", title: "Gaming Laptops", copy: "RTX-powered, high refresh screens, desktop-class performance you can close and carry." },
