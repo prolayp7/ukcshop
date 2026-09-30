@@ -5,7 +5,7 @@ import Link from "next/link";
 import { CAT_ORDER } from "@/lib/types";
 import { useHref } from "@/lib/design-context";
 import { useApi } from "@/lib/use-api";
-import { ApiGeneralSettings, FooterColumn } from "@/lib/api";
+import { ApiGeneralSettings, FooterColumn, FooterContent } from "@/lib/api";
 import { theme } from "@/lib/theme.config";
 import NewsletterForm from "./NewsletterForm";
 import { reopenCookieBanner } from "@/components/CookieBanner";
@@ -16,6 +16,11 @@ export default function Footer() {
   const settings = settingsRes.data?.data ?? {};
   // Admin-managed footer menu (Admin -> Menus -> Footer); the built-in columns below show while it is empty.
   const menuColumns = useApi<{ data: FooterColumn[] }>("/api/menus/footer").data?.data ?? [];
+  // Admin -> Storefront -> Footer; the built-in copy shows until it loads or if the API is unreachable.
+  const content = useApi<{ data: FooterContent }>("/api/settings/footer").data?.data;
+  const newsletter = content?.newsletter ?? { enabled: true, eyebrow: "Deals & restock alerts", heading: "Get restock alerts & deal notifications", text: "One email a week, mostly about stock drops and price cuts. No spam." };
+  const aboutText = content ? content.aboutText : theme.brand.about;
+  const paymentMethods = content?.paymentMethods ?? theme.paymentMethods;
   const socialLinks = [
     { label: "Facebook", short: "FB", url: settings.socialFacebook },
     { label: "Instagram", short: "IG", url: settings.socialInstagram },
@@ -24,18 +29,20 @@ export default function Footer() {
   ].filter((social): social is { label: string; short: string; url: string } => Boolean(social.url?.trim()));
   return (
     <>
-      <section style={{ paddingTop: 6 }}>
-        <div className="wrap">
-          <div className="newsletter">
-            <div>
-              <span className="eyebrow">Deals &amp; restock alerts</span>
-              <h3>Get restock alerts &amp; deal notifications</h3>
-              <p>One email a week, mostly about stock drops and price cuts. No spam.</p>
+      {newsletter.enabled ? (
+        <section style={{ paddingTop: 6 }}>
+          <div className="wrap">
+            <div className="newsletter">
+              <div>
+                {newsletter.eyebrow ? <span className="eyebrow">{newsletter.eyebrow}</span> : null}
+                {newsletter.heading ? <h3>{newsletter.heading}</h3> : null}
+                {newsletter.text ? <p>{newsletter.text}</p> : null}
+              </div>
+              <NewsletterForm />
             </div>
-            <NewsletterForm />
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
       <footer>
         <div className="wrap">
           <div className="fgrid">
@@ -43,7 +50,7 @@ export default function Footer() {
               <Link className="logo" href={href.home()} style={{ marginBottom: 14 }}>
                 <Image className="mark" src={settings.logo || "/images/logo/rigforge-mark.png"} alt={theme.brand.name} width={694} height={512} />
               </Link>
-              <p style={{ margin: "0 0 16px", maxWidth: 300 }}>{theme.brand.about}</p>
+              {aboutText ? <p style={{ margin: "0 0 16px", maxWidth: 300 }}>{aboutText}</p> : null}
               {/* Only the profiles set in Admin > Settings; the row hides when none are. */}
               {socialLinks.length ? (
                 <div className="fsocial">
@@ -161,11 +168,13 @@ export default function Footer() {
                 </button>
               </div>
             </div>
-            <div className="pay">
-              {theme.paymentMethods.map((m) => (
-                <span key={m}>{m}</span>
-              ))}
-            </div>
+            {paymentMethods.length ? (
+              <div className="pay">
+                {paymentMethods.map((m) => (
+                  <span key={m}>{m}</span>
+                ))}
+              </div>
+            ) : null}
           </div>
         </div>
       </footer>

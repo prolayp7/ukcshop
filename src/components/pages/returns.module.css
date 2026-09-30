@@ -75,7 +75,7 @@ button.photo { padding: 0; cursor: zoom-in; }
 .viewerPrev, .viewerNext { top: 50%; transform: translateY(-50%); }
 .viewerPrev { left: 16px; }
 .viewerNext { right: 16px; }
-.viewerCount { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); margin: 0; color: white; font-size: 13px; font-weight: 600; }
+.viewer .viewerCount { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); margin: 0; color: white; font-size: 13px; font-weight: 600; }
 
 /* Timeline */
 .timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }

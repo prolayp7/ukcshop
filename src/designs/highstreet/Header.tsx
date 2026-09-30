@@ -11,7 +11,7 @@ import { BasketCount, BasketTotal } from "@/components/BasketBadge";
 import { CartTrigger } from "@/components/CartDrawer";
 import { useHref } from "@/lib/design-context";
 import { useApi } from "@/lib/use-api";
-import { ApiGeneralSettings, type ApiCategory, type ApiBrand, type HeaderNavItem, type ListMeta } from "@/lib/api";
+import { ApiGeneralSettings, type ApiCategory, type ApiBrand, type HeaderNavItem, type ListMeta, type TopBarContent } from "@/lib/api";
 import { useWishlist, useCompare } from "@/lib/basket";
 import { useCustomerAuth } from "@/lib/storefront-client";
 import { theme } from "@/lib/theme.config";
@@ -20,7 +20,15 @@ import FloatingShopActions from "@/components/FloatingShopActions";
 
 /** Icons for the category-tree fallback navigation (the admin menu sets its own). */
 /** Quick searches in the top bar; each runs a normal product search. */
-const POPULAR_SEARCHES = ["RTX 4070", "Ryzen 7", "DDR5", "NVMe"];
+// Built-in top bar, shown until Admin -> Storefront -> Top bar loads (or if the API is unreachable).
+const DEFAULT_TOP_BAR: TopBarContent = {
+  enabled: true,
+  trackOrder: { enabled: true, label: "Track my order" },
+  popular: { enabled: true, label: "Popular:", terms: ["RTX 4070", "Ryzen 7", "DDR5", "NVMe"] },
+  showStockCount: true,
+  help: { enabled: true, label: "Help centre", href: "/faqs" },
+  showCurrency: true,
+};
 
 const MEGA_ICON: Record<string, string> = {
   "PC Components": "i-gpu",
@@ -37,6 +45,7 @@ export default function Header() {
   const settings = settingsRes.data?.data ?? {};
   const router = useRouter();
   const statsRes = useApi<{ meta: ListMeta }>("/api/products?perPage=1");
+  const topBar = useApi<{ data: TopBarContent }>("/api/settings/top-bar").data?.data ?? DEFAULT_TOP_BAR;
   const { count: wishCount } = useWishlist();
   const { count: cmpCount } = useCompare();
   const { customer, isLoggedIn } = useCustomerAuth();
@@ -134,26 +143,31 @@ export default function Header() {
 
   return (
     <>
-      <div className="util">
-        <div className="wrap">
-          <Link href={href.account({ tab: "orders" })}>Track my order</Link>
-          <div className="hints">
-            <b>Popular:</b>
-            {POPULAR_SEARCHES.map((term) => <Link key={term} href={href.category({ q: term })}>{term}</Link>)}
-          </div>
-          <div className="sep">
-            {statsRes.data ? (
-              <span>
-                <strong>{statsRes.data.meta.total}</strong> products in stock
-              </span>
-            ) : (
-              <span />
-            )}
-            <Link href="/faqs">Help centre</Link>
-            <span>{CURRENCY_SYMBOL} {CURRENCY} · Inc. VAT</span>
+      {topBar.enabled ? (
+        <div className="util">
+          <div className="wrap">
+            {/* Empty placeholders keep the three-column layout when a part is switched off. */}
+            {topBar.trackOrder.enabled && topBar.trackOrder.label ? <Link href={href.account({ tab: "orders" })}>{topBar.trackOrder.label}</Link> : <span />}
+            {topBar.popular.enabled && topBar.popular.terms.length ? (
+              <div className="hints">
+                {topBar.popular.label ? <b>{topBar.popular.label}</b> : null}
+                {topBar.popular.terms.map((term) => <Link key={term} href={href.category({ q: term })}>{term}</Link>)}
+              </div>
+            ) : <span />}
+            <div className="sep">
+              {topBar.showStockCount && statsRes.data ? (
+                <span>
+                  <strong>{statsRes.data.meta.total}</strong> products in stock
+                </span>
+              ) : (
+                <span />
+              )}
+              {topBar.help.enabled && topBar.help.label && topBar.help.href ? <Link href={topBar.help.href}>{topBar.help.label}</Link> : null}
+              {topBar.showCurrency ? <span>{CURRENCY_SYMBOL} {CURRENCY} · Inc. VAT</span> : null}
+            </div>
           </div>
         </div>
-      </div>
+      ) : null}
       <header className="mast">
         <div className="wrap">
           <Link className="logo" href={href.home()}>

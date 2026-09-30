@@ -453,6 +453,33 @@ export async function fetchRegisterPageContent(): Promise<RegisterPageContent | 
   return res?.data ?? null;
 }
 
+/** Admin-managed strip above the header (admin: Storefront > Top bar). */
+export interface TopBarContent {
+  enabled: boolean;
+  trackOrder: { enabled: boolean; label: string };
+  popular: { enabled: boolean; label: string; terms: string[] };
+  showStockCount: boolean;
+  help: { enabled: boolean; label: string; href: string };
+  showCurrency: boolean;
+}
+/** null when the API is unreachable - the header then shows its built-in top bar. */
+export async function fetchTopBarContent(): Promise<TopBarContent | null> {
+  const res = await apiGet<{ data: TopBarContent }>("settings/top-bar", 20).catch(() => null);
+  return res?.data ?? null;
+}
+
+/** Admin-managed parts of the footer (admin: Storefront > Footer). */
+export interface FooterContent {
+  newsletter: { enabled: boolean; eyebrow: string; heading: string; text: string };
+  aboutText: string;
+  paymentMethods: string[];
+}
+/** null when the API is unreachable - the footer then shows its built-in copy. */
+export async function fetchFooterContent(): Promise<FooterContent | null> {
+  const res = await apiGet<{ data: FooterContent }>("settings/footer", 20).catch(() => null);
+  return res?.data ?? null;
+}
+
 /** One tab of the header navigation, resolved from the admin "header" menu (Menus in the admin). */
 export interface HeaderNavLink { label: string; href: string }
 export interface HeaderNavPromo { title: string; text: string | null; cta: string; href: string }
