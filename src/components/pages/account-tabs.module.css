@@ -49,6 +49,10 @@
 .itemInfo s { font-size: 12px; color: var(--body); margin-left: 10px; }
 .addAllButton:disabled { opacity: .6; cursor: wait; }
 .savedActions { display: flex; flex-direction: column; align-items: center; gap: 8px; flex-shrink: 0; }
+.wishlistAlerts { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 12px; }
+.wishlistAlerts label { display: inline-flex; align-items: center; gap: 6px; color: var(--body); font-size: 11px; cursor: pointer; }
+.wishlistAlerts input { width: 14px; height: 14px; margin: 0; accent-color: var(--blue); }
+.wishlistAlerts input:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 .removeButton { display: inline-flex; align-items: center; justify-content: center; gap: 6px; color: var(--blue-dark); font-size: 12px; border-radius: 4px; padding: 9px 10px; min-height: 38px; }
 .removeButton:hover { background: var(--blue-soft); }
 .addressGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }

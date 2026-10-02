@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BadgeCheck, Download, Share2, Sparkles, Trash2 } from "lucide-react";
+import { ArrowLeftRight, ArrowRight, BadgeCheck, Cpu, Download, Monitor, Share2, Sparkles, Trash2 } from "lucide-react";
 import { DesignParts } from "@/lib/parts";
 import { Compare, COMPARE_MAX, useCompare } from "@/lib/basket";
 import { money, stars, stockText } from "@/lib/catalogue";
@@ -111,11 +111,35 @@ export default function ComparePage({ parts }: { parts: DesignParts }) {
 
         {products.length === 0 ? (
           <div className="cmp-empty">
-            <h3>Nothing to compare yet</h3>
-            <p>Use the compare checkbox on any product card, then come back here to see them side by side.</p>
-            <a className="cmp-empty-cta" href={href.home()}>
-              Continue shopping
-            </a>
+            <div className="cmp-empty-content">
+              <span className="cmp-empty-icon" aria-hidden="true"><ArrowLeftRight size={22} /></span>
+              <h2>Nothing to compare yet</h2>
+              <p>Use the compare checkbox on any product card. Your selected products will appear here so you can check their details side by side.</p>
+              <a className="cmp-empty-cta" href={href.home()}>
+                Continue shopping
+                <ArrowRight size={16} aria-hidden="true" />
+              </a>
+            </div>
+            <div className="cmp-empty-preview" aria-hidden="true">
+              <div className="cmp-preview-heading">
+                <span>Side-by-side comparison</span>
+                <ArrowLeftRight size={16} />
+              </div>
+              <div className="cmp-preview-grid">
+                <span className="cmp-preview-label">PRODUCT</span>
+                <div className="cmp-preview-product"><span className="cmp-preview-device"><Cpu size={20} /></span><span>Selected product</span></div>
+                <div className="cmp-preview-product"><span className="cmp-preview-device"><Monitor size={20} /></span><span>Selected product</span></div>
+                <span className="cmp-preview-label">PRICE</span>
+                <span className="cmp-preview-value"><i className="cmp-preview-line cmp-preview-line-long" /></span>
+                <span className="cmp-preview-value"><i className="cmp-preview-line cmp-preview-line-medium" /></span>
+                <span className="cmp-preview-label">SPECS</span>
+                <span className="cmp-preview-value"><i className="cmp-preview-line cmp-preview-line-medium" /><i className="cmp-preview-line cmp-preview-line-short" /></span>
+                <span className="cmp-preview-value"><i className="cmp-preview-line cmp-preview-line-short" /><i className="cmp-preview-line cmp-preview-line-medium" /></span>
+                <span className="cmp-preview-label">STOCK</span>
+                <span className="cmp-preview-value"><i className="cmp-preview-dot" /><i className="cmp-preview-line cmp-preview-line-short" /></span>
+                <span className="cmp-preview-value"><i className="cmp-preview-dot" /><i className="cmp-preview-line cmp-preview-line-medium" /></span>
+              </div>
+            </div>
           </div>
         ) : (
           <>

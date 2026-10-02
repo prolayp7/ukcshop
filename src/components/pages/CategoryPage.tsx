@@ -9,6 +9,7 @@ import { useApi } from "@/lib/use-api";
 import type { ApiCategory, ListMeta, ProductListParams } from "@/lib/api";
 import { money, CURRENCY_SYMBOL } from "@/lib/catalogue";
 import type { Product } from "@/lib/types";
+import { useRecentIds } from "@/lib/basket";
 import { useHref } from "@/lib/design-context";
 import { Icon } from "@/components/Icon";
 import { plainText } from "@/lib/category";
@@ -20,8 +21,11 @@ export default function CategoryPage({ category, tree, initialMin, initialMax, i
   initialFacets: ListMeta | null;
   category: ApiCategory | null; tree: ApiCategory[]; initialMin: string; initialMax: string; initialSort: string; deals: boolean; initialQuery?: string;
 }) {
-  const { Header, Footer, Crumbs } = parts;
+  const { Header, Footer, Crumbs, Section } = parts;
   const href = useHref();
+  const recentIds = useRecentIds().slice(0, 4);
+  const recentProductsRes = useApi<{ items: Product[] }>(recentIds.length ? `/api/products?ids=${recentIds.join(",")}` : null);
+  const alsoViewedRes = useApi<{ items: Product[] }>(recentIds.length ? `/api/products/also-viewed?ids=${recentIds.join(",")}&limit=4` : null);
   const [brands, setBrands] = useState<string[]>([]);
   const [specs, setSpecs] = useState<Record<string, string[]>>({});
   const [sort, setSort] = useState<ProductListParams["sort"]>(initialSort === "price-asc" ? "price_asc" : initialSort === "price-desc" ? "price_desc" : "newest");
@@ -195,6 +199,10 @@ export default function CategoryPage({ category, tree, initialMin, initialMax, i
         {category.additionalDescription ? <p>{plainText(category.additionalDescription)}</p> : null}
         {category.faqs?.length ? <><h2>Frequently asked questions</h2>{category.faqs.map((faq, i) => <details key={i}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}</> : null}
       </section> : null}
+      <div className="category-history-recommendations">
+        <Section title="Recommended based on your browsing history" items={recentProductsRes.data?.items ?? []} />
+        <Section title="Customers who viewed items in your browsing history also viewed" items={alsoViewedRes.data?.items ?? []} />
+      </div>
     </div>
     <Footer />
   </>;

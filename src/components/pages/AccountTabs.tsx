@@ -71,7 +71,37 @@ function SavedItem({ item, cartBusy, adding, cartError, onAdd }: { item: Wishlis
   const href = useHref();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  return <article className={styles.savedItem}><Link className={styles.savedImage} href={href.product(item.productSlug)} aria-label={item.productTitle}><ProductThumbnail id={item.productId} /></Link><div className={styles.itemInfo}><h3><Link href={href.product(item.productSlug)}>{item.productTitle}</Link></h3><p>{item.variantTitle}</p><strong className={styles.price}>{money(item.salePrice ?? item.price)}</strong>{item.salePrice !== null && item.salePrice < item.price && <s>{money(item.price)}</s>}{cartError && <p role="alert" className={styles.error}>{cartError}</p>}{error && <p role="alert" className={styles.error}>{error}</p>}</div><div className={styles.savedActions}><button type="button" className={shared.primaryButton} disabled={cartBusy || busy} aria-busy={adding} aria-label={`Add ${item.productTitle} to basket`} onClick={onAdd}><ShoppingCart size={14} />{adding ? "Adding…" : "Add to basket"}</button><Link className={shared.secondaryButton} href={href.product(item.productSlug)}>View product <ArrowRight size={14} /></Link><button type="button" className={styles.removeButton} disabled={busy || cartBusy} aria-label={`Remove ${item.productTitle} from wishlist`} onClick={async () => { setBusy(true); setError(""); try { await Wishlist.toggle(item.productId, item.productVariantId); } catch { setError("Couldn’t remove this product. Please try again."); } finally { setBusy(false); } }}><Trash2 size={14} />{busy ? "Removing…" : "Remove"}</button></div></article>;
+  const [alertsBusy, setAlertsBusy] = useState(false);
+  async function updateAlerts(next: { notifyBackInStock: boolean; notifyPriceDrop: boolean }) {
+    setAlertsBusy(true); setError("");
+    try { await Wishlist.updateAlerts(item.productVariantId, next); }
+    catch { setError("Couldn’t update email alerts. Please try again."); }
+    finally { setAlertsBusy(false); }
+  }
+  return (
+    <article className={styles.savedItem}>
+      <Link className={styles.savedImage} href={href.product(item.productSlug)} aria-label={item.productTitle}>
+        <ProductThumbnail id={item.productId} />
+      </Link>
+      <div className={styles.itemInfo}>
+        <h3><Link href={href.product(item.productSlug)}>{item.productTitle}</Link></h3>
+        <p>{item.variantTitle}</p>
+        <strong className={styles.price}>{money(item.salePrice ?? item.price)}</strong>
+        {item.salePrice !== null && item.salePrice < item.price ? <s>{money(item.price)}</s> : null}
+        <div className={styles.wishlistAlerts} aria-busy={alertsBusy}>
+          <label><input type="checkbox" checked={item.notifyBackInStock} disabled={alertsBusy} onChange={(event) => void updateAlerts({ notifyBackInStock: event.target.checked, notifyPriceDrop: item.notifyPriceDrop })} />Back in stock</label>
+          <label><input type="checkbox" checked={item.notifyPriceDrop} disabled={alertsBusy} onChange={(event) => void updateAlerts({ notifyBackInStock: item.notifyBackInStock, notifyPriceDrop: event.target.checked })} />Price drops</label>
+        </div>
+        {cartError ? <p role="alert" className={styles.error}>{cartError}</p> : null}
+        {error ? <p role="alert" className={styles.error}>{error}</p> : null}
+      </div>
+      <div className={styles.savedActions}>
+        <button type="button" className={shared.primaryButton} disabled={cartBusy || busy} aria-busy={adding} aria-label={`Add ${item.productTitle} to basket`} onClick={onAdd}><ShoppingCart size={14} />{adding ? "Adding…" : "Add to basket"}</button>
+        <Link className={shared.secondaryButton} href={href.product(item.productSlug)}>View product <ArrowRight size={14} /></Link>
+        <button type="button" className={styles.removeButton} disabled={busy || cartBusy} aria-label={`Remove ${item.productTitle} from wishlist`} onClick={async () => { setBusy(true); setError(""); try { await Wishlist.toggle(item.productId, item.productVariantId); } catch { setError("Couldn’t remove this product. Please try again."); } finally { setBusy(false); } }}><Trash2 size={14} />{busy ? "Removing…" : "Remove"}</button>
+      </div>
+    </article>
+  );
 }
 
 const emptyAddress = { label: "", fullName: "", line1: "", line2: "", city: "", postcode: "", phone: "" };

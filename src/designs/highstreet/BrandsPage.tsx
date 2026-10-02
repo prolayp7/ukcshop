@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import Image from "next/image";
 import { useApi } from "@/lib/use-api";
 import type { ApiBrand } from "@/lib/api";
 import type { Product, BrandSummary } from "@/lib/types";
@@ -14,7 +15,7 @@ import ProductCard from "./ProductCard";
 const ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 function toSummary(b: ApiBrand): BrandSummary {
-  return { brand: b.title, slug: b.slug, count: b.productCount ?? 0, rating: 0, min: b.priceFrom ?? 0, deals: 0, note: b.description || b.shortDescription || `${b.productCount ?? 0} lines in the catalogue.`, logo: b.logo, logoAlt: b.logoAlt };
+  return { brand: b.title, slug: b.slug, count: b.productCount ?? 0, rating: 0, min: b.priceFrom ?? 0, deals: b.dealCount ?? 0, note: b.description || b.shortDescription || `${b.productCount ?? 0} lines in the catalogue.`, logo: b.logo, logoAlt: b.logoAlt };
 }
 
 export default function BrandsPage({ initialBrands, initialRecommended }: { initialBrands: ApiBrand[]; initialRecommended: Product[] }) {
@@ -91,7 +92,10 @@ export default function BrandsPage({ initialBrands, initialRecommended }: { init
               <div className="azlist">
                 {letters[L].map((b) => (
                   <a href={href.brand(b.slug)} key={b.slug}>
-                    {b.brand}
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                      {b.logo ? <Image src={b.logo} alt={b.logoAlt || `${b.brand} logo`} width={24} height={24} unoptimized style={{ objectFit: "contain", flexShrink: 0 }} /> : null}
+                      {b.brand}
+                    </span>
                     <span>{b.count}</span>
                   </a>
                 ))}

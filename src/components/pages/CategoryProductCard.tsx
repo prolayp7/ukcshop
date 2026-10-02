@@ -28,7 +28,7 @@ function DealCountdown({ endsAt }: { endsAt: string }) {
   const minutes = Math.floor((seconds % 3600) / 60);
   const remainder = seconds % 60;
   const label = days > 0
-    ? `${days}d ${String(hours).padStart(2, "0")}h ${String(minutes).padStart(2, "0")}m`
+    ? `${days}d ${String(hours).padStart(2, "0")}h ${String(minutes).padStart(2, "0")}m ${String(remainder).padStart(2, "0")}s`
     : `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
 
   return <div className="category-deal-countdown"><Clock3 size={14} /><span>Offer ends in</span><time dateTime={endsAt}>{label}</time></div>;

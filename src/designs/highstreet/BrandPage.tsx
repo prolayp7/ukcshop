@@ -6,6 +6,7 @@ import { useApi } from "@/lib/use-api";
 import type { ApiBrand, ListMeta } from "@/lib/api";
 import type { Product } from "@/lib/types";
 import { money } from "@/lib/catalogue";
+import { plainText } from "@/lib/category";
 import { Icon } from "@/components/Icon";
 import { useHref } from "@/lib/design-context";
 import Crumbs from "@/components/Crumbs";
@@ -64,7 +65,7 @@ export default function BrandPage({ slug, initialData }: { slug: string; initial
   const deals = dealsRes.data?.items ?? [];
   const newest = newestRes.data?.items ?? [];
   const siblings = (brandsRes.data?.items ?? []).filter((x) => x.slug !== slug).slice(0, 4);
-  const note = b.description || b.shortDescription || `${total} lines in the catalogue.`;
+  const note = plainText(b.shortDescription || b.description) || `${total} lines in the catalogue.`;
 
   return (
     <>
@@ -73,11 +74,9 @@ export default function BrandPage({ slug, initialData }: { slug: string; initial
       <div className="wrap">
         <div className="bhero">
           <div>
-            {b.logo ? (
-              <div className="mark"><Image src={b.logo} alt={b.logoAlt || b.title} width={64} height={64} unoptimized className="h-full w-full object-contain" /></div>
-            ) : (
-              <div className="mark">{b.title.slice(0, 2).toUpperCase()}</div>
-            )}
+            <div className="mark" style={{ borderRadius: 8 }}>
+              {b.logo ? <Image src={b.logo} alt={b.logoAlt || b.title} width={64} height={64} unoptimized className="h-full w-full object-contain" /> : b.title.slice(0, 2).toUpperCase()}
+            </div>
             <h1>{b.title}</h1>
             <p>{note}</p>
           </div>

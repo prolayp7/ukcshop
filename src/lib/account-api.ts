@@ -112,6 +112,9 @@ export interface Order {
   shippingLine2: string | null;
   shippingCity: string;
   shippingPostcode: string;
+  trackingCarrier?: string | null;
+  trackingNumber?: string | null;
+  trackingUrl?: string | null;
   billingCompanyName?: string | null;
   billingFullName?: string;
   billingLine1?: string;

@@ -113,8 +113,11 @@ export interface ApiBrand {
   shortDescription: string | null;
   logo: string | null;
   logoAlt: string | null;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
   /** Only present on the list endpoint, not the single-brand lookup. */
   productCount?: number;
+  dealCount?: number;
   priceFrom?: number | null;
 }
 
@@ -348,6 +351,14 @@ export async function fetchRecommendedProducts(limit = 4): Promise<Product[]> {
   return res.data.map(toProduct);
 }
 
+export async function fetchAlsoViewedProducts(ids: number[], limit = 4): Promise<Product[]> {
+  const query = new URLSearchParams({ ids: ids.join(","), limit: String(limit) });
+  const response = await fetch(getStorefrontApiUrl(`products/also-viewed?${query}`), { cache: "no-store" });
+  if (!response.ok) throw new Error(`UKShop API request failed: GET products/also-viewed -> ${response.status}`);
+  const result = await response.json() as { data: { items: ApiProductBase[] } };
+  return result.data.items.map(toProduct);
+}
+
 export async function fetchProductBySlug(slug: string): Promise<{ product: Product; api: ApiProductBase } | null> {
   const api = await apiGetOrNull<ApiProductBase>(`products/${encodeURIComponent(slug)}`, { tags: [CacheTags.productSlug(slug), CacheTags.attributes, CacheTags.categories, CacheTags.brands] });
   if (!api) return null;
@@ -402,11 +413,33 @@ export async function fetchHome(): Promise<HomeBundle> {
     // (see ukshop-admin's Homepage page), so they go through the same
     // resolveMediaUrl as slide images, done here rather than per-card in the
     // "use client" Home component.
-    homepageSections: home.homepageSections.map((section) => {
-      if (section.type !== "HERO" || !Array.isArray(section.config.cards)) return section;
-      const cards = (section.config.cards as { image?: string | null }[]).map((card) => ({ ...card, image: resolveMediaUrl(card.image) }));
-      return { ...section, config: { ...section.config, cards } };
-    }),
+    homepageSections: await Promise.all(home.homepageSections.map(async (section) => {
+      const config = { ...section.config };
+      if (section.type === "HERO" && Array.isArray(config.cards)) {
+        config.cards = (config.cards as { image?: string | null }[]).map((card) => ({ ...card, image: resolveMediaUrl(card.image) }));
+      }
+      if (section.type === "GAMING_SHOWCASE" && Array.isArray(config.products)) {
+        const products = await Promise.all((config.products as unknown[]).map(async (item) => {
+          if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+          const selection = item as Record<string, unknown>;
+          if (typeof selection.productSlug !== "string") return null;
+          const product = await apiGetOrNull<ApiProductBase>(`products/${encodeURIComponent(selection.productSlug)}`, { tags: [CacheTags.productSlug(selection.productSlug), CacheTags.products] }).catch(() => null);
+          return product ? { ...selection, product: toProduct(product) } : null;
+        }));
+        config.products = products.filter((item): item is NonNullable<typeof item> => item !== null);
+      }
+      if (section.type === "BUYING_GUIDES" && Array.isArray(config.guides)) {
+        const guides = await Promise.all((config.guides as unknown[]).map(async (item) => {
+          if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+          const selection = item as Record<string, unknown>;
+          if (typeof selection.pageSlug !== "string") return null;
+          const page = await apiGetOrNull<ApiPage>(`pages/${encodeURIComponent(selection.pageSlug)}`, { tags: [CacheTags.cmsPageSlug(selection.pageSlug)] }).catch(() => null);
+          return page ? { pageSlug: selection.pageSlug, title: page.title, tag: typeof selection.tag === "string" ? selection.tag : "Buying guide" } : null;
+        }));
+        config.guides = guides.filter((guide): guide is NonNullable<typeof guide> => guide !== null);
+      }
+      return { ...section, config };
+    })),
     featuredSections: home.featuredSections.map((section) => ({ ...section, products: section.products.map(toProduct) })),
   };
 }

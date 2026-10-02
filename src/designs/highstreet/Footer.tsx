@@ -5,13 +5,18 @@ import Link from "next/link";
 import { CAT_ORDER } from "@/lib/types";
 import { useHref, useInitialStorefrontChrome } from "@/lib/design-context";
 import { theme } from "@/lib/theme.config";
+import type { Product } from "@/lib/types";
+import { useRecentIds } from "@/lib/basket";
+import { useApi } from "@/lib/use-api";
 import NewsletterForm from "./NewsletterForm";
+import Section from "./Section";
 import { reopenCookieBanner } from "@/components/CookieBanner";
 
 export default function Footer() {
   const href = useHref();
   const { settings, footerMenu: menuColumns, footerContent: content } = useInitialStorefrontChrome();
-  const newsletter = content?.newsletter ?? { enabled: true, eyebrow: "Deals & restock alerts", heading: "Get restock alerts & deal notifications", text: "One email a week, mostly about stock drops and price cuts. No spam." };
+  const recentIds = useRecentIds().slice(0, 4);
+  const recentProductsRes = useApi<{ items: Product[] }>(recentIds.length ? `/api/products?ids=${recentIds.join(",")}` : null);
   const aboutText = content ? content.aboutText : theme.brand.about;
   const paymentMethods = content?.paymentMethods ?? theme.paymentMethods;
   const socialLinks = [
@@ -22,20 +27,7 @@ export default function Footer() {
   ].filter((social): social is { label: string; short: string; url: string } => Boolean(social.url?.trim()));
   return (
     <>
-      {newsletter.enabled ? (
-        <section style={{ paddingTop: 6 }}>
-          <div className="wrap">
-            <div className="newsletter">
-              <div>
-                {newsletter.eyebrow ? <span className="eyebrow">{newsletter.eyebrow}</span> : null}
-                {newsletter.heading ? <h3>{newsletter.heading}</h3> : null}
-                {newsletter.text ? <p>{newsletter.text}</p> : null}
-              </div>
-              <NewsletterForm />
-            </div>
-          </div>
-        </section>
-      ) : null}
+      <Section title="Your browsing history" items={recentProductsRes.data?.items ?? []} />
       <footer>
         <div className="wrap">
           <div className="fgrid">

@@ -75,6 +75,7 @@ export default function Header() {
   }, []);
 
   const [q, setQ] = useState("");
+  const [searchCategory, setSearchCategory] = useState("");
   const [open, setOpen] = useState(false);
   const [openMega, setOpenMega] = useState<string | null>(null);
 
@@ -102,10 +103,15 @@ export default function Header() {
     const timer = setTimeout(() => setDebouncedQ(q.trim()), 200);
     return () => clearTimeout(timer);
   }, [q]);
-  const searchRes = useApi<{ items: Product[] }>(debouncedQ.length >= 2 ? `/api/products?q=${encodeURIComponent(debouncedQ)}&perPage=5` : null);
   // Fetched once (small, slow-changing lists) rather than per keystroke, then
   // filtered client-side — same live source the category/brand pages use.
   const categoriesRes = useApi<{ items: ApiCategory[] }>("/api/categories", { items: initialCategories }, { skipInitialFetch: true });
+  const categorySlug = searchCategory
+    ? categoriesRes.data?.items.flatMap((category) => [category, ...category.children]).find((category) => category.title === searchCategory)?.slug
+    : undefined;
+  const searchRes = useApi<{ items: Product[] }>(debouncedQ.length >= 2
+    ? `/api/products?q=${encodeURIComponent(debouncedQ)}${categorySlug ? `&category=${encodeURIComponent(categorySlug)}` : ""}&perPage=5`
+    : null);
   const brandsRes = useApi<{ items: ApiBrand[] }>("/api/brands");
   // The admin-managed menu is loaded and tagged in the root server layout; an empty/unavailable menu
   // falls back to the same category tree without waiting for a browser request.
@@ -135,7 +141,7 @@ export default function Header() {
   function runSearch(query: string) {
     setOpen(false);
     if (!query.trim()) return;
-    router.push(href.category({ q: query }));
+    router.push(href.category({ ...(searchCategory ? { cat: searchCategory } : {}), q: query }));
   }
 
   return (
@@ -179,10 +185,10 @@ export default function Header() {
                 runSearch(q.trim());
               }}
             >
-              <select aria-label="Search category">
-                <option>All categories</option>
+              <select aria-label="Search category" value={searchCategory} onChange={(e) => setSearchCategory(e.target.value)}>
+                <option value="">All categories</option>
                 {CAT_ORDER.map((c) => (
-                  <option key={c}>{c}</option>
+                  <option key={c} value={c}>{c}</option>
                 ))}
               </select>
               <input

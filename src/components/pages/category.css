@@ -23,6 +23,7 @@
 .category-subcategory strong{font-size:12px;font-weight:600}
 .category-subcategory span{font-size:10px;color:var(--category-muted)}
 .category-catalogue{background:#f6f5f2;padding:22px 0 40px;scroll-margin-top:20px}
+.category-history-recommendations{background:#f6f5f2;padding:22px 0 40px}
 .category-layout{display:grid;grid-template-columns:216px minmax(0,1fr);gap:20px;align-items:start}
 .category-sidebar{background:white;border:1px solid var(--category-line);border-radius:9px;padding:18px 16px;position:sticky;top:50px;max-height:calc(100vh - 70px);overflow-y:auto;z-index:5}
 .category-refine{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}

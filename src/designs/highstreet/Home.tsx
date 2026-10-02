@@ -24,8 +24,6 @@ import {
   GAMING_CHIPS,
   LAPTOP_CARDS,
   NEED_CARDS,
-  RIGS,
-  GUIDES,
 } from "@/lib/homepage-content";
 
 const CAT_ICON: Record<string, string> = {
@@ -67,6 +65,36 @@ type HomeInitialData = {
   arrivals: Product[];
   categories: ApiCategory[];
 };
+
+type GamingTier = {
+  product: Product;
+  tier: string;
+  fps: string;
+  ctaLabel: string;
+  specs: { label: string; value: string }[];
+};
+
+function configuredGamingTiers(value: unknown): GamingTier[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return [];
+    const record = item as Record<string, unknown>;
+    const product = record.product as Product | undefined;
+    if (!product || typeof product.slug !== "string" || typeof product.name !== "string" || typeof product.price !== "number") return [];
+    const specs = Array.isArray(record.specs) ? record.specs.flatMap((spec) => {
+      if (!spec || typeof spec !== "object" || Array.isArray(spec)) return [];
+      const entry = spec as Record<string, unknown>;
+      return typeof entry.label === "string" && typeof entry.value === "string" ? [{ label: entry.label, value: entry.value }] : [];
+    }) : [];
+    return [{
+      product,
+      tier: typeof record.tier === "string" ? record.tier : "",
+      fps: typeof record.fps === "string" ? record.fps : "",
+      ctaLabel: typeof record.ctaLabel === "string" && record.ctaLabel.trim() ? record.ctaLabel : "View gaming PC",
+      specs,
+    }];
+  });
+}
 
 function SpecialOfferCard({ initialProducts }: { initialProducts: Product[] }) {
   const href = useHref();
@@ -131,7 +159,7 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
   const href = useHref();
 
   const brandsRes = useApi<{ items: ApiBrand[] }>("/api/brands", { items: initialData.brands }, { skipInitialFetch: true });
-  const brandList = (brandsRes.data?.items ?? []).slice(0, 8).map((b) => ({
+  const allBrandList = (brandsRes.data?.items ?? []).map((b) => ({
     brand: b.title, slug: b.slug, count: b.productCount ?? 0, rating: 0, min: b.priceFrom ?? 0, deals: 0,
     note: b.description || b.shortDescription || `${b.productCount ?? 0} lines in the catalogue.`,
     logo: b.logo, logoAlt: b.logoAlt,
@@ -140,11 +168,22 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
   const homeRes = useApi<{ home: HomeBundle }>("/api/home", initialData.home ? { home: initialData.home } : null, { skipInitialFetch: true });
   const dealsRes = useApi<{ items: Product[] }>("/api/products?onSale=true&perPage=8", { items: initialData.deals }, { skipInitialFetch: true });
   const deals = dealsRes.data?.items ?? [];
+  const nextDealEndsAt = deals
+    .map((product) => product.dealEndsAt)
+    .filter((endsAt): endsAt is string => typeof endsAt === "string" && !Number.isNaN(Date.parse(endsAt)))
+    .sort((left, right) => Date.parse(left) - Date.parse(right))[0] ?? null;
 
   // Which of the admin-composed sections are visible, and in what order -
   // set from ukshop-admin's Homepage page.
   const sections = homeRes.data?.home.homepageSections ?? [];
   const sectionTypes = new Set(sections.map((section) => section.type));
+  const configuredBrandSlugs = sections.find((section) => section.type === "BRANDS")?.config.brandSlugs;
+  const brandList = (Array.isArray(configuredBrandSlugs)
+    ? allBrandList.filter((brand) => configuredBrandSlugs.includes(brand.slug))
+    : allBrandList).slice(0, 8);
+  const gamingSection = sections.find((section) => section.type === "GAMING_SHOWCASE");
+  const gamingTiers = configuredGamingTiers(gamingSection?.config.products);
+  const gamingChipSlugs = Array.isArray(gamingSection?.config.chips) ? gamingSection.config.chips.filter((chip): chip is string => typeof chip === "string") : GAMING_CHIPS;
   const featuredSlug = sections.find((section) => section.type === "FEATURED_PRODUCTS")?.config.slug;
   const featured = typeof featuredSlug === "string" ? homeRes.data?.home.featuredSections.find((section) => section.slug === featuredSlug) : undefined;
   const bannerPosition = sections.find((section) => section.type === "BANNERS")?.config.position;
@@ -166,27 +205,50 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
     const value = section.config[key];
     return typeof value === "string" ? value : null;
   };
+  const configCards = (section: { config: Record<string, unknown> }, fallback: Array<{ title: string; copy: string; href: { sub: string } }>) => {
+    const rawCards = Array.isArray(section.config.cards) ? section.config.cards : [];
+    if (!rawCards.length) {
+      return fallback.map((card, index) => ({ ...card, key: `${card.title || "card"}-${index}` }));
+    }
+    return rawCards.flatMap((card, index) => {
+      if (!card || typeof card !== "object") return [];
+      const item = card as Record<string, unknown>;
+      const fallbackCard = fallback[index] ?? fallback[0];
+      const title = typeof item.title === "string" ? item.title : fallbackCard?.title ?? "";
+      const copy = typeof item.text === "string" ? item.text : typeof item.copy === "string" ? item.copy : fallbackCard?.copy ?? "";
+      const categorySlug = typeof item.categorySlug === "string" ? item.categorySlug : fallbackCard?.href.sub ?? "";
+      if (!title && !copy && !categorySlug) return [];
+      return [{ key: `${title || fallbackCard?.title || "card"}-${index}`, title, copy, href: { sub: categorySlug || fallbackCard?.href.sub || "" } }];
+    });
+  };
   const dealsConfig = sections.find((section) => section.type === "DEALS") ?? { config: {} as Record<string, unknown> };
   const dealsHeading = sectionText(dealsConfig, "heading") || "Today's Best Deals";
   const dealsBody = sectionText(dealsConfig, "body") ?? `${deals.length} lines reduced across components, storage and displays — sorted by the biggest saving first.`;
-  const dealsCountdown = useCountdown(typeof dealsConfig.config.endsAt === "string" ? dealsConfig.config.endsAt : null);
+  const dealsCountdown = useCountdown(nextDealEndsAt);
 
   const testimonialsRes = useApi<{ items: ApiTestimonial[] }>(sectionTypes.has("TESTIMONIALS") ? "/api/testimonials" : null, { items: initialData.testimonials }, { skipInitialFetch: true });
   const faqsRes = useApi<{ items: ApiFaqCategory[] }>(sectionTypes.has("FAQS") ? "/api/faqs" : null, { items: initialData.faqs }, { skipInitialFetch: true });
   // Real store-wide score from approved product reviews; hidden when there are none.
   const reviewSummary = useApi<{ data: { count: number; average: number | null } }>(sectionTypes.has("TESTIMONIALS") ? "/api/reviews/summary" : null, initialData.reviewSummary ? { data: initialData.reviewSummary } : null, { skipInitialFetch: true }).data?.data;
-  const homepageFaqs = (faqsRes.data?.items ?? []).flatMap((category) => category.faqs);
+  const faqIds = sections.find((section) => section.type === "FAQS")?.config.faqIds;
+  const homepageFaqs = (faqsRes.data?.items ?? [])
+    .flatMap((category) => category.faqs)
+    .filter((faq) => !Array.isArray(faqIds) || faqIds.includes(faq.id));
 
-  const ARRIVAL_TAB_CATEGORY: Record<string, string | undefined> = {
-    All: undefined,
-    Computers: "computers",
-    Components: "pc-components",
-    Laptops: "laptops",
-    Gaming: "gaming-pcs",
-    Peripherals: "peripherals",
-  };
-  const [arrivalTab, setArrivalTab] = useState("All");
-  const arrivalsCategory = ARRIVAL_TAB_CATEGORY[arrivalTab];
+  const categoriesRes = useApi<{ items: ApiCategory[] }>("/api/categories", { items: initialData.categories }, { skipInitialFetch: true });
+  const configuredArrivalTabs = sections.find((section) => section.type === "NEW_ARRIVALS")?.config.tabs;
+  const arrivalTabSlugs = Array.isArray(configuredArrivalTabs)
+    ? [...new Set(configuredArrivalTabs.filter((slug): slug is string => typeof slug === "string"))]
+    : ["computers", "pc-components", "laptops", "gaming-pcs", "peripherals"];
+  const arrivalTabs = [
+    { slug: "", title: "All" },
+    ...arrivalTabSlugs.flatMap((slug) => {
+      const category = findCategory(categoriesRes.data?.items ?? [], slug);
+      return category ? [{ slug, title: category.title }] : [];
+    }),
+  ];
+  const [arrivalTab, setArrivalTab] = useState("");
+  const arrivalsCategory = arrivalTab || undefined;
   const arrivalsRes = useApi<{ items: Product[] }>(
     `/api/products?sort=newest&perPage=8${arrivalsCategory ? `&category=${arrivalsCategory}` : ""}`,
     { items: initialData.arrivals },
@@ -194,7 +256,6 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
   );
   const arrivals = arrivalsRes.data?.items ?? [];
 
-  const categoriesRes = useApi<{ items: ApiCategory[] }>("/api/categories", { items: initialData.categories }, { skipInitialFetch: true });
   const categoryTiles = (categoriesRes.data?.items ?? [])
     .filter((c) => c.showOnHomepage)
     .map((c) => ({
@@ -245,15 +306,18 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
                     <h2>{dealsHeading}</h2>
                     {dealsBody ? <p>{dealsBody}</p> : null}
                   </div>
-                  {/* Only when the admin set a real end date (Homepage > Today's deals) that hasn't passed. */}
+                  {/* The timer tracks the earliest product-level end date among the displayed deals. */}
                   {dealsCountdown ? (
-                    <div className="timer">
-                      {[[dealsCountdown.d, "Days"], [dealsCountdown.h, "Hours"], [dealsCountdown.m, "Mins"], [dealsCountdown.s, "Secs"]].map(([v, label]) => (
-                        <div key={label}>
-                          <b>{v}</b>
-                          <span>{label}</span>
-                        </div>
-                      ))}
+                    <div className="deals-timer">
+                      <span>Next deal ends in</span>
+                      <div className="timer">
+                        {[[dealsCountdown.d, "Days"], [dealsCountdown.h, "Hours"], [dealsCountdown.m, "Mins"], [dealsCountdown.s, "Secs"]].map(([v, label]) => (
+                          <div key={label}>
+                            <b>{v}</b>
+                            <span>{label}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ) : null}
                   <BorderBeam className="deals-border-beam" size={160} duration={9} colorFrom="#e8b8b5" colorTo="#ffffff" borderWidth={1.5} />
@@ -310,9 +374,9 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
                 </Link>
               </div>
               <div className="cat-chips" style={{ marginBottom: 16 }}>
-                {["All", "Computers", "Components", "Laptops", "Gaming", "Peripherals"].map((t) => (
-                  <button key={t} className={`cat-chip${arrivalTab === t ? " on" : ""}`} onClick={() => setArrivalTab(t)}>
-                    {t}
+                {arrivalTabs.map((tab) => (
+                  <button key={tab.slug || "all"} className={`cat-chip${arrivalTab === tab.slug ? " on" : ""}`} onClick={() => setArrivalTab(tab.slug)}>
+                    {tab.title}
                   </button>
                 ))}
               </div>
@@ -490,7 +554,8 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
           </section>
         );
 
-      case "SHOP_BY_NEED":
+      case "SHOP_BY_NEED": {
+        const cards = configCards(section, NEED_CARDS.map((card) => ({ ...card, href: { sub: (card.href as { sub?: string }).sub ?? "" } })));
         return (
           <section style={{ paddingTop: 6 }} key={section.id}>
             <div className="wrap">
@@ -501,7 +566,7 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
                 </div>
               </div>
               <div className="needgrid">
-                {NEED_CARDS.map((c) => (
+                {cards.map((c) => (
                   <Link className="needcard" href={href.category(c.href)} key={c.key}>
                     <h3>{c.title}</h3>
                     <p>{c.copy}</p>
@@ -514,8 +579,14 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
             </div>
           </section>
         );
+      }
 
-      case "GAMING_SHOWCASE":
+      case "GAMING_SHOWCASE": {
+        if (!gamingTiers.length) return null;
+        const chips = gamingChipSlugs.flatMap((slug) => {
+          const category = findCategory(categoriesRes.data?.items ?? [], slug);
+          return category ? [{ slug, title: category.title }] : [];
+        });
         return (
           <section style={{ paddingTop: 6 }} key={section.id}>
             <div className="wrap">
@@ -529,33 +600,33 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
                 </Link>
               </div>
               <div className="rigs">
-                {RIGS.map((r) => (
-                  <article className={"rig " + r.cls} key={r.name}>
+                {gamingTiers.map((r, index) => (
+                  <article className={`rig ${["a", "b", "c"][index % 3]}`} key={r.product.slug}>
                     <div className="tier">{r.tier}</div>
-                    <h3>{r.name}</h3>
-                    <div className="fps">{r.fps}</div>
+                    <h3>{r.product.name}</h3>
+                    {r.fps ? <div className="fps">{r.fps}</div> : null}
                     <ul>
-                      {r.specs.map(([k, v]) => (
-                        <li key={k}>
-                          <span>{k}</span>
-                          <span>{v}</span>
+                      {(r.specs.length ? r.specs : Object.entries(r.product.specs).filter(([, value]) => typeof value === "string").slice(0, 5).map(([label, value]) => ({ label, value }))).map((spec) => (
+                        <li key={spec.label}>
+                          <span>{spec.label}</span>
+                          <span>{spec.value}</span>
                         </li>
                       ))}
                     </ul>
                     <div className="pr">
-                      <b>{r.price}</b>
-                      <em>{r.monthly}</em>
+                      <b>{money(r.product.price)}</b>
+                      {r.product.was !== null ? <em>{money(r.product.was)}</em> : null}
                     </div>
-                    <Link className="pick" href={href.category({ sub: "Gaming PCs" })}>
-                      View gaming PCs
+                    <Link className="pick" href={href.product(r.product.slug)}>
+                      {r.ctaLabel}
                     </Link>
                   </article>
                 ))}
               </div>
               <div className="cat-chips" style={{ marginTop: 28, paddingTop: 20, borderTop: "1px solid var(--c-line)" }}>
-                {GAMING_CHIPS.map((c) => (
-                  <Link key={c} className="cat-chip" href={href.category({ sub: c })}>
-                    {c}
+                {chips.map((chip) => (
+                  <Link key={chip.slug} className="cat-chip" href={href.category({ sub: chip.title })}>
+                    {chip.title}
                   </Link>
                 ))}
                 <Link className="cat-chip on" href={href.category({ sub: "Gaming PCs" })}>
@@ -565,8 +636,10 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
             </div>
           </section>
         );
+      }
 
-      case "LAPTOP_SHOWCASE":
+      case "LAPTOP_SHOWCASE": {
+        const cards = configCards(section, LAPTOP_CARDS.map((card) => ({ ...card, href: { sub: card.sub } })));
         return (
           <section style={{ paddingTop: 6 }} key={section.id}>
             <div className="wrap">
@@ -580,12 +653,12 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
                 </Link>
               </div>
               <div className="laprow three">
-                {LAPTOP_CARDS.map((c) => (
-                  <Link className="lapcard" href={href.category({ sub: c.sub })} key={c.sub}>
+                {cards.map((c) => (
+                  <Link className="lapcard" href={href.category(c.href)} key={c.key}>
                     <h3>{c.title}</h3>
                     <p>{c.copy}</p>
                     <span>
-                      {findCategory(categoriesRes.data?.items ?? [], c.sub)?.productCount ?? 0} products <Icon id="i-arr" w={12} h={12} />
+                      {findCategory(categoriesRes.data?.items ?? [], c.href.sub)?.productCount ?? 0} products <Icon id="i-arr" w={12} h={12} />
                     </span>
                   </Link>
                 ))}
@@ -593,10 +666,15 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
             </div>
           </section>
         );
+      }
 
       case "BUYING_GUIDES": {
-        // Only guides that link to a real page; with none linked yet the section stays hidden.
-        const guides = GUIDES.filter((guide) => guide.href);
+        const guides = (Array.isArray(section.config.guides) ? section.config.guides : []).flatMap((item) => {
+          if (!item || typeof item !== "object") return [];
+          const guide = item as Record<string, unknown>;
+          if (typeof guide.pageSlug !== "string" || typeof guide.title !== "string") return [];
+          return [{ title: guide.title, tag: typeof guide.tag === "string" ? guide.tag : "Buying guide", href: `/pages/${encodeURIComponent(guide.pageSlug)}` }];
+        });
         if (!guides.length) return null;
         return (
           <section style={{ paddingTop: 6 }} key={section.id}>

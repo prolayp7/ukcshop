@@ -22,6 +22,9 @@ export default function BrandCard({ brand: b }: { brand: BrandSummary }) {
           <b>{b.count}</b> products
         </span>
         <span>
+          <b>{b.deals}</b> deals
+        </span>
+        <span>
           <b>{b.rating.toFixed(1)}</b>★
         </span>
         <span>

@@ -1,14 +1,18 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { DesignParts } from "@/lib/parts";
 import { Cart, useCart, CartLine } from "@/lib/cart";
-import { useRecentIds } from "@/lib/basket";
+import { useRecentIds, useWishlist } from "@/lib/basket";
 import { money, CURRENCY_SYMBOL } from "@/lib/catalogue";
 import { useApi } from "@/lib/use-api";
 import { theme } from "@/lib/theme.config";
 import { Product } from "@/lib/types";
 import { Icon, ProductVisual } from "@/components/Icon";
-import { useHref } from "@/lib/design-context";
+import { useHref, useInitialStorefrontChrome } from "@/lib/design-context";
+import { listAddresses, listOrders, Order } from "@/lib/account-api";
+import { useCustomerAuth } from "@/lib/storefront-client";
+import AccountHeader from "./AccountHeader";
 import Link from "next/link";
 
 function stockLabel(qty: number): { cls: string; text: string } {
@@ -20,12 +24,32 @@ function stockLabel(qty: number): { cls: string; text: string } {
 export default function BasketPage({ parts }: { parts: DesignParts }) {
   const { Header, Footer, Crumbs, Section } = parts;
   const href = useHref();
+  const { footerContent } = useInitialStorefrontChrome();
+  const paymentMethods = footerContent?.paymentMethods ?? theme.paymentMethods;
   const { cart, loaded } = useCart();
+  const { customer, isLoggedIn } = useCustomerAuth();
+  const { items: wishlist } = useWishlist();
   const recentIds = useRecentIds();
   const lines = cart?.items ?? [];
   const empty = loaded && lines.length === 0;
   const subtotal = cart?.subtotal ?? 0;
   const toFreeDelivery = Math.max(0, theme.features.freeDeliveryThresholdGbp - subtotal);
+  const [accountSummary, setAccountSummary] = useState<{ customerId: string; orders: Order[]; totalOrders: number; addressCount: number } | null>(null);
+
+  useEffect(() => {
+    if (!isLoggedIn || !customer) return;
+
+    let cancelled = false;
+    Promise.all([listOrders(), listAddresses()]).then(([result, addresses]) => {
+      if (!cancelled) setAccountSummary({ customerId: customer.uuid, orders: result.items, totalOrders: result.meta.total, addressCount: addresses.length });
+    }).catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoggedIn, customer]);
+
+  const summary = accountSummary?.customerId === customer?.uuid ? accountSummary : null;
 
   const recRes = useApi<{ items: Product[] }>("/api/products/recommended?limit=4");
   const rec = recRes.data?.items ?? [];
@@ -37,6 +61,7 @@ export default function BasketPage({ parts }: { parts: DesignParts }) {
     <>
       <Header />
       <Crumbs items={[{ label: "Home", href: href.home() }, { label: "Basket" }]} />
+      {customer ? <AccountHeader activeTab={null} customer={customer} orders={summary?.orders ?? null} totalOrders={summary?.totalOrders ?? null} wishlistCount={wishlist.length} addressCount={summary?.addressCount ?? null} /> : null}
       <div className="wrap">
         <div className="bk-head">
           <h1>Your basket</h1>
@@ -77,7 +102,7 @@ export default function BasketPage({ parts }: { parts: DesignParts }) {
                 Checkout <Icon id="i-arr" w={15} />
               </Link>
               <div className="bk-pay">
-                {theme.paymentMethods.map((m) => (
+                {paymentMethods.map((m) => (
                   <span key={m}>{m}</span>
                 ))}
               </div>
@@ -99,8 +124,8 @@ export default function BasketPage({ parts }: { parts: DesignParts }) {
           </div>
         )}
       </div>
-      {empty ? <Section title="Recommended for you" sub="Popular right now across the catalogue." items={rec} /> : null}
-      {recentlyViewed.length ? <Section title="Recently viewed" items={recentlyViewed} /> : null}
+      {rec.length ? <Section title="Recommended for you" sub="Popular right now across the catalogue." items={rec} /> : null}
+      {recentlyViewed.length ? <Section title="Recently browsed" items={recentlyViewed} /> : null}
       <Footer />
     </>
   );

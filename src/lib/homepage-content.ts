@@ -22,66 +22,6 @@ export const NEED_CARDS = [
   { key: "student", title: "Student", copy: "Thin, light laptops built for lecture halls, not boardrooms.", href: { sub: "Ultrabooks" } },
 ];
 
-export const RIGS = [
-  {
-    cls: "a",
-    tier: "TIER 01 · 1080P",
-    name: "Onset",
-    fps: "140–240 FPS @ 1080p Ultra",
-    specs: [
-      ["CPU", "AMD Ryzen 5 9600X"],
-      ["GPU", "GeForce RTX 5060 Ti 16GB"],
-      ["RAM", "16GB DDR5-6000 CL30"],
-      ["SSD", "1TB PCIe 4.0 NVMe"],
-      ["PSU", "650W 80+ Gold"],
-    ],
-    price: "£1,099",
-    monthly: "£47/MO · 0%",
-  },
-  {
-    cls: "b",
-    tier: "TIER 02 · 1440P · MOST POPULAR",
-    name: "Overdrive",
-    fps: "160–300 FPS @ 1440p Ultra",
-    specs: [
-      ["CPU", "AMD Ryzen 7 9800X3D"],
-      ["GPU", "GeForce RTX 5080 16GB"],
-      ["RAM", "32GB DDR5-6000 CL30"],
-      ["SSD", "2TB Samsung 990 PRO"],
-      ["PSU", "850W 80+ Gold ATX 3.1"],
-    ],
-    price: "£2,349",
-    monthly: "£98/MO · 0%",
-  },
-  {
-    cls: "c",
-    tier: "TIER 03 · 4K",
-    name: "Redline",
-    fps: "120–200 FPS @ 4K Ultra",
-    specs: [
-      ["CPU", "AMD Ryzen 9 9950X3D"],
-      ["GPU", "GeForce RTX 5090 32GB"],
-      ["RAM", "64GB DDR5-6400 CL32"],
-      ["SSD", "4TB PCIe 5.0 NVMe"],
-      ["PSU", "1200W 80+ Platinum"],
-    ],
-    price: "£4,199",
-    monthly: "£175/MO · 0%",
-  },
-];
-
-// No guide pages exist yet: a guide shows on the homepage only once it has an `href` to a real page.
-export const GUIDES: { title: string; tag: string; href?: string }[] = [
-  { title: "How to Choose a Gaming PC", tag: "Buying guide" },
-  { title: "Best GPU for 1440p Gaming", tag: "Buying guide" },
-  { title: "How Much RAM Do You Need?", tag: "Buying guide" },
-  { title: "SSD vs HDD: What's Right for You?", tag: "Buying guide" },
-  { title: "How to Choose a Laptop", tag: "Buying guide" },
-  { title: "Gaming Monitor Buying Guide", tag: "Buying guide" },
-  { title: "How to Build a Gaming PC", tag: "Buying guide" },
-  { title: "Best Business Laptops for 2026", tag: "Buying guide" },
-];
-
 export const TECH_HUB = [
   { title: "RTX 50-series: what actually changed this generation", tag: "News" },
   { title: "We stress-tested six 850W PSUs — here's what failed", tag: "Review" },

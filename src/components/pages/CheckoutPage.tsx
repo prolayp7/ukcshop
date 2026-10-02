@@ -9,7 +9,7 @@ import { DesignParts } from "@/lib/parts";
 import { useCart } from "@/lib/cart";
 import { useCustomerAuth } from "@/lib/storefront-client";
 import { Address, ShippingQuote, Order, listAddresses, listShippingMethods, checkout, CheckoutAddress } from "@/lib/account-api";
-import { listPaymentMethods, createPaymentAttempt, capturePaymentAttempt, PaymentProvider } from "@/lib/payments-api";
+import { listPaymentMethods, createPaymentAttempt, capturePaymentAttempt, PAYMENT_RETURN_ORDER_KEY, PaymentProvider } from "@/lib/payments-api";
 import { money } from "@/lib/catalogue";
 import { Icon, ProductVisual } from "@/components/Icon";
 import { useHref } from "@/lib/design-context";
@@ -22,8 +22,6 @@ const EMPTY_ADDRESS: CheckoutAddress = { fullName: "", line1: "", line2: "", cit
 // React state, since returning from the provider is a fresh page load) - holds the
 // placed order so the success screen and the capture call both have what
 // they need regardless of whether the customer was logged in or a guest.
-const PAYPAL_RETURN_KEY = "ukcs.paypalCheckout";
-
 type Provider = Extract<PaymentProvider, "STRIPE" | "PAYPAL">;
 const PROVIDERS: { id: Provider; label: string; blurb: string; redirect: string }[] = [
   { id: "STRIPE", label: "Card payment (Stripe)", blurb: "Pay securely by debit or credit card", redirect: "Stripe" },
@@ -90,7 +88,7 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
      the note above the useState calls. */
   useEffect(() => {
     if (!paypalAttemptId) return;
-    const raw = sessionStorage.getItem(PAYPAL_RETURN_KEY);
+    const raw = sessionStorage.getItem(PAYMENT_RETURN_ORDER_KEY);
     const saved = raw ? (JSON.parse(raw) as Order) : null;
     if (saved) setOrder(saved);
 
@@ -109,7 +107,7 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
         if (result.status === "CAPTURED") {
           setPaid(true);
           toast.success("Payment successful", { id: "payment-status", description: `Order ${saved.orderNumber} has been paid.` });
-          sessionStorage.removeItem(PAYPAL_RETURN_KEY);
+          sessionStorage.removeItem(PAYMENT_RETURN_ORDER_KEY);
         } else {
           setPlaceError(result.error?.message || "Payment could not be completed — please try again.");
           toast.error("Payment was unsuccessful", { id: "payment-status", description: result.error?.message || "Please try again." });
@@ -162,7 +160,7 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
       if (!order) setOrder(currentOrder);
       const attempt = await createPaymentAttempt({ orderUuid: currentOrder.uuid, email: currentOrder.email, provider });
       if (!attempt.redirectUrl) throw new Error("No redirect URL returned");
-      sessionStorage.setItem(PAYPAL_RETURN_KEY, JSON.stringify(currentOrder));
+      sessionStorage.setItem(PAYMENT_RETURN_ORDER_KEY, JSON.stringify(currentOrder));
       window.location.href = attempt.redirectUrl;
     } catch {
       placingRef.current = false;

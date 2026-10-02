@@ -49,9 +49,13 @@ export interface WishlistItem {
   variantTitle: string;
   price: number;
   salePrice: number | null;
+  notifyBackInStock: boolean;
+  notifyPriceDrop: boolean;
 }
 interface ApiWishlistItem {
   productVariantId: number;
+  notifyBackInStock: boolean;
+  notifyPriceDrop: boolean;
   productVariant: {
     title: string;
     price: string;
@@ -75,6 +79,8 @@ function toWishlistItem(item: ApiWishlistItem): WishlistItem {
     variantTitle: item.productVariant.title,
     price: Number(item.productVariant.price),
     salePrice: item.productVariant.salePrice !== null ? Number(item.productVariant.salePrice) : null,
+    notifyBackInStock: item.notifyBackInStock,
+    notifyPriceDrop: item.notifyPriceDrop,
   };
 }
 function setWishlist(items: ApiWishlistItem[]) {
@@ -121,6 +127,13 @@ export const Wishlist = {
       : await request<{ items: ApiWishlistItem[] }>("wishlist/items", { method: "POST", body: JSON.stringify({ productVariantId }) }));
     setWishlist(data.items);
     toast.success(existing ? "Removed from your wishlist" : "Saved to your wishlist", { description: existing?.productTitle || data.items.find((item) => item.productVariantId === productVariantId)?.productVariant.product.title });
+  },
+  async updateAlerts(productVariantId: number, alerts: { notifyBackInStock: boolean; notifyPriceDrop: boolean }): Promise<void> {
+    const data = await request<{ items: ApiWishlistItem[] }>(`wishlist/items/${productVariantId}/alerts`, {
+      method: "PATCH",
+      body: JSON.stringify(alerts),
+    });
+    setWishlist(data.items);
   },
 };
 
@@ -171,6 +184,13 @@ export const Compare = {
 };
 
 export const Recent = {
+  sessionId(): string {
+    const existing = lsGet("session-id", "");
+    if (existing) return existing;
+    const sessionId = window.crypto.randomUUID();
+    lsSet("session-id", sessionId);
+    return sessionId;
+  },
   raw(): number[] {
     return lsGet("recent", [] as number[]);
   },

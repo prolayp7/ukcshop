@@ -1,17 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, CheckCircle2, ChevronRight, CircleHelp, CreditCard, Heart, LogOut, MapPin, Package, Search, Settings, ShieldCheck, ShoppingBag, ShoppingCart, Truck, UserRound, Zap, RotateCcw } from "lucide-react";
+import { ArrowRight, Check, ChevronRight, CircleHelp, CreditCard, Heart, MapPin, Package, Search, Settings, ShieldCheck, ShoppingBag, ShoppingCart, Truck, Zap } from "lucide-react";
 import { useHref } from "@/lib/design-context";
 import type { Customer } from "@/lib/storefront-client";
-import { logout } from "@/lib/storefront-client";
 import type { Address, Order } from "@/lib/account-api";
 import type { Product } from "@/lib/types";
 import type { WishlistItem } from "@/lib/basket";
 import { money } from "@/lib/catalogue";
 import { AddToBasketButton } from "@/components/interactive";
 import styles from "./account-overview.module.css";
+import AccountHeader from "./AccountHeader";
 
 interface Props {
   activeTab?: "overview" | "orders" | "returns" | "wishlist" | "addresses" | "details";
@@ -38,39 +38,12 @@ function date(value: string) {
 
 export default function AccountOverview({ activeTab = "overview", children, customer, orders, totalOrders, ordersError, onRetry, addresses, addressesError, wishlist, products, productsLoading, productsError }: Props) {
   const href = useHref();
-  const navigationRef = useRef<HTMLElement>(null);
-  useEffect(() => {
-    const navigation = navigationRef.current;
-    const selected = navigation?.querySelector<HTMLElement>('[aria-current="page"]');
-    if (!navigation || !selected || navigation.scrollWidth <= navigation.clientWidth) return;
-    const container = navigation.getBoundingClientRect();
-    const item = selected.getBoundingClientRect();
-    if (item.left < container.left || item.right > container.right) {
-      navigation.scrollLeft += item.left - container.left - (container.width - item.width) / 2;
-    }
-  }, [activeTab, wishlist.length, addresses?.length]);
   const inProgress = (orders ?? []).filter(order => ["PROCESSING", "PACKED", "SHIPPED"].includes(order.status));
   const dispatch = inProgress.find(order => order.status === "SHIPPED") ?? inProgress[0];
   const paidTotal = (orders ?? []).filter(order => order.paymentStatus === "PAID" && !["CANCELLED", "FAILED"].includes(order.status)).reduce((total, order) => total + Number(order.total), 0);
   const defaultAddress = addresses?.find(address => address.isDefault) ?? addresses?.[0];
-  const firstName = customer.firstName || "Welcome";
-  const tabs = [
-    { tab: "overview", label: "Account overview", Icon: UserRound },
-    { tab: "orders", label: "Orders & deliveries", Icon: Truck },
-    { tab: "returns", label: "Returns", Icon: RotateCcw },
-    { tab: "wishlist", label: "Saved products", Icon: Heart },
-    { tab: "addresses", label: "Delivery addresses", Icon: MapPin },
-    { tab: "details", label: "Account details", Icon: Settings },
-  ];
   return <div className={styles.page}>
-    <div className={`wrap ${styles.identity}`}>
-      <div className={styles.profile}>
-        <div className={styles.avatar} aria-hidden="true">{customer.firstName?.[0]}{customer.lastName?.[0]}</div>
-        <div><div className={styles.nameLine}><h1>{firstName} {customer.lastName}</h1><span className={styles.member}>Customer account</span></div><p>{customer.email}</p><span className={styles.verified}>{customer.emailVerified ? <><CheckCircle2 size={13} />Email verified</> : <><UserRound size={13} />Your personal shopping hub</>}</span></div>
-      </div>
-      <div className={styles.identitySummary}><div><span>Orders on your account</span><strong>{totalOrders ?? "—"}</strong><Link href={href.account({ tab: "orders" })}>View order history <ChevronRight size={12} /></Link></div><Link className={styles.shipmentSummary} href={href.account({ tab: "orders" })}><Truck size={23} /><span>Recent active orders<strong>{orders ? inProgress.length : "—"} {inProgress.length === 1 ? "order" : "orders"}</strong></span></Link><button className={styles.signout} type="button" onClick={() => void logout().then(() => { window.location.href = href.home(); })}><LogOut size={15} />Sign out</button></div>
-    </div>
-    <div className="wrap"><nav ref={navigationRef} className={styles.tabs} aria-label="Account navigation">{tabs.map(({ tab, label, Icon }) => <Link href={href.account({ tab })} key={tab} aria-current={tab === activeTab ? "page" : undefined}><Icon size={15} />{label}{tab === "wishlist" && wishlist.length > 0 && <span>{wishlist.length}</span>}{tab === "addresses" && !!addresses?.length && <span>{addresses.length}</span>}</Link>)}</nav></div>
+    <AccountHeader activeTab={activeTab} customer={customer} orders={orders} totalOrders={totalOrders} wishlistCount={wishlist.length} addressCount={addresses?.length ?? null} />
     <div className={styles.dashboardBackground}><div className={`wrap ${styles.dashboard}`}>
       <div className={styles.main}>
         {children ?? <>
@@ -103,10 +76,14 @@ export default function AccountOverview({ activeTab = "overview", children, cust
 function DispatchCard({ order }: { order: Order }) {
   const href = useHref();
   const shipment = order.shipments?.find(item => item.status !== "DELIVERED") ?? order.shipments?.[0];
+  const trackingCarrier = order.trackingCarrier || shipment?.carrier || order.shippingMethod?.carrier || "Awaiting dispatch";
+  const trackingNumber = order.trackingNumber || shipment?.trackingNumber;
+  const trackingUrl = order.trackingUrl || shipment?.trackingUrl;
+  const safeTrackingUrl = trackingUrl && /^https?:\/\//i.test(trackingUrl) ? trackingUrl : null;
   const itemCount = order.items.reduce((count, item) => count + item.quantity, 0);
   const steps = ["Order placed", "Preparing", "Dispatched", "Delivered"];
   const current = order.status === "DELIVERED" ? 3 : order.status === "SHIPPED" ? 2 : 1;
-  return <section className={styles.dispatch}><header><span className={styles.dispatchIcon}><MapPin size={20} /></span><div><small>Order {order.orderNumber}</small><h2>{order.shippingCity} · {order.shippingPostcode}</h2></div><span className={styles.dispatchBadge}>{statusLabel(order.status)}</span></header><div className={styles.dispatchBody}><div className={styles.deliveryInfo}><div><small>Delivery address</small><strong>{order.shippingFullName}</strong><p>{order.shippingLine1}</p></div><div><small>Carrier &amp; tracking</small><strong>{shipment?.carrier || order.shippingMethod?.carrier || "Awaiting dispatch"}</strong><p>{shipment?.trackingNumber || "Tracking details will appear after dispatch"}</p></div><Link className={styles.primaryButton} href={href.order(order.uuid)}><Truck size={14} />Track order</Link></div><ol className={styles.timeline}>{steps.map((step, index) => <li key={step} data-progress={index < current ? "complete" : index === current ? "current" : "pending"} aria-current={index === current ? "step" : undefined}><span>{index < current ? <Check size={13} /> : index === current ? <Truck size={13} /> : <Package size={13} />}</span><strong>{step}</strong><small>{index === 0 ? date(order.placedAt) : index === current ? "Current status" : index > current ? "Upcoming" : "Complete"}</small></li>)}</ol><footer><div><strong>{itemCount} {itemCount === 1 ? "item" : "items"} in this order</strong><p>{order.items.slice(0, 2).map(item => item.titleSnapshot).join(" · ")}{order.items.length > 2 ? "…" : ""}</p></div><strong>{money(Number(order.total))}</strong><Link href={href.order(order.uuid)} aria-label={`View details for order ${order.orderNumber}`}>Order details <ArrowRight size={14} /></Link></footer>{shipment?.estimatedDeliveryAt && <p className={styles.deliveryEstimate}>Estimated delivery: {date(shipment.estimatedDeliveryAt)}</p>}</div></section>;
+  return <section className={styles.dispatch}><header><span className={styles.dispatchIcon}><MapPin size={20} /></span><div><small>Order {order.orderNumber}</small><h2>{order.shippingCity} · {order.shippingPostcode}</h2></div><span className={styles.dispatchBadge}>{statusLabel(order.status)}</span></header><div className={styles.dispatchBody}><div className={styles.deliveryInfo}><div><small>Delivery address</small><strong>{order.shippingFullName}</strong><p>{order.shippingLine1}</p></div><div><small>Carrier &amp; tracking</small><strong>{trackingCarrier}</strong><p>{trackingNumber ? safeTrackingUrl ? <a href={safeTrackingUrl} target="_blank" rel="noopener noreferrer">{trackingNumber}</a> : trackingNumber : "Tracking details will appear after dispatch"}</p></div><Link className={styles.primaryButton} href={href.order(order.uuid)}><Truck size={14} />Track order</Link></div><ol className={styles.timeline}>{steps.map((step, index) => <li key={step} data-progress={index < current ? "complete" : index === current ? "current" : "pending"} aria-current={index === current ? "step" : undefined}><span>{index < current ? <Check size={13} /> : index === current ? <Truck size={13} /> : <Package size={13} />}</span><strong>{step}</strong><small>{index === 0 ? date(order.placedAt) : index === current ? "Current status" : index > current ? "Upcoming" : "Complete"}</small></li>)}</ol><footer><div><strong>{itemCount} {itemCount === 1 ? "item" : "items"} in this order</strong><p>{order.items.slice(0, 2).map(item => item.titleSnapshot).join(" · ")}{order.items.length > 2 ? "…" : ""}</p></div><strong>{money(Number(order.total))}</strong><Link href={href.order(order.uuid)} aria-label={`View details for order ${order.orderNumber}`}>Order details <ArrowRight size={14} /></Link></footer>{shipment?.estimatedDeliveryAt && <p className={styles.deliveryEstimate}>Estimated delivery: {date(shipment.estimatedDeliveryAt)}</p>}</div></section>;
 }
 
 function Thumbnail({ image }: { image?: string | null }) {

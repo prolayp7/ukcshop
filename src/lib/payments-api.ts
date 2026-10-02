@@ -3,6 +3,7 @@
 import { request } from "./storefront-client";
 
 export type PaymentProvider = "STRIPE" | "PAYPAL" | "TWOCHECKOUT";
+export const PAYMENT_RETURN_ORDER_KEY = "ukcs.paypalCheckout";
 
 export interface PaymentMethodInfo {
   provider: PaymentProvider;
