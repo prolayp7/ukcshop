@@ -5,8 +5,8 @@ import Link from "next/link";
 import { stars, money } from "@/lib/catalogue";
 import { useApi } from "@/lib/use-api";
 import { findCategory } from "@/lib/category";
-import { ApiBrand, ApiCategory, ApiFaqCategory, ApiHomeBundle, ApiHomepageSectionType, ApiTestimonial, HomeBundle } from "@/lib/api";
-import { Product } from "@/lib/types";
+import type { ApiBrand, ApiCategory, ApiFaqCategory, ApiHomeBundle, ApiHomepageSectionType, ApiTestimonial, HomeBundle } from "@/lib/api";
+import type { Product } from "@/lib/types";
 import { Icon, ProductVisual } from "@/components/Icon";
 import { AddToBasketButton, WishlistButton } from "@/components/interactive";
 import { Backlight } from "@/components/ui/backlight";
@@ -56,9 +56,21 @@ const FEATURED_SUBTITLE: Record<string, string> = {
   MANUAL: "Hand-picked by our team.",
 };
 
-function SpecialOfferCard() {
+type HomeInitialData = {
+  brands: ApiBrand[];
+  home: HomeBundle | null;
+  deals: Product[];
+  offer: Product[];
+  testimonials: ApiTestimonial[];
+  faqs: ApiFaqCategory[];
+  reviewSummary: { count: number; average: number | null } | null;
+  arrivals: Product[];
+  categories: ApiCategory[];
+};
+
+function SpecialOfferCard({ initialProducts }: { initialProducts: Product[] }) {
   const href = useHref();
-  const offerRes = useApi<{ items: Product[] }>("/api/products?onSale=true&sort=discount_desc&perPage=1");
+  const offerRes = useApi<{ items: Product[] }>("/api/products?onSale=true&sort=discount_desc&perPage=1", { items: initialProducts }, { skipInitialFetch: true });
   const p = offerRes.data?.items[0];
   if (!p || !p.was) return null;
   const pct = Math.round(((p.was! - p.price) / p.was!) * 100);
@@ -115,18 +127,18 @@ function SpecialOfferCard() {
   );
 }
 
-export default function Home() {
+export default function Home({ initialData }: { initialData: HomeInitialData }) {
   const href = useHref();
 
-  const brandsRes = useApi<{ items: ApiBrand[] }>("/api/brands");
+  const brandsRes = useApi<{ items: ApiBrand[] }>("/api/brands", { items: initialData.brands }, { skipInitialFetch: true });
   const brandList = (brandsRes.data?.items ?? []).slice(0, 8).map((b) => ({
     brand: b.title, slug: b.slug, count: b.productCount ?? 0, rating: 0, min: b.priceFrom ?? 0, deals: 0,
     note: b.description || b.shortDescription || `${b.productCount ?? 0} lines in the catalogue.`,
     logo: b.logo, logoAlt: b.logoAlt,
   }));
 
-  const homeRes = useApi<{ home: HomeBundle }>("/api/home");
-  const dealsRes = useApi<{ items: Product[] }>("/api/products?onSale=true&perPage=8");
+  const homeRes = useApi<{ home: HomeBundle }>("/api/home", initialData.home ? { home: initialData.home } : null, { skipInitialFetch: true });
+  const dealsRes = useApi<{ items: Product[] }>("/api/products?onSale=true&perPage=8", { items: initialData.deals }, { skipInitialFetch: true });
   const deals = dealsRes.data?.items ?? [];
 
   // Which of the admin-composed sections are visible, and in what order -
@@ -159,10 +171,10 @@ export default function Home() {
   const dealsBody = sectionText(dealsConfig, "body") ?? `${deals.length} lines reduced across components, storage and displays — sorted by the biggest saving first.`;
   const dealsCountdown = useCountdown(typeof dealsConfig.config.endsAt === "string" ? dealsConfig.config.endsAt : null);
 
-  const testimonialsRes = useApi<{ items: ApiTestimonial[] }>(sectionTypes.has("TESTIMONIALS") ? "/api/testimonials" : null);
-  const faqsRes = useApi<{ items: ApiFaqCategory[] }>(sectionTypes.has("FAQS") ? "/api/faqs" : null);
+  const testimonialsRes = useApi<{ items: ApiTestimonial[] }>(sectionTypes.has("TESTIMONIALS") ? "/api/testimonials" : null, { items: initialData.testimonials }, { skipInitialFetch: true });
+  const faqsRes = useApi<{ items: ApiFaqCategory[] }>(sectionTypes.has("FAQS") ? "/api/faqs" : null, { items: initialData.faqs }, { skipInitialFetch: true });
   // Real store-wide score from approved product reviews; hidden when there are none.
-  const reviewSummary = useApi<{ data: { count: number; average: number | null } }>(sectionTypes.has("TESTIMONIALS") ? "/api/reviews/summary" : null).data?.data;
+  const reviewSummary = useApi<{ data: { count: number; average: number | null } }>(sectionTypes.has("TESTIMONIALS") ? "/api/reviews/summary" : null, initialData.reviewSummary ? { data: initialData.reviewSummary } : null, { skipInitialFetch: true }).data?.data;
   const homepageFaqs = (faqsRes.data?.items ?? []).flatMap((category) => category.faqs);
 
   const ARRIVAL_TAB_CATEGORY: Record<string, string | undefined> = {
@@ -177,10 +189,12 @@ export default function Home() {
   const arrivalsCategory = ARRIVAL_TAB_CATEGORY[arrivalTab];
   const arrivalsRes = useApi<{ items: Product[] }>(
     `/api/products?sort=newest&perPage=8${arrivalsCategory ? `&category=${arrivalsCategory}` : ""}`,
+    { items: initialData.arrivals },
+    { skipInitialFetch: true },
   );
   const arrivals = arrivalsRes.data?.items ?? [];
 
-  const categoriesRes = useApi<{ items: ApiCategory[] }>("/api/categories");
+  const categoriesRes = useApi<{ items: ApiCategory[] }>("/api/categories", { items: initialData.categories }, { skipInitialFetch: true });
   const categoryTiles = (categoriesRes.data?.items ?? [])
     .filter((c) => c.showOnHomepage)
     .map((c) => ({
@@ -688,7 +702,7 @@ export default function Home() {
                     <p key={i}>{para.trim()}</p>
                   ))}
                 </div>
-                <SpecialOfferCard />
+                <SpecialOfferCard initialProducts={initialData.offer} />
               </div>
             </div>
           </section>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useApi } from "@/lib/use-api";
-import { ApiTestimonial } from "@/lib/api";
+import type { ApiTestimonial } from "@/lib/api";
 import { stars } from "@/lib/catalogue";
 import { useHref } from "@/lib/design-context";
 import { theme } from "@/lib/theme.config";
@@ -9,9 +9,9 @@ import Crumbs from "@/components/Crumbs";
 import Header from "./Header";
 import Footer from "./Footer";
 
-export default function TestimonialsPage() {
+export default function TestimonialsPage({ initialTestimonials }: { initialTestimonials: ApiTestimonial[] }) {
   const href = useHref();
-  const res = useApi<{ items: ApiTestimonial[] }>("/api/testimonials");
+  const res = useApi<{ items: ApiTestimonial[] }>("/api/testimonials", { items: initialTestimonials });
   const testimonials = res.data?.items ?? [];
   const avg = testimonials.length ? testimonials.reduce((sum, t) => sum + t.stars, 0) / testimonials.length : 0;
 

@@ -9,6 +9,7 @@
  */
 import { Product } from "./types";
 import { buildCategoryPaths, canonicalCategoryHref } from "./category-paths";
+import { CacheTags } from "./cache-tags";
 
 function getStorefrontApiUrl(path: string): string {
   const baseUrl = process.env.UKSHOP_API_URL ?? "http://localhost:3000/api/v1";
@@ -46,16 +47,18 @@ export interface ListMeta extends PaginationMeta {
   facets: Facets;
 }
 
-async function apiGet<T>(path: string, revalidateSeconds = 60): Promise<T> {
-  const res = await fetch(getStorefrontApiUrl(path), { next: { revalidate: revalidateSeconds } });
+type ApiCacheOptions = { tags?: string[]; revalidateSeconds?: number | false };
+
+async function apiGet<T>(path: string, { tags = [], revalidateSeconds = 86400 }: ApiCacheOptions = {}): Promise<T> {
+  const res = await fetch(getStorefrontApiUrl(path), { next: { revalidate: revalidateSeconds, tags } });
   if (!res.ok) {
     throw new Error(`UKShop API request failed: GET ${path} -> ${res.status}`);
   }
   return res.json() as Promise<T>;
 }
 
-async function apiGetOrNull<T>(path: string, revalidateSeconds = 60): Promise<T | null> {
-  const res = await fetch(getStorefrontApiUrl(path), { next: { revalidate: revalidateSeconds } });
+async function apiGetOrNull<T>(path: string, { tags = [], revalidateSeconds = 86400 }: ApiCacheOptions = {}): Promise<T | null> {
+  const res = await fetch(getStorefrontApiUrl(path), { next: { revalidate: revalidateSeconds, tags } });
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`UKShop API request failed: GET ${path} -> ${res.status}`);
   const json = (await res.json()) as { data: T };
@@ -160,6 +163,7 @@ export interface ApiProductBase {
   brand: ApiCategoryRef | null;
   price: string | null;
   salePrice: string | null;
+  dealEndsAt?: string | null;
   inStock: boolean;
   stockQty?: number;
   defaultVariantId?: number | null;
@@ -257,6 +261,7 @@ export function toProduct(api: ApiProductBase): Product {
     subcategory: api.category.parent ? api.category.title : api.category.title,
     price: sale ?? price,
     was: sale !== null ? price : null,
+    dealEndsAt: api.dealEndsAt ?? null,
     rating: api.reviewSummary?.average ?? 0,
     reviews: api.reviewSummary?.count ?? 0,
     stock: Number.isFinite(stockQty) ? stockQty : 999,
@@ -291,11 +296,11 @@ function resolveCategoryImages(category: ApiCategory): ApiCategory {
 }
 
 export function fetchCategoryTree(): Promise<ApiCategory[]> {
-  return apiGet<{ data: ApiCategory[] }>("categories").then((r) => r.data.map(resolveCategoryImages));
+  return apiGet<{ data: ApiCategory[] }>("categories", { tags: [CacheTags.categories] }).then((r) => r.data.map(resolveCategoryImages));
 }
 
 export function fetchCategoryBySlug(slug: string) {
-  return apiGetOrNull<ApiCategory>(`categories/${encodeURIComponent(slug)}`).then((category) => category ? resolveCategoryImages(category) : null);
+  return apiGetOrNull<ApiCategory>(`categories/${encodeURIComponent(slug)}`, { tags: [CacheTags.categories, CacheTags.categorySlug(slug)] }).then((category) => category ? resolveCategoryImages(category) : null);
 }
 
 function resolveBrandImages(brand: ApiBrand): ApiBrand {
@@ -303,11 +308,11 @@ function resolveBrandImages(brand: ApiBrand): ApiBrand {
 }
 
 export function fetchBrands(): Promise<ApiBrand[]> {
-  return apiGet<{ data: ApiBrand[] }>("brands").then((r) => r.data.map(resolveBrandImages));
+  return apiGet<{ data: ApiBrand[] }>("brands", { tags: [CacheTags.brands] }).then((r) => r.data.map(resolveBrandImages));
 }
 
 export function fetchBrandBySlug(slug: string) {
-  return apiGetOrNull<ApiBrand>(`brands/${encodeURIComponent(slug)}`).then((brand) => (brand ? resolveBrandImages(brand) : null));
+  return apiGetOrNull<ApiBrand>(`brands/${encodeURIComponent(slug)}`, { tags: [CacheTags.brands, CacheTags.brandSlug(slug)] }).then((brand) => (brand ? resolveBrandImages(brand) : null));
 }
 
 export interface ProductListParams {
@@ -333,17 +338,18 @@ export async function fetchProducts(params: ProductListParams = {}): Promise<{ i
     query.set(key, Array.isArray(value) ? value.join(",") : String(value));
   }
   const qs = query.toString();
-  const res = await apiGet<{ data: ApiProductBase[]; meta: ListMeta }>(`products${qs ? `?${qs}` : ""}`);
+  const tags = [CacheTags.products, ...(params.category ? [CacheTags.categorySlug(params.category)] : []), ...(params.brand ? [CacheTags.brandSlug(params.brand)] : [])];
+  const res = await apiGet<{ data: ApiProductBase[]; meta: ListMeta }>(`products${qs ? `?${qs}` : ""}`, { tags, revalidateSeconds: params.onSale ? 60 : undefined });
   return { items: res.data.map(toProduct), meta: res.meta };
 }
 
 export async function fetchRecommendedProducts(limit = 4): Promise<Product[]> {
-  const res = await apiGet<{ data: ApiProductBase[] }>(`products/recommended?limit=${limit}`);
+  const res = await apiGet<{ data: ApiProductBase[] }>(`products/recommended?limit=${limit}`, { tags: [CacheTags.products] });
   return res.data.map(toProduct);
 }
 
 export async function fetchProductBySlug(slug: string): Promise<{ product: Product; api: ApiProductBase } | null> {
-  const api = await apiGetOrNull<ApiProductBase>(`products/${encodeURIComponent(slug)}`);
+  const api = await apiGetOrNull<ApiProductBase>(`products/${encodeURIComponent(slug)}`, { tags: [CacheTags.productSlug(slug), CacheTags.attributes, CacheTags.categories, CacheTags.brands] });
   if (!api) return null;
   const resolved = {
     ...api,
@@ -367,11 +373,11 @@ export interface ApiReview {
 
 /** Store-wide rating over every approved review; `average` is null when there are none. */
 export function fetchReviewSummary(): Promise<{ count: number; average: number | null }> {
-  return apiGet<{ data: { count: number; average: number | null } }>("reviews/summary", 300).then((r) => r.data);
+  return apiGet<{ data: { count: number; average: number | null } }>("reviews/summary", { tags: [CacheTags.homepage, CacheTags.testimonials] }).then((r) => r.data);
 }
 
 export async function fetchReviews(productId: number, page = 1, perPage = 20): Promise<{ items: ApiReview[]; meta: PaginationMeta }> {
-  const res = await apiGet<{ data: ApiReview[]; meta: PaginationMeta }>(`reviews?productId=${productId}&page=${page}&perPage=${perPage}`, 30);
+  const res = await apiGet<{ data: ApiReview[]; meta: PaginationMeta }>(`reviews?productId=${productId}&page=${page}&perPage=${perPage}`, { tags: [CacheTags.product(productId)] });
   return { items: res.data, meta: res.meta };
 }
 
@@ -379,7 +385,7 @@ export async function fetchCompatibleProducts(slug: string, category?: string, l
   const query = new URLSearchParams();
   if (category) query.set("category", category);
   query.set("limit", String(limit));
-  const res = await apiGet<{ data: ApiProductBase[] }>(`products/${encodeURIComponent(slug)}/compatible?${query.toString()}`);
+  const res = await apiGet<{ data: ApiProductBase[] }>(`products/${encodeURIComponent(slug)}/compatible?${query.toString()}`, { tags: [CacheTags.productSlug(slug), CacheTags.products] });
   return res.data.map(toProduct);
 }
 
@@ -388,7 +394,7 @@ export interface HomeBundle extends Omit<ApiHomeBundle, "featuredSections"> {
 }
 
 export async function fetchHome(): Promise<HomeBundle> {
-  const home = await apiGet<{ data: ApiHomeBundle }>("home").then((r) => r.data);
+  const home = await apiGet<{ data: ApiHomeBundle }>("home", { tags: [CacheTags.homepage] }).then((r) => r.data);
   return {
     ...home,
     hero: { ...home.hero, slides: home.hero.slides.map((slide) => ({ ...slide, image: resolveMediaUrl(slide.image) })) },
@@ -407,15 +413,15 @@ export async function fetchHome(): Promise<HomeBundle> {
 
 
 export function fetchPageBySlug(slug: string) {
-  return apiGetOrNull<ApiPage>(`pages/${encodeURIComponent(slug)}`);
+  return apiGetOrNull<ApiPage>(`pages/${encodeURIComponent(slug)}`, { tags: [CacheTags.cmsPageSlug(slug)] });
 }
 
 export function fetchFaqs() {
-  return apiGet<{ data: ApiFaqCategory[] }>("faqs").then((r) => r.data);
+  return apiGet<{ data: ApiFaqCategory[] }>("faqs", { tags: [CacheTags.faqs] }).then((r) => r.data);
 }
 
 export function fetchTestimonials() {
-  return apiGet<{ data: ApiTestimonial[] }>("testimonials").then((r) => r.data);
+  return apiGet<{ data: ApiTestimonial[] }>("testimonials", { tags: [CacheTags.testimonials] }).then((r) => r.data);
 }
 
 // Site-wide config authored in ukshop-admin's Settings > General tab. Every
@@ -437,7 +443,7 @@ export interface ApiGeneralSettings {
 }
 
 export async function fetchGeneralSettings(): Promise<ApiGeneralSettings> {
-  const settings = await apiGet<{ data: ApiGeneralSettings }>("settings/general").then((r) => r.data);
+  const settings = await apiGet<{ data: ApiGeneralSettings }>("settings/general", { tags: [CacheTags.settings], revalidateSeconds: false }).then((r) => r.data);
   return { ...settings, logo: resolveMediaUrl(settings.logo) ?? undefined, favicon: resolveMediaUrl(settings.favicon) ?? undefined, ogImage: resolveMediaUrl(settings.ogImage) ?? undefined, twitterImage: resolveMediaUrl(settings.twitterImage) ?? undefined };
 }
 
@@ -449,7 +455,7 @@ export interface RegisterPageContent {
 }
 /** null when the API is unreachable - the page then shows the plain sign-up form without the optional sections. */
 export async function fetchRegisterPageContent(): Promise<RegisterPageContent | null> {
-  const res = await apiGet<{ data: RegisterPageContent }>("settings/register-page", 20).catch(() => null);
+  const res = await apiGet<{ data: RegisterPageContent }>("settings/register-page", { tags: [CacheTags.settings] }).catch(() => null);
   return res?.data ?? null;
 }
 
@@ -464,7 +470,7 @@ export interface TopBarContent {
 }
 /** null when the API is unreachable - the header then shows its built-in top bar. */
 export async function fetchTopBarContent(): Promise<TopBarContent | null> {
-  const res = await apiGet<{ data: TopBarContent }>("settings/top-bar", 20).catch(() => null);
+  const res = await apiGet<{ data: TopBarContent }>("settings/top-bar", { tags: [CacheTags.settings] }).catch(() => null);
   return res?.data ?? null;
 }
 
@@ -476,7 +482,7 @@ export interface FooterContent {
 }
 /** null when the API is unreachable - the footer then shows its built-in copy. */
 export async function fetchFooterContent(): Promise<FooterContent | null> {
-  const res = await apiGet<{ data: FooterContent }>("settings/footer", 20).catch(() => null);
+  const res = await apiGet<{ data: FooterContent }>("settings/footer", { tags: [CacheTags.settings], revalidateSeconds: false }).catch(() => null);
   return res?.data ?? null;
 }
 
@@ -499,10 +505,10 @@ interface ApiHeaderMenuItem {
 
 
 /** The header navigation, or null when the menu is missing/empty or the API is unavailable (the header then falls back to the category tree). */
-export async function fetchHeaderNav(): Promise<HeaderNavItem[] | null> {
+export async function fetchHeaderNav(categoryTree?: ApiCategory[]): Promise<HeaderNavItem[] | null> {
   const [menu, tree] = await Promise.all([
-    apiGetOrNull<{ items: ApiHeaderMenuItem[] }>("menus/header", 20).catch(() => null),
-    fetchCategoryTree().catch(() => [] as ApiCategory[]),
+    apiGetOrNull<{ items: ApiHeaderMenuItem[] }>("menus/header", { tags: [CacheTags.menus], revalidateSeconds: false }).catch(() => null),
+    categoryTree ? Promise.resolve(categoryTree) : fetchCategoryTree().catch(() => [] as ApiCategory[]),
   ]);
   const items = menu?.items ?? [];
   if (!items.length) return null;
@@ -532,10 +538,10 @@ export interface FooterColumn { title: string; links: { label: string; href: str
 interface ApiFooterLink { label: string; href: string | null; category: { slug: string } | null }
 
 /** Admin-managed footer link columns (Menus -> "footer"): top-level items are column titles, their children the links. Empty when the menu is missing. */
-export async function fetchFooterMenu(): Promise<FooterColumn[]> {
+export async function fetchFooterMenu(categoryTree?: ApiCategory[]): Promise<FooterColumn[]> {
   const [menu, tree] = await Promise.all([
-    apiGetOrNull<{ items: (ApiFooterLink & { children: ApiFooterLink[] })[] }>("menus/footer"),
-    fetchCategoryTree().catch(() => [] as ApiCategory[]),
+    apiGetOrNull<{ items: (ApiFooterLink & { children: ApiFooterLink[] })[] }>("menus/footer", { tags: [CacheTags.menus], revalidateSeconds: false }),
+    categoryTree ? Promise.resolve(categoryTree) : fetchCategoryTree().catch(() => [] as ApiCategory[]),
   ]);
   const paths = buildCategoryPaths(tree);
   const toLink = (item: ApiFooterLink) => {

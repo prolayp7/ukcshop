@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useApi } from "@/lib/use-api";
-import { ApiFaqCategory } from "@/lib/api";
+import type { ApiFaqCategory } from "@/lib/api";
 import { Icon } from "@/components/Icon";
 import { useHref } from "@/lib/design-context";
 import Crumbs from "@/components/Crumbs";
@@ -26,9 +26,9 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
   );
 }
 
-export default function FaqsPage() {
+export default function FaqsPage({ initialCategories }: { initialCategories: ApiFaqCategory[] }) {
   const href = useHref();
-  const res = useApi<{ items: ApiFaqCategory[] }>("/api/faqs");
+  const res = useApi<{ items: ApiFaqCategory[] }>("/api/faqs", { items: initialCategories });
   const categories = res.data?.items ?? [];
 
   return (

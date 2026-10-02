@@ -1,10 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useParams, notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import { useApi } from "@/lib/use-api";
-import { ApiBrand, ListMeta } from "@/lib/api";
-import { Product } from "@/lib/types";
+import type { ApiBrand, ListMeta } from "@/lib/api";
+import type { Product } from "@/lib/types";
 import { money } from "@/lib/catalogue";
 import { Icon } from "@/components/Icon";
 import { useHref } from "@/lib/design-context";
@@ -35,17 +35,24 @@ function Rail({ title, sub, items }: { title: string; sub?: string; items: Produ
   );
 }
 
-export default function BrandPage() {
-  const params = useParams<{ slug: string }>();
-  const slug = params.slug;
+type BrandInitialData = {
+  brand: ApiBrand;
+  items: { items: Product[]; meta: ListMeta } | null;
+  deals: Product[];
+  newest: Product[];
+  brands: ApiBrand[];
+  recommended: Product[];
+};
+
+export default function BrandPage({ slug, initialData }: { slug: string; initialData: BrandInitialData }) {
   const href = useHref();
 
-  const brandRes = useApi<{ brand: ApiBrand }>(`/api/brands/${encodeURIComponent(slug)}`);
-  const itemsRes = useApi<{ items: Product[]; meta: ListMeta }>(brandRes.data ? `/api/products?brand=${encodeURIComponent(slug)}&perPage=12` : null);
-  const dealsRes = useApi<{ items: Product[] }>(brandRes.data ? `/api/products?brand=${encodeURIComponent(slug)}&onSale=true&perPage=8` : null);
-  const newestRes = useApi<{ items: Product[] }>(brandRes.data ? `/api/products?brand=${encodeURIComponent(slug)}&sort=newest&perPage=4` : null);
-  const brandsRes = useApi<{ items: ApiBrand[] }>("/api/brands");
-  const recommendedRes = useApi<{ items: Product[] }>(brandRes.data ? "/api/products?sort=newest&perPage=4" : null);
+  const brandRes = useApi<{ brand: ApiBrand }>(`/api/brands/${encodeURIComponent(slug)}`, { brand: initialData.brand }, { skipInitialFetch: true });
+  const itemsRes = useApi<{ items: Product[]; meta: ListMeta }>(brandRes.data ? `/api/products?brand=${encodeURIComponent(slug)}&perPage=12` : null, initialData.items, { skipInitialFetch: true });
+  const dealsRes = useApi<{ items: Product[] }>(brandRes.data ? `/api/products?brand=${encodeURIComponent(slug)}&onSale=true&perPage=8` : null, { items: initialData.deals }, { skipInitialFetch: true });
+  const newestRes = useApi<{ items: Product[] }>(brandRes.data ? `/api/products?brand=${encodeURIComponent(slug)}&sort=newest&perPage=4` : null, { items: initialData.newest }, { skipInitialFetch: true });
+  const brandsRes = useApi<{ items: ApiBrand[] }>("/api/brands", { items: initialData.brands }, { skipInitialFetch: true });
+  const recommendedRes = useApi<{ items: Product[] }>(brandRes.data ? "/api/products?sort=newest&perPage=4" : null, { items: initialData.recommended }, { skipInitialFetch: true });
 
   if (brandRes.error) notFound();
   const b = brandRes.data?.brand;

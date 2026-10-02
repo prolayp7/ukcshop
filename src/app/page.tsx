@@ -1,7 +1,17 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import Home from "@/designs/highstreet/Home";
-import { fetchGeneralSettings, type ApiGeneralSettings } from "@/lib/api";
+import {
+  fetchBrands,
+  fetchCategoryTree,
+  fetchFaqs,
+  fetchGeneralSettings,
+  fetchHome,
+  fetchProducts,
+  fetchReviewSummary,
+  fetchTestimonials,
+  type ApiGeneralSettings,
+} from "@/lib/api";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await fetchGeneralSettings().catch(() => ({}) as ApiGeneralSettings);
@@ -32,10 +42,31 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-  const settings = await fetchGeneralSettings().catch(() => ({}) as ApiGeneralSettings);
+  const [settings, brands, home, deals, offer, testimonials, faqs, reviewSummary, arrivals, categories] = await Promise.all([
+    fetchGeneralSettings().catch(() => ({}) as ApiGeneralSettings),
+    fetchBrands().catch(() => null),
+    fetchHome().catch(() => null),
+    fetchProducts({ onSale: true, perPage: 8 }).catch(() => null),
+    fetchProducts({ onSale: true, sort: "discount_desc", perPage: 1 }).catch(() => null),
+    fetchTestimonials().catch(() => null),
+    fetchFaqs().catch(() => null),
+    fetchReviewSummary().catch(() => null),
+    fetchProducts({ sort: "newest", perPage: 8 }).catch(() => null),
+    fetchCategoryTree().catch(() => null),
+  ]);
   return (
     <Suspense>
-      <Home />
+      <Home initialData={{
+        brands: brands ?? [],
+        home,
+        deals: deals?.items ?? [],
+        offer: offer?.items ?? [],
+        testimonials: testimonials ?? [],
+        faqs: faqs ?? [],
+        reviewSummary,
+        arrivals: arrivals?.items ?? [],
+        categories: categories ?? [],
+      }} />
       {settings.schemaJsonLd ? <script type="application/ld+json">{settings.schemaJsonLd}</script> : null}
     </Suspense>
   );

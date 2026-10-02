@@ -3,21 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { CAT_ORDER } from "@/lib/types";
-import { useHref } from "@/lib/design-context";
-import { useApi } from "@/lib/use-api";
-import { ApiGeneralSettings, FooterColumn, FooterContent } from "@/lib/api";
+import { useHref, useInitialStorefrontChrome } from "@/lib/design-context";
 import { theme } from "@/lib/theme.config";
 import NewsletterForm from "./NewsletterForm";
 import { reopenCookieBanner } from "@/components/CookieBanner";
 
 export default function Footer() {
   const href = useHref();
-  const settingsRes = useApi<{ data: ApiGeneralSettings }>("/api/settings/general");
-  const settings = settingsRes.data?.data ?? {};
-  // Admin-managed footer menu (Admin -> Menus -> Footer); the built-in columns below show while it is empty.
-  const menuColumns = useApi<{ data: FooterColumn[] }>("/api/menus/footer").data?.data ?? [];
-  // Admin -> Storefront -> Footer; the built-in copy shows until it loads or if the API is unreachable.
-  const content = useApi<{ data: FooterContent }>("/api/settings/footer").data?.data;
+  const { settings, footerMenu: menuColumns, footerContent: content } = useInitialStorefrontChrome();
   const newsletter = content?.newsletter ?? { enabled: true, eyebrow: "Deals & restock alerts", heading: "Get restock alerts & deal notifications", text: "One email a week, mostly about stock drops and price cuts. No spam." };
   const aboutText = content ? content.aboutText : theme.brand.about;
   const paymentMethods = content?.paymentMethods ?? theme.paymentMethods;

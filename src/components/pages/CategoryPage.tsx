@@ -14,9 +14,10 @@ import { Icon } from "@/components/Icon";
 import { plainText } from "@/lib/category";
 import CategoryProductCard from "@/components/pages/CategoryProductCard";
 
-export default function CategoryPage({ category, tree, initialMin, initialMax, initialSort, deals, initialProducts, benefits, initialQuery = "" }: {
+export default function CategoryPage({ category, tree, initialMin, initialMax, initialSort, deals, initialProducts, initialFacets, benefits, initialQuery = "" }: {
   benefits: { id: number; label: string; icon: string | null }[];
   initialProducts: { items: Product[]; meta: ListMeta } | null;
+  initialFacets: ListMeta | null;
   category: ApiCategory | null; tree: ApiCategory[]; initialMin: string; initialMax: string; initialSort: string; deals: boolean; initialQuery?: string;
 }) {
   const { Header, Footer, Crumbs } = parts;
@@ -27,16 +28,44 @@ export default function CategoryPage({ category, tree, initialMin, initialMax, i
   const validPrice = (value: string) => value !== "" && Number.isFinite(Number(value)) && Number(value) >= 0 ? value : "";
   const [priceMin, setPriceMin] = useState(validPrice(initialMin));
   const [priceMax, setPriceMax] = useState(validPrice(initialMax));
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [stock, setStock] = useState(false);
   const [perPage, setPerPage] = useState(12);
   const [view, setView] = useState<"grid" | "list">("grid");
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const label = category?.pageHeader || category?.title || (deals ? "Today's Best Deals" : initialQuery ? `Search results for "${initialQuery}"` : "All products");
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const params = new URLSearchParams(window.location.search);
+      const sortParam = params.get("sort");
+      if (sortParam === "price-asc" || sortParam === "price_asc") setSort("price_asc");
+      else if (sortParam === "price-desc" || sortParam === "price_desc") setSort("price_desc");
+      const minimum = params.get("min") ?? params.get("priceMin");
+      const maximum = params.get("max") ?? params.get("priceMax");
+      if (minimum !== null) setPriceMin(validPrice(minimum));
+      if (maximum !== null) setPriceMax(validPrice(maximum));
+      const query = params.get("q");
+      if (query !== null) setSearchQuery(query);
+      const brand = params.get("brand");
+      if (brand) setBrands(brand.split(",").filter(Boolean));
+      const rawSpecs = params.get("specs");
+      if (rawSpecs) {
+        try {
+          const parsed: unknown = JSON.parse(rawSpecs);
+          if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) setSpecs(parsed as Record<string, string[]>);
+        } catch {
+          // Ignore malformed filter state in a shared URL.
+        }
+      }
+      setStock(params.get("inStock") === "true");
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+  const label = category?.pageHeader || category?.title || (deals ? "Today's Best Deals" : searchQuery ? `Search results for "${searchQuery}"` : "All products");
   const baseQuery = new URLSearchParams();
   if (category) baseQuery.set("category", category.slug);
   if (deals) baseQuery.set("onSale", "true");
-  if (initialQuery) baseQuery.set("q", initialQuery);
-  const facetsRes = useApi<{ items: Product[]; meta: ListMeta }>(`/api/products?${baseQuery}&perPage=1`);
+  if (searchQuery) baseQuery.set("q", searchQuery);
+  const facetsRes = useApi<{ items: Product[]; meta: ListMeta }>(`/api/products?${baseQuery}&perPage=1`, initialFacets ? { items: [], meta: initialFacets } : null, { skipInitialFetch: true });
   const query = new URLSearchParams(baseQuery);
   if (brands.length) query.set("brand", brands.join(","));
   if (Object.keys(specs).length) query.set("specs", JSON.stringify(specs));
@@ -148,7 +177,7 @@ export default function CategoryPage({ category, tree, initialMin, initialMax, i
           </div> : null}
           </div>
           <div className={`category-products ${view === "list" ? "is-list" : ""}`}>
-            {shown.map((product) => <CategoryProductCard key={product.id} product={product} />)}
+            {shown.map((product) => <CategoryProductCard key={product.id} product={product} showDealTimer={deals} />)}
             {results.loading ? Array.from({ length: perPage }, (_, index) => <div key={`skeleton-${index}`} className="category-product category-product-skeleton" aria-hidden="true">
               <div className="category-product-visual skeleton-block" />
               <div className="category-product-info"><div className="skeleton-block skeleton-title" /><div className="skeleton-block skeleton-line" /><div className="skeleton-block skeleton-specs" /></div>

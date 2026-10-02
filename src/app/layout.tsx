@@ -10,7 +10,7 @@ import { CartDrawerProvider } from "@/components/CartDrawer";
 import { DesignSlugProvider } from "@/lib/design-context";
 import { getActiveDesign } from "@/lib/designs";
 import { theme } from "@/lib/theme.config";
-import { fetchCategoryTree, fetchGeneralSettings, type ApiGeneralSettings } from "@/lib/api";
+import { fetchCategoryTree, fetchFooterContent, fetchFooterMenu, fetchGeneralSettings, fetchHeaderNav, type ApiGeneralSettings } from "@/lib/api";
 import { buildCategoryPaths } from "@/lib/category-paths";
 import "./globals.css";
 import "@/components/pages/category.css";
@@ -40,6 +40,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     fetchGeneralSettings().catch(() => ({}) as ApiGeneralSettings),
     fetchCategoryTree().catch(() => []),
   ]);
+  const [headerNav, footerMenu, footerContent] = await Promise.all([
+    fetchHeaderNav(categoryTree).catch(() => null),
+    fetchFooterMenu(categoryTree).catch(() => []),
+    fetchFooterContent(),
+  ]);
   return (
     <html lang="en-GB">
       <head>
@@ -55,7 +60,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         {/* Analytics/marketing tags wait for cookie consent (no <noscript> fallbacks: they could not). */}
         <AnalyticsScripts gtmId={settings.gtmContainerId} ga4Id={settings.ga4MeasurementId} pixelId={settings.metaPixelId} />
         <Sprite />
-        <DesignSlugProvider slug="" categoryPaths={buildCategoryPaths(categoryTree)}>
+        <DesignSlugProvider slug="" categoryPaths={buildCategoryPaths(categoryTree)} headerNav={headerNav} categories={categoryTree} settings={settings} footerMenu={footerMenu} footerContent={footerContent}>
           <CartDrawerProvider>
             <main id="main-content">{children}</main>
             <StoreToaster />

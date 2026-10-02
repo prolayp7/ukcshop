@@ -1,8 +1,8 @@
 "use client";
 
-import { useParams, notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import { useApi } from "@/lib/use-api";
-import { ApiPage } from "@/lib/api";
+import type { ApiPage } from "@/lib/api";
 import { useHref } from "@/lib/design-context";
 import Crumbs from "@/components/Crumbs";
 import Header from "./Header";
@@ -38,10 +38,9 @@ function renderBlocks(blocks: unknown) {
   return null;
 }
 
-export default function ContentPage() {
-  const params = useParams<{ slug: string }>();
+export default function ContentPage({ slug, initialPage }: { slug: string; initialPage: ApiPage }) {
   const href = useHref();
-  const pageRes = useApi<{ page: ApiPage }>(`/api/pages/${encodeURIComponent(params.slug)}`);
+  const pageRes = useApi<{ page: ApiPage }>(`/api/pages/${encodeURIComponent(slug)}`, { page: initialPage }, { skipInitialFetch: true });
 
   if (pageRes.error) notFound();
   const page = pageRes.data?.page;

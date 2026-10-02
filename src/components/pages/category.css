@@ -81,6 +81,9 @@
 .category-stock i{width:4px;height:4px;border-radius:50%;background:currentColor}
 .category-stock.low{color:#9a6100}.category-stock.out{color:#b3261e}
 .category-product-buy{margin-top:auto;border-top:1px solid var(--category-line);padding-top:10px}
+.category-deal-countdown{display:flex;align-items:center;gap:5px;margin:0 0 9px;padding:7px 8px;border-radius:4px;background:#fff0ef;color:#a30f14;font-size:10px;font-weight:600}
+.category-deal-countdown svg{flex-shrink:0}
+.category-deal-countdown time{margin-left:auto;font-variant-numeric:tabular-nums;white-space:nowrap}
 .category-product-price{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
 .category-product-price strong{font-size:24px;letter-spacing:-.025em;color:var(--blue);font-weight:750}
 .category-product-price s{font-size:10px;color:var(--category-muted)}

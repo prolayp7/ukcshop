@@ -9,9 +9,9 @@ import { money, CURRENCY, CURRENCY_SYMBOL } from "@/lib/catalogue";
 import { Icon, ProductVisual } from "@/components/Icon";
 import { BasketCount, BasketTotal } from "@/components/BasketBadge";
 import { CartTrigger } from "@/components/CartDrawer";
-import { useHref } from "@/lib/design-context";
+import { useHref, useInitialStorefrontChrome } from "@/lib/design-context";
 import { useApi } from "@/lib/use-api";
-import { ApiGeneralSettings, type ApiCategory, type ApiBrand, type HeaderNavItem, type ListMeta, type TopBarContent } from "@/lib/api";
+import { type ApiCategory, type ApiBrand, type ListMeta, type TopBarContent } from "@/lib/api";
 import { useWishlist, useCompare } from "@/lib/basket";
 import { useCustomerAuth } from "@/lib/storefront-client";
 import { theme } from "@/lib/theme.config";
@@ -41,8 +41,7 @@ const MEGA_ICON: Record<string, string> = {
 
 export default function Header() {
   const href = useHref();
-  const settingsRes = useApi<{ data: ApiGeneralSettings }>("/api/settings/general");
-  const settings = settingsRes.data?.data ?? {};
+  const { nav: initialHeaderNav, categories: initialCategories, settings } = useInitialStorefrontChrome();
   const router = useRouter();
   const statsRes = useApi<{ meta: ListMeta }>("/api/products?perPage=1");
   const topBar = useApi<{ data: TopBarContent }>("/api/settings/top-bar").data?.data ?? DEFAULT_TOP_BAR;
@@ -106,22 +105,20 @@ export default function Header() {
   const searchRes = useApi<{ items: Product[] }>(debouncedQ.length >= 2 ? `/api/products?q=${encodeURIComponent(debouncedQ)}&perPage=5` : null);
   // Fetched once (small, slow-changing lists) rather than per keystroke, then
   // filtered client-side — same live source the category/brand pages use.
-  const categoriesRes = useApi<{ items: ApiCategory[] }>("/api/categories");
+  const categoriesRes = useApi<{ items: ApiCategory[] }>("/api/categories", { items: initialCategories }, { skipInitialFetch: true });
   const brandsRes = useApi<{ items: ApiBrand[] }>("/api/brands");
-  // Top navigation is the admin-managed "header" menu (admin: Storefront > Menus). If that menu is
-  // missing or the API is down, fall back to the category tree so the shop stays navigable.
-  const menuRes = useApi<{ data: HeaderNavItem[] | null }>("/api/menus/header");
-  const nav = useMemo<HeaderNavItem[]>(() => {
-    if (menuRes.loading) return [];
-    if (menuRes.data?.data) return menuRes.data.data;
-    return (categoriesRes.data?.items ?? []).map((c) => ({
+  // The admin-managed menu is loaded and tagged in the root server layout; an empty/unavailable menu
+  // falls back to the same category tree without waiting for a browser request.
+  const nav = useMemo(() => {
+    if (initialHeaderNav) return initialHeaderNav;
+    return initialCategories.map((c) => ({
       label: c.title,
       href: href.category({ cat: c.title }),
       icon: MEGA_ICON[c.title] || "i-gpu",
       highlight: false,
       panel: c.children.length ? { kind: "auto" as const, eyebrow: "Shop department", links: c.children.map((child) => ({ label: child.title, href: href.category({ sub: child.title }) })), promo: null } : null,
     }));
-  }, [menuRes.loading, menuRes.data, categoriesRes.data, href]);
+  }, [initialHeaderNav, initialCategories, href]);
   const suggestions = useMemo(() => {
     const s = q.trim().toLowerCase();
     if (s.length < 2) return null;

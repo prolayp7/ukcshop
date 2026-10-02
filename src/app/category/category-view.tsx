@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { cache } from "react";
-import { headers } from "next/headers";
 import CategoryPage from "@/components/pages/CategoryPage";
 import { fetchCategoryTree, fetchCategoryBySlug, fetchProducts, fetchHome, type ApiCategory, type ProductListParams } from "@/lib/api";
 import { buildCategoryPaths, CATEGORY_ROOT } from "@/lib/category-paths";
@@ -34,10 +33,7 @@ export function carriedQuery(query: SearchParams, drop: string[]): string {
 
 export const siteOrigin = cache(async () => {
   if (process.env.SITE_URL) return new URL(process.env.SITE_URL).origin;
-  const requestHeaders = await headers();
-  const host = requestHeaders.get("host") || "localhost:3002";
-  const protocol = requestHeaders.get("x-forwarded-proto") === "https" ? "https" : "http";
-  return new URL(`${protocol}://${host}`).origin;
+  return "http://localhost:3002";
 });
 
 function parseSchema(value?: string | null): unknown {
@@ -78,7 +74,18 @@ export async function CategoryView({ category, parent = null, query, canonical, 
     const value = single(query[urlKey]);
     if (value && Number.isFinite(Number(value)) && Number(value) >= 0) initialParams[apiKey] = Number(value);
   }
-  const [initialProducts, home, origin] = await Promise.all([fetchProducts(initialParams).catch(() => null), fetchHome().catch(() => null), siteOrigin()]);
+  const facetParams: ProductListParams = {
+    category: category?.slug,
+    q: q || undefined,
+    onSale: onSale || undefined,
+    perPage: 1,
+  };
+  const [initialProducts, initialFacets, home, origin] = await Promise.all([
+    fetchProducts(initialParams).catch(() => null),
+    fetchProducts(facetParams).catch(() => null),
+    fetchHome().catch(() => null),
+    siteOrigin(),
+  ]);
   const pageUrl = new URL(canonical, origin).href;
   const schema = category?.schemaType === "CUSTOM" ? parseSchema(category.customSchema) : {
     "@context": "https://schema.org", "@type": "CollectionPage",
@@ -99,6 +106,6 @@ export async function CategoryView({ category, parent = null, query, canonical, 
   const breadcrumbs = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: crumbs.map((crumb, index) => ({ "@type": "ListItem", position: index + 1, ...crumb })) };
   return <>
     {[schema, faqSchema, breadcrumbs].filter(Boolean).map((item, index) => <script key={index} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(item).replace(/</g, "\\u003c") }} />)}
-    <CategoryPage key={`${canonical}?${JSON.stringify(query)}`} initialProducts={initialProducts} benefits={home?.hero.badges.slice(0, 3) ?? []} category={category} tree={tree} initialMin={single(query.min)} initialMax={single(query.max)} initialSort={single(query.sort)} deals={onSale} initialQuery={q} />
+    <CategoryPage key={`${canonical}?${JSON.stringify(query)}`} initialProducts={initialProducts} initialFacets={initialFacets?.meta ?? null} benefits={home?.hero.badges.slice(0, 3) ?? []} category={category} tree={tree} initialMin={single(query.min)} initialMax={single(query.max)} initialSort={single(query.sort)} deals={onSale} initialQuery={q} />
   </>;
 }

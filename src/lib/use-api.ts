@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface ApiState<T> {
   data: T | null;
@@ -10,12 +10,17 @@ interface ApiState<T> {
 
 /** Minimal same-origin fetch hook for the /api/* proxy routes. No caching
  * library needed for this scope - one bounded need, not a data layer. */
-export function useApi<T>(url: string | null, initialData: T | null = null): ApiState<T> {
+export function useApi<T>(url: string | null, initialData: T | null = null, options: { skipInitialFetch?: boolean } = {}): ApiState<T> {
   const [state, setState] = useState<ApiState<T>>({ data: initialData, loading: !!url && !initialData, error: false });
+  const initialUrl = useRef(options.skipInitialFetch && initialData !== null ? url : null);
 
   useEffect(() => {
     if (!url) {
-      setState({ data: null, loading: false, error: false });
+      const timer = window.setTimeout(() => setState({ data: null, loading: false, error: false }), 0);
+      return () => window.clearTimeout(timer);
+    }
+    if (initialUrl.current === url) {
+      initialUrl.current = null;
       return;
     }
     let cancelled = false;

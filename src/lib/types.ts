@@ -20,6 +20,7 @@ export interface Product {
   subcategory: string;
   price: number;
   was: number | null;
+  dealEndsAt?: string | null;
   rating: number;
   reviews: number;
   stock: number;

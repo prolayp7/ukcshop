@@ -2,8 +2,8 @@
 
 import { useMemo } from "react";
 import { useApi } from "@/lib/use-api";
-import { ApiBrand } from "@/lib/api";
-import { Product, BrandSummary } from "@/lib/types";
+import type { ApiBrand } from "@/lib/api";
+import type { Product, BrandSummary } from "@/lib/types";
 import { useHref } from "@/lib/design-context";
 import Crumbs from "@/components/Crumbs";
 import Header from "./Header";
@@ -17,10 +17,10 @@ function toSummary(b: ApiBrand): BrandSummary {
   return { brand: b.title, slug: b.slug, count: b.productCount ?? 0, rating: 0, min: b.priceFrom ?? 0, deals: 0, note: b.description || b.shortDescription || `${b.productCount ?? 0} lines in the catalogue.`, logo: b.logo, logoAlt: b.logoAlt };
 }
 
-export default function BrandsPage() {
+export default function BrandsPage({ initialBrands, initialRecommended }: { initialBrands: ApiBrand[]; initialRecommended: Product[] }) {
   const href = useHref();
-  const brandsRes = useApi<{ items: ApiBrand[] }>("/api/brands");
-  const recommendedRes = useApi<{ items: Product[] }>("/api/products?sort=newest&perPage=4");
+  const brandsRes = useApi<{ items: ApiBrand[] }>("/api/brands", { items: initialBrands }, { skipInitialFetch: true });
+  const recommendedRes = useApi<{ items: Product[] }>("/api/products?sort=newest&perPage=4", { items: initialRecommended }, { skipInitialFetch: true });
 
   const all = useMemo(() => (brandsRes.data?.items ?? []).map(toSummary), [brandsRes.data]);
   const totalProducts = useMemo(() => all.reduce((sum, b) => sum + b.count, 0), [all]);

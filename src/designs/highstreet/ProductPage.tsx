@@ -1,10 +1,10 @@
 "use client";
 
-import { useParams, notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useApi } from "@/lib/use-api";
-import { ApiProductBase, ApiReview, PaginationMeta } from "@/lib/api";
-import { Product } from "@/lib/types";
+import type { ApiProductBase, ApiReview, PaginationMeta } from "@/lib/api";
+import type { Product } from "@/lib/types";
 import ProductReviews from "./ProductReviews";
 import ProductHelp from "./ProductHelp";
 import { Recent, useRecentIds } from "@/lib/basket";
@@ -22,21 +22,51 @@ import Footer from "./Footer";
 import ProductCard from "./ProductCard";
 
 
-export default function ProductPage() {
-  const params = useParams<{ id: string }>();
-  return <ProductDetail key={params.id} slug={params.id} />;
+type InitialProduct = { product: Product; api: ApiProductBase };
+type InitialReviews = { items: ApiReview[]; meta: PaginationMeta } | null;
+
+export default function ProductPage({
+  slug,
+  initialProduct,
+  initialRelated,
+  initialCompatible,
+  initialRecommended,
+  initialReviews,
+}: {
+  slug: string;
+  initialProduct: InitialProduct;
+  initialRelated: Product[];
+  initialCompatible: Product[];
+  initialRecommended: Product[];
+  initialReviews: InitialReviews;
+}) {
+  return <ProductDetail key={slug} slug={slug} initialProduct={initialProduct} initialRelated={initialRelated} initialCompatible={initialCompatible} initialRecommended={initialRecommended} initialReviews={initialReviews} />;
 }
 
-function ProductDetail({ slug }: { slug: string }) {
+function ProductDetail({
+  slug,
+  initialProduct,
+  initialRelated,
+  initialCompatible,
+  initialRecommended,
+  initialReviews,
+}: {
+  slug: string;
+  initialProduct: InitialProduct;
+  initialRelated: Product[];
+  initialCompatible: Product[];
+  initialRecommended: Product[];
+  initialReviews: InitialReviews;
+}) {
   const href = useHref();
   useRecentIds(); // kept live so basket/recently-viewed state stays consistent; see Day 4 note below
 
-  const detail = useApi<{ product: Product; api: ApiProductBase }>(`/api/products/${encodeURIComponent(slug)}`);
+  const detail = useApi<{ product: Product; api: ApiProductBase }>(`/api/products/${encodeURIComponent(slug)}`, initialProduct, { skipInitialFetch: true });
   const categorySlug = detail.data?.api.category.slug ?? null;
 
-  const relatedRes = useApi<{ items: Product[] }>(categorySlug ? `/api/products?category=${encodeURIComponent(categorySlug)}&perPage=9` : null);
-  const compatibleRes = useApi<{ items: Product[] }>(detail.data ? `/api/products/${encodeURIComponent(slug)}/compatible?limit=4` : null);
-  const recommendedRes = useApi<{ items: Product[]; meta: PaginationMeta }>(detail.data ? `/api/products?sort=newest&perPage=9` : null);
+  const relatedRes = useApi<{ items: Product[] }>(categorySlug ? `/api/products?category=${encodeURIComponent(categorySlug)}&perPage=9` : null, { items: initialRelated }, { skipInitialFetch: true });
+  const compatibleRes = useApi<{ items: Product[] }>(detail.data ? `/api/products/${encodeURIComponent(slug)}/compatible?limit=4` : null, { items: initialCompatible }, { skipInitialFetch: true });
+  const recommendedRes = useApi<{ items: Product[]; meta: PaginationMeta }>(detail.data ? `/api/products?sort=newest&perPage=9` : null, { items: initialRecommended, meta: { page: 1, perPage: initialRecommended.length, total: initialRecommended.length, totalPages: 1 } }, { skipInitialFetch: true });
 
   const p = detail.data?.product;
 
@@ -54,7 +84,7 @@ function ProductDetail({ slug }: { slug: string }) {
 
   const { isLoggedIn } = useCustomerAuth();
   const [reviewPage, setReviewPage] = useState(1);
-  const reviewsRes = useApi<{ items: ApiReview[]; meta: PaginationMeta }>(p ? `/api/reviews?productId=${p.id}&page=${reviewPage}&perPage=6` : null);
+  const reviewsRes = useApi<{ items: ApiReview[]; meta: PaginationMeta }>(p ? `/api/reviews?productId=${p.id}&page=${reviewPage}&perPage=6` : null, initialReviews, { skipInitialFetch: true });
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewTitle, setReviewTitle] = useState("");
   const [reviewComment, setReviewComment] = useState("");
