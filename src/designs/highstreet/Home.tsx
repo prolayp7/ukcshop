@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { stars, money } from "@/lib/catalogue";
 import { useApi } from "@/lib/use-api";
@@ -18,6 +18,8 @@ import Header from "./Header";
 import Footer from "./Footer";
 import NewsletterForm from "./NewsletterForm";
 import ProductCard from "./ProductCard";
+import TestimonialCarousel from "./TestimonialCarousel";
+import AutoScrollCards from "./AutoScrollCards";
 import BrandCard from "./BrandCard";
 import Hero, { HeroSideCard } from "./Hero";
 import {
@@ -155,6 +157,169 @@ function SpecialOfferCard({ initialProducts }: { initialProducts: Product[] }) {
   );
 }
 
+function ShopByNeedCarousel({ cards, href }: { cards: Array<{ key: string; title: string; copy: string; href: { sub: string } }>; href: Href }) {
+  const carouselRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
+    const carousel = carouselRef.current;
+    if (!isMobile || !carousel) return;
+
+    const slides = Array.from(carousel.children) as HTMLElement[];
+    if (!slides.length) return;
+
+    let index = 0;
+    const gap = 12;
+    const interval = window.setInterval(() => {
+      index = (index + 1) % slides.length;
+      const cardWidth = slides[0].offsetWidth + gap;
+      carousel.scrollTo({ left: cardWidth * index, behavior: "smooth" });
+    }, 3200);
+
+    return () => window.clearInterval(interval);
+  }, [cards, href]);
+
+  return (
+    <div className="needgrid" ref={carouselRef}>
+      {cards.map((c) => (
+        <Link className="needcard" href={href.category(c.href)} key={c.key}>
+          <h3>{c.title}</h3>
+          <p>{c.copy}</p>
+          <em>
+            Shop {c.title} <Icon id="i-arr" w={13} />
+          </em>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+function CategoryCarousel({ categories, href }: { categories: Array<{ slug: string; label: string; desc: string; href: { cat: string }; count: number; image?: string | null }>; href: Href }) {
+  const carouselRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
+    const carousel = carouselRef.current;
+    if (!isMobile || !carousel) return;
+
+    const slides = Array.from(carousel.children) as HTMLElement[];
+    if (!slides.length) return;
+
+    let index = 0;
+    const gap = 12;
+    const interval = window.setInterval(() => {
+      index = (index + 1) % slides.length;
+      const cardWidth = slides[0].offsetWidth + gap;
+      carousel.scrollTo({ left: cardWidth * index, behavior: "smooth" });
+    }, 3200);
+
+    return () => window.clearInterval(interval);
+  }, [categories, href]);
+
+  return (
+    <div className="cats" ref={carouselRef} aria-label="Category cards">
+      {categories.map((c) => (
+        <Link
+          className="cat"
+          href={href.category(c.href)}
+          key={c.slug}
+          style={c.image ? { backgroundImage: `url(${c.image})` } : undefined}
+        >
+          <span className="ic">
+            <Icon id={CAT_ICON[c.label] || "i-gpu"} w={24} h={24} />
+          </span>
+          <b>{c.label}</b>
+          <em>{c.desc}</em>
+          <span>
+            {c.count} products <Icon id="i-arr" w={11} h={11} />
+          </span>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+function TrustStripCarousel({ badges }: { badges: Array<{ id: number; label: string; icon?: string | null }> }) {
+  const carouselRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
+    const carousel = carouselRef.current;
+    if (!isMobile || !carousel) return;
+
+    const slides = Array.from(carousel.children) as HTMLElement[];
+    if (!slides.length) return;
+
+    let index = 0;
+    const gap = 10;
+    const interval = window.setInterval(() => {
+      index = (index + 1) % slides.length;
+      const cardWidth = slides[0].offsetWidth + gap;
+      carousel.scrollTo({ left: cardWidth * index, behavior: "smooth" });
+    }, 2800);
+
+    return () => window.clearInterval(interval);
+  }, [badges]);
+
+  return (
+    <div className="bene" aria-label="Store benefits">
+      <div className="wrap" ref={carouselRef}>
+        {badges.map((badge) => (
+          <div className="b" key={badge.id}>
+            <span className="ic">
+              <Icon id={badge.icon ?? "i-shield"} w={20} />
+            </span>
+            <span>
+              <b>{badge.label}</b>
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function LaptopCarousel({ cards, href }: { cards: Array<{ key: string; title: string; copy: string; href: { sub: string }; productCount: number }>; href: Href }) {
+  const carouselRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
+    const carousel = carouselRef.current;
+    if (!isMobile || !carousel) return;
+
+    const slides = Array.from(carousel.children) as HTMLElement[];
+    if (!slides.length) return;
+
+    let index = 0;
+    const gap = 12;
+    const interval = window.setInterval(() => {
+      index = (index + 1) % slides.length;
+      const cardWidth = slides[0].offsetWidth + gap;
+      carousel.scrollTo({ left: cardWidth * index, behavior: "smooth" });
+    }, 3200);
+
+    return () => window.clearInterval(interval);
+  }, [cards, href]);
+
+  return (
+    <div className="laprow three" ref={carouselRef} aria-label="Laptop category cards">
+      {cards.map((c) => (
+        <Link className="lapcard" href={href.category(c.href)} key={c.key}>
+          <h3>{c.title}</h3>
+          <p>{c.copy}</p>
+          <span>
+            {c.productCount} products <Icon id="i-arr" w={12} h={12} />
+          </span>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
 export default function Home({ initialData }: { initialData: HomeInitialData }) {
   const href = useHref();
 
@@ -277,22 +442,7 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
       case "TRUST_STRIP": {
         const badges = homeRes.data?.home.hero.badges ?? [];
         if (!badges.length) return null;
-        return (
-          <div className="bene" key={section.id}>
-            <div className="wrap">
-              {badges.map((badge) => (
-                <div className="b" key={badge.id}>
-                  <span className="ic">
-                    <Icon id={badge.icon ?? "i-shield"} w={20} />
-                  </span>
-                  <span>
-                    <b>{badge.label}</b>
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
+        return <TrustStripCarousel badges={badges} key={section.id} />;
       }
 
       case "DEALS":
@@ -323,7 +473,7 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
                   <BorderBeam className="deals-border-beam" size={160} duration={9} colorFrom="#e8b8b5" colorTo="#ffffff" borderWidth={1.5} />
                 </Link>
               </Backlight>
-              <div className="rail" style={{ marginTop: 16 }}>
+              <div className="rail home-product-rail" style={{ marginTop: 16 }}>
                 {deals.map((p) => (
                   <ProductCard key={p.id} product={p} />
                 ))}
@@ -351,7 +501,7 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
                   View all <Icon id="i-arr" w={15} />
                 </Link>
               </div>
-              <div className="rail">
+              <div className="rail home-product-rail">
                 {featured.products.map((p) => (
                   <ProductCard key={p.id} product={p} />
                 ))}
@@ -380,7 +530,7 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
                   </button>
                 ))}
               </div>
-              <div className="rail">
+              <div className="rail home-product-rail">
                 {arrivals.map((p) => (
                   <ProductCard key={p.id} product={p} />
                 ))}
@@ -465,13 +615,7 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
                       <span>Based on {reviewSummary.count.toLocaleString("en-GB")} customer review{reviewSummary.count === 1 ? "" : "s"}</span>
                     </div>
                   ) : null}
-                  {items.map((r) => (
-                    <div className="revcard" key={r.name}>
-                      <span className="s">{"★".repeat(r.stars)}</span>
-                      <p>&ldquo;{r.quote}&rdquo;</p>
-                      <b>{r.name}</b>
-                    </div>
-                  ))}
+                  <TestimonialCarousel items={items} />
                 </div>
               </div>
             </div>
@@ -531,25 +675,7 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
                   {body ? <p>{body.replaceAll("{count}", String(categoryTiles.length))}</p> : null}
                 </div>
               </div>
-              <div className="cats">
-                {categoryTiles.map((c) => (
-                  <Link
-                    className="cat"
-                    href={href.category(c.href)}
-                    key={c.slug}
-                    style={c.image ? { backgroundImage: `url(${c.image})` } : undefined}
-                  >
-                    <span className="ic">
-                      <Icon id={CAT_ICON[c.label] || "i-gpu"} w={18} h={16} />
-                    </span>
-                    <b>{c.label}</b>
-                    <em>{c.desc}</em>
-                    <span>
-                      {c.count} products <Icon id="i-arr" w={11} h={11} />
-                    </span>
-                  </Link>
-                ))}
-              </div>
+              <CategoryCarousel categories={categoryTiles} href={href} />
             </div>
           </section>
         );
@@ -565,17 +691,7 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
                   {body ? <p>{body}</p> : null}
                 </div>
               </div>
-              <div className="needgrid">
-                {cards.map((c) => (
-                  <Link className="needcard" href={href.category(c.href)} key={c.key}>
-                    <h3>{c.title}</h3>
-                    <p>{c.copy}</p>
-                    <em>
-                      Shop {c.title} <Icon id="i-arr" w={13} />
-                    </em>
-                  </Link>
-                ))}
-              </div>
+              <ShopByNeedCarousel cards={cards} href={href} />
             </div>
           </section>
         );
@@ -599,7 +715,7 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
                   All gaming PCs <Icon id="i-arr" w={15} />
                 </Link>
               </div>
-              <div className="rigs">
+              <AutoScrollCards className="rigs" label="Gaming PC tiers">
                 {gamingTiers.map((r, index) => (
                   <article className={`rig ${["a", "b", "c"][index % 3]}`} key={r.product.slug}>
                     <div className="tier">{r.tier}</div>
@@ -622,7 +738,7 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
                     </Link>
                   </article>
                 ))}
-              </div>
+              </AutoScrollCards>
               <div className="cat-chips" style={{ marginTop: 28, paddingTop: 20, borderTop: "1px solid var(--c-line)" }}>
                 {chips.map((chip) => (
                   <Link key={chip.slug} className="cat-chip" href={href.category({ sub: chip.title })}>
@@ -639,7 +755,10 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
       }
 
       case "LAPTOP_SHOWCASE": {
-        const cards = configCards(section, LAPTOP_CARDS.map((card) => ({ ...card, href: { sub: card.sub } })));
+        const cards = configCards(section, LAPTOP_CARDS.map((card) => ({ ...card, href: { sub: card.sub } }))).map((card) => ({
+          ...card,
+          productCount: findCategory(categoriesRes.data?.items ?? [], card.href.sub)?.productCount ?? 0,
+        }));
         return (
           <section style={{ paddingTop: 6 }} key={section.id}>
             <div className="wrap">
@@ -652,17 +771,7 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
                   All laptops <Icon id="i-arr" w={15} />
                 </Link>
               </div>
-              <div className="laprow three">
-                {cards.map((c) => (
-                  <Link className="lapcard" href={href.category(c.href)} key={c.key}>
-                    <h3>{c.title}</h3>
-                    <p>{c.copy}</p>
-                    <span>
-                      {findCategory(categoriesRes.data?.items ?? [], c.href.sub)?.productCount ?? 0} products <Icon id="i-arr" w={12} h={12} />
-                    </span>
-                  </Link>
-                ))}
-              </div>
+              <LaptopCarousel cards={cards} href={href} />
             </div>
           </section>
         );
@@ -742,7 +851,7 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
         return (
           <section style={{ paddingTop: 6 }} key={section.id}>
             <div className="wrap">
-              <div className="minisplit">
+              <AutoScrollCards className="minisplit" label="Networking and peripheral categories">
                 {columns.map((column) => (
                   <div key={column.heading}>
                     <h3>{column.heading}</h3>
@@ -763,7 +872,7 @@ export default function Home({ initialData }: { initialData: HomeInitialData }) 
                     ) : null}
                   </div>
                 ))}
-              </div>
+              </AutoScrollCards>
             </div>
           </section>
         );

@@ -27,7 +27,9 @@ export default function Footer() {
   ].filter((social): social is { label: string; short: string; url: string } => Boolean(social.url?.trim()));
   return (
     <>
-      <Section title="Your browsing history" items={recentProductsRes.data?.items ?? []} />
+      <div className="history-products">
+        <Section title="Your browsing history" items={recentProductsRes.data?.items ?? []} />
+      </div>
       <footer>
         <div className="wrap">
           <div className="fgrid">

@@ -124,7 +124,7 @@ export default function Hero({ slides, sideCards }: { slides: HeroSlide[]; sideC
                     </motion.p>
                   ) : null}
 
-                  {slide.ctaLabel || slide.secondaryCtaLabel ? (
+                  {(slide.ctaLabel || slide.secondaryCtaLabel) ? (
                     <motion.div className="hero-actions" initial={reduceMotion ? false : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.43, duration: 0.42, ease: [0.22, 1, 0.36, 1] }}>
                       {slide.ctaLabel ? (
                         <motion.div className="hero-cta-motion" whileHover={reduceMotion ? undefined : { y: -2 }} whileTap={{ scale: 0.98 }}>

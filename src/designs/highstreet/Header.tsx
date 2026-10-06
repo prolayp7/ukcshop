@@ -153,8 +153,16 @@ export default function Header() {
             {topBar.trackOrder.enabled && topBar.trackOrder.label ? <Link href={href.account({ tab: "orders" })}>{topBar.trackOrder.label}</Link> : <span />}
             {topBar.popular.enabled && topBar.popular.terms.length ? (
               <div className="hints">
-                {topBar.popular.label ? <b>{topBar.popular.label}</b> : null}
-                {topBar.popular.terms.map((term) => <Link key={term} href={href.category({ q: term })}>{term}</Link>)}
+                <div className="hints-marquee">
+                  <div className="hints-track">
+                    {topBar.popular.label ? <b>{topBar.popular.label}</b> : null}
+                    {topBar.popular.terms.map((term) => <Link key={term} href={href.category({ q: term })}>{term}</Link>)}
+                  </div>
+                  <div className="hints-track hints-track-duplicate" aria-hidden="true">
+                    {topBar.popular.label ? <b>{topBar.popular.label}</b> : null}
+                    {topBar.popular.terms.map((term) => <Link key={term} tabIndex={-1} href={href.category({ q: term })}>{term}</Link>)}
+                  </div>
+                </div>
               </div>
             ) : <span />}
             <div className="sep">

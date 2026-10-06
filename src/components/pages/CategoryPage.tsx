@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Grid2X2, List, Package, SlidersHorizontal, X } from "lucide-react";
 import { parts } from "@/designs/highstreet";
@@ -79,22 +79,6 @@ export default function CategoryPage({ category, tree, initialMin, initialMax, i
   query.set("sort", sort || "newest");
   query.set("perPage", String(perPage));
   const results = useCategoryProducts(query.toString(), initialProducts);
-  const sentinel = useRef<HTMLDivElement>(null);
-  const { loadMore, hasMore } = results;
-  const loadMoreRef = useRef(loadMore);
-  useEffect(() => { loadMoreRef.current = loadMore; }, [loadMore]);
-  useEffect(() => {
-    const target = sentinel.current;
-    if (!target || !hasMore) return;
-    // A stable observer that's only torn down when hasMore changes — recreating it on
-    // every loading/error toggle made it re-check intersection (and often re-fire)
-    // right after each page finished loading, causing extra loads and jank.
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) loadMoreRef.current();
-    }, { rootMargin: "1000px" });
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [hasMore]);
   const shown = results.data?.items ?? [];
   const total = results.data?.meta.total ?? 0;
   const facets = facetsRes.data?.meta.facets;
@@ -190,7 +174,7 @@ export default function CategoryPage({ category, tree, initialMin, initialMax, i
           </div>
           {results.loading ? <span className="category-loading-status" role="status">Loading products…</span> : null}
           {results.error ? <div className="category-empty" role="alert"><h2>Products could not be loaded</h2><p>Your current results are still available. Please try again.</p><button onClick={results.retry}>Retry</button></div> : !results.loading && !shown.length ? <div className="category-empty"><h2>No products found</h2><p>Try adjusting your filters.</p>{filtered ? <button onClick={reset}>Clear filters</button> : null}</div> : null}
-          <div ref={sentinel} className="category-load-more">
+          <div className="category-load-more">
             {results.hasMore && !results.error ? <button disabled={results.loading} onClick={results.loadMore}>{results.loading ? "Loading more products…" : "Load more products"}</button> : null}
           </div>
         </section>

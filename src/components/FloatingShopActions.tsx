@@ -54,16 +54,16 @@ export default function FloatingShopActions() {
 
   return <>
     {headerHidden ? <>
-      <Link className="floating-basket" style={{ bottom: secondaryBottom }} href={href.account({ tab: "wishlist" })} aria-label={`Wishlist, ${wishlist.count} items`} title="View wishlist">
+      <Link className="floating-basket floating-basket-secondary" style={{ bottom: secondaryBottom }} href={href.account({ tab: "wishlist" })} aria-label={`Wishlist, ${wishlist.count} items`} title="View wishlist">
         <Heart size={21} aria-hidden="true" />
         {wishlist.count > 0 ? <span className="floating-basket-count" aria-hidden="true">{wishlist.count > 99 ? "99+" : wishlist.count}</span> : null}
       </Link>
-      <Link className="floating-basket" style={{ bottom: secondaryBottom + 58 }} href={href.compare()} aria-label={`Compare products, ${compare.count} items`} title="Compare products">
+      <Link className="floating-basket floating-basket-secondary" style={{ bottom: secondaryBottom + 58 }} href={href.compare()} aria-label={`Compare products, ${compare.count} items`} title="Compare products">
         <ArrowLeftRight size={21} aria-hidden="true" />
         {compare.count > 0 ? <span className="floating-basket-count" aria-hidden="true">{compare.count}</span> : null}
       </Link>
     </> : null}
-    {searchHidden ? <button className="floating-basket" type="button" style={{ bottom: bottom + (showBasket ? 58 : 0) }} onClick={focusSearch} aria-label="Search products" title="Search products"><Search size={21} aria-hidden="true" /></button> : null}
+    {searchHidden ? <button className="floating-basket floating-action-center-search" type="button" style={{ bottom: bottom + (showBasket ? 58 : 0) }} onClick={focusSearch} aria-label="Search products" title="Search products"><Search size={21} aria-hidden="true" /></button> : null}
     {showBasket ? <button className="floating-basket" type="button" style={{ bottom }} onClick={openBasket} aria-label={`Open basket, ${count} item${count === 1 ? "" : "s"}`} aria-haspopup="dialog" title="View your basket">
     <ShoppingBag size={21} aria-hidden="true" />
     <span className="floating-basket-count" aria-hidden="true">{count > 99 ? "99+" : count}</span>

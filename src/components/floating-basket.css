@@ -15,6 +15,9 @@
 }
 .floating-basket:hover { background: var(--blue-dark, #a8140d); }
 .floating-basket:focus-visible { outline: 3px solid var(--blue-dark, #a8140d); outline-offset: 4px; }
+@media (max-width: 767px) {
+  .floating-basket-secondary { display: none; }
+}
 .floating-basket-count {
   position: absolute;
   top: -5px;
@@ -30,4 +33,18 @@
   color: #fff;
   font-size: 10px;
   font-weight: 700;
+}
+@media (max-width: 767px) {
+  .floating-action-center-top,
+  .floating-action-center-search {
+    right: 20px !important;
+    left: auto !important;
+    transform: none !important;
+  }
+  .floating-action-center-top {
+    bottom: calc(76px + env(safe-area-inset-bottom) + 10px) !important;
+  }
+  .floating-action-center-search {
+    bottom: calc(76px + env(safe-area-inset-bottom) + 62px) !important;
+  }
 }

@@ -342,12 +342,12 @@ export async function fetchProducts(params: ProductListParams = {}): Promise<{ i
   }
   const qs = query.toString();
   const tags = [CacheTags.products, ...(params.category ? [CacheTags.categorySlug(params.category)] : []), ...(params.brand ? [CacheTags.brandSlug(params.brand)] : [])];
-  const res = await apiGet<{ data: ApiProductBase[]; meta: ListMeta }>(`products${qs ? `?${qs}` : ""}`, { tags, revalidateSeconds: params.onSale ? 60 : undefined });
+  const res = await apiGet<{ data: ApiProductBase[]; meta: ListMeta }>(`products${qs ? `?${qs}` : ""}`, { tags, revalidateSeconds: 60 });
   return { items: res.data.map(toProduct), meta: res.meta };
 }
 
 export async function fetchRecommendedProducts(limit = 4): Promise<Product[]> {
-  const res = await apiGet<{ data: ApiProductBase[] }>(`products/recommended?limit=${limit}`, { tags: [CacheTags.products] });
+  const res = await apiGet<{ data: ApiProductBase[] }>(`products/recommended?limit=${limit}`, { tags: [CacheTags.products], revalidateSeconds: 60 });
   return res.data.map(toProduct);
 }
 
@@ -360,7 +360,7 @@ export async function fetchAlsoViewedProducts(ids: number[], limit = 4): Promise
 }
 
 export async function fetchProductBySlug(slug: string): Promise<{ product: Product; api: ApiProductBase } | null> {
-  const api = await apiGetOrNull<ApiProductBase>(`products/${encodeURIComponent(slug)}`, { tags: [CacheTags.productSlug(slug), CacheTags.attributes, CacheTags.categories, CacheTags.brands] });
+  const api = await apiGetOrNull<ApiProductBase>(`products/${encodeURIComponent(slug)}`, { tags: [CacheTags.productSlug(slug), CacheTags.attributes, CacheTags.categories, CacheTags.brands], revalidateSeconds: 60 });
   if (!api) return null;
   const resolved = {
     ...api,
@@ -396,7 +396,7 @@ export async function fetchCompatibleProducts(slug: string, category?: string, l
   const query = new URLSearchParams();
   if (category) query.set("category", category);
   query.set("limit", String(limit));
-  const res = await apiGet<{ data: ApiProductBase[] }>(`products/${encodeURIComponent(slug)}/compatible?${query.toString()}`, { tags: [CacheTags.productSlug(slug), CacheTags.products] });
+  const res = await apiGet<{ data: ApiProductBase[] }>(`products/${encodeURIComponent(slug)}/compatible?${query.toString()}`, { tags: [CacheTags.productSlug(slug), CacheTags.products], revalidateSeconds: 60 });
   return res.data.map(toProduct);
 }
 

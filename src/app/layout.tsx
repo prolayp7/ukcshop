@@ -12,6 +12,7 @@ import { getActiveDesign } from "@/lib/designs";
 import { theme } from "@/lib/theme.config";
 import { fetchCategoryTree, fetchFooterContent, fetchFooterMenu, fetchGeneralSettings, fetchHeaderNav, type ApiGeneralSettings } from "@/lib/api";
 import { buildCategoryPaths } from "@/lib/category-paths";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 import "./globals.css";
 import "@/components/pages/category.css";
 
@@ -67,6 +68,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             <BackToTop />
             <CookieBanner design={design} />
             <CompareBar />
+            <MobileBottomNav categories={categoryTree} />
           </CartDrawerProvider>
         </DesignSlugProvider>
       </body>

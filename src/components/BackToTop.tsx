@@ -25,6 +25,7 @@ export default function BackToTop() {
   return (
     <button
       type="button"
+      className="floating-action-center-top"
       aria-label="Back to top"
       onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
       style={{
