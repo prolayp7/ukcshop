@@ -3,6 +3,9 @@ import { fetchProducts, ProductListParams } from "@/lib/api";
 
 export async function GET(request: NextRequest) {
   const sp = request.nextUrl.searchParams;
+  // The production ingress must overwrite these headers; the API trusts the forwarded IP only behind its private storefront proxy.
+  const clientIp = request.headers.get("x-real-ip")?.trim()
+    || request.headers.get("x-forwarded-for")?.split(",").at(-1)?.trim();
   const params: ProductListParams = {
     inStock: sp.get("inStock") === "true" ? true : undefined,
     specs: sp.get("specs") ?? undefined,
@@ -18,9 +21,10 @@ export async function GET(request: NextRequest) {
     ids: sp.get("ids") ? sp.get("ids")!.split(",").map(Number).filter(Number.isFinite) : undefined,
   };
   try {
-    const result = await fetchProducts(params);
+    const result = await fetchProducts(params, clientIp ? { "x-forwarded-for": clientIp } : undefined);
     return NextResponse.json(result);
-  } catch {
+  } catch (error) {
+    console.error("[storefront] Product list request failed", error);
     return NextResponse.json({ message: "The product catalogue is unavailable." }, { status: 503 });
   }
 }

@@ -47,10 +47,13 @@ export interface ListMeta extends PaginationMeta {
   facets: Facets;
 }
 
-type ApiCacheOptions = { tags?: string[]; revalidateSeconds?: number | false };
+type ApiCacheOptions = { tags?: string[]; revalidateSeconds?: number | false; headers?: HeadersInit };
 
-async function apiGet<T>(path: string, { tags = [], revalidateSeconds = 86400 }: ApiCacheOptions = {}): Promise<T> {
-  const res = await fetch(getStorefrontApiUrl(path), { next: { revalidate: revalidateSeconds, tags } });
+async function apiGet<T>(path: string, { tags = [], revalidateSeconds = 86400, headers }: ApiCacheOptions = {}): Promise<T> {
+  const res = await fetch(
+    getStorefrontApiUrl(path),
+    headers ? { headers, cache: "no-store" } : { next: { revalidate: revalidateSeconds, tags } },
+  );
   if (!res.ok) {
     throw new Error(`UKShop API request failed: GET ${path} -> ${res.status}`);
   }
@@ -334,7 +337,7 @@ export interface ProductListParams {
   ids?: number[];
 }
 
-export async function fetchProducts(params: ProductListParams = {}): Promise<{ items: Product[]; meta: ListMeta }> {
+export async function fetchProducts(params: ProductListParams = {}, headers?: HeadersInit): Promise<{ items: Product[]; meta: ListMeta }> {
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
     if (value === undefined || value === "") continue;
@@ -342,7 +345,7 @@ export async function fetchProducts(params: ProductListParams = {}): Promise<{ i
   }
   const qs = query.toString();
   const tags = [CacheTags.products, ...(params.category ? [CacheTags.categorySlug(params.category)] : []), ...(params.brand ? [CacheTags.brandSlug(params.brand)] : [])];
-  const res = await apiGet<{ data: ApiProductBase[]; meta: ListMeta }>(`products${qs ? `?${qs}` : ""}`, { tags, revalidateSeconds: 60 });
+  const res = await apiGet<{ data: ApiProductBase[]; meta: ListMeta }>(`products${qs ? `?${qs}` : ""}`, { tags, revalidateSeconds: 60, headers });
   return { items: res.data.map(toProduct), meta: res.meta };
 }
 
