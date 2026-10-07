@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useCart } from "@/lib/cart";
 import { useCustomerAuth } from "@/lib/storefront-client";
 import { Address, ShippingQuote, Order, listAddresses, listShippingMethods, checkout, CheckoutAddress } from "@/lib/account-api";
-import { listPaymentMethods, createPaymentAttempt, capturePaymentAttempt, PAYMENT_RETURN_ORDER_KEY, PaymentProvider } from "@/lib/payments-api";
+import { listPaymentMethods, createPaymentAttempt, capturePaymentAttempt, getPaymentReminderOrder, PAYMENT_RETURN_ORDER_KEY, PaymentProvider } from "@/lib/payments-api";
 import { money } from "@/lib/catalogue";
 import { Icon, ProductVisual } from "@/components/Icon";
 import { useHref } from "@/lib/design-context";
@@ -40,6 +40,7 @@ export default function CheckoutPage() {
   const searchParams = useSearchParams();
   const paypalAttemptId = searchParams.get("paypalAttempt") ?? searchParams.get("stripeAttempt");
   const paypalWasCancelled = searchParams.get("paypalCancelled") === "1" || searchParams.get("stripeCancelled") === "1";
+  const paymentReminderToken = searchParams.get("paymentReminder");
 
   // step is safe to seed from paypalAttemptId directly (URL-derived, identical on
   // server and client). order/capturing/placeError are NOT seeded here even though
@@ -48,8 +49,10 @@ export default function CheckoutPage() {
   // useState initializer, which also runs during SSR) would make the server-
   // rendered HTML disagree with the client's first render and break hydration.
   // The effect below sets them after mount instead.
-  const [step, setStep] = useState(() => (paypalAttemptId ? 3 : 1));
+  const [step, setStep] = useState(() => (paypalAttemptId ? 3 : paymentReminderToken ? 2 : 1));
   const [order, setOrder] = useState<Order | null>(null);
+  const [paymentReminderLoading, setPaymentReminderLoading] = useState(Boolean(paymentReminderToken && !paypalAttemptId));
+  const [paymentReminderError, setPaymentReminderError] = useState("");
   const [paid, setPaid] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [placeError, setPlaceError] = useState("");
@@ -84,6 +87,24 @@ export default function CheckoutPage() {
     });
     listPaymentMethods().then((methods) => setEnabledProviders(PROVIDERS.filter((p) => methods.some((m) => m.provider === p.id && m.enabled)).map((p) => p.id)));
   }, [isLoggedIn]);
+
+  useEffect(() => {
+    if (!paymentReminderToken || paypalAttemptId) return;
+    let active = true;
+    getPaymentReminderOrder(paymentReminderToken)
+      .then((reminderOrder) => {
+        if (!active) return;
+        setOrder(reminderOrder);
+        setStep(2);
+      })
+      .catch((error) => {
+        if (active) setPaymentReminderError(error instanceof Error ? error.message : "This payment link is no longer available. Please ask us for a new one.");
+      })
+      .finally(() => {
+        if (active) setPaymentReminderLoading(false);
+      });
+    return () => { active = false; };
+  }, [paymentReminderToken, paypalAttemptId]);
 
   // Handles the return trip from PayPal (redirect back to /checkout?paypalAttempt=...).
   // Reads sessionStorage and calls setState directly in the effect body rather than
@@ -155,14 +176,18 @@ export default function CheckoutPage() {
   // one key per checkout page visit: a double click or retry returns the same order
   const checkoutKey = useRef(createUuid());
   const placeOrder = async () => {
-    if (!shippingAddress || !shippingMethodId || !provider || placingRef.current) return;
+    if ((!order && (!shippingAddress || !shippingMethodId)) || !provider || placingRef.current) return;
     placingRef.current = true;
     setPlacing(true);
     setPlaceError("");
     try {
       // Reuse the order from an earlier attempt in this session (e.g. the
       // customer cancelled or the provider declined) instead of creating a second one.
-      const currentOrder = order ?? (await checkout({ email: isLoggedIn ? undefined : email.trim(), shippingAddress, shippingMethodId }, checkoutKey.current));
+      let currentOrder = order;
+      if (!currentOrder) {
+        if (!shippingAddress || shippingMethodId === null) return;
+        currentOrder = await checkout({ email: isLoggedIn ? undefined : email.trim(), shippingAddress, shippingMethodId }, checkoutKey.current);
+      }
       if (!order) setOrder(currentOrder);
       const attempt = await createPaymentAttempt({ orderUuid: currentOrder.uuid, email: currentOrder.email, provider });
       if (!attempt.redirectUrl) throw new Error("No redirect URL returned");
@@ -175,6 +200,26 @@ export default function CheckoutPage() {
       setPlacing(false);
     }
   };
+
+  if (paymentReminderLoading) {
+    return (
+      <>
+        <Header />
+        <div className="wrap"><div className="ck-done" role="status"><Icon id="i-shield" w={34} /><h1>Loading payment details…</h1><p>Please wait while we retrieve your order.</p></div></div>
+        <Footer />
+      </>
+    );
+  }
+
+  if (paymentReminderError) {
+    return (
+      <>
+        <Header />
+        <div className="wrap"><div className="ck-done" role="alert"><Icon id="i-shield" w={34} /><h1>Payment link unavailable</h1><p>{paymentReminderError}</p><Link className="ck-back" href={href.home()}>Continue shopping</Link></div></div>
+        <Footer />
+      </>
+    );
+  }
 
   if (capturing) {
     return (
@@ -416,9 +461,7 @@ export default function CheckoutPage() {
                   )}
                 </section>
                 <div className="ck-actions">
-                  <button className="ck-back" onClick={() => setStep(1)}>
-                    ← Back to delivery
-                  </button>
+                  {paymentReminderToken ? <span /> : <button className="ck-back" onClick={() => setStep(1)}>← Back to delivery</button>}
                   <button className="ck-next" disabled={!provider} onClick={() => setStep(3)}>
                     Review order <Icon id="i-arr" w={15} />
                   </button>

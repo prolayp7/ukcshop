@@ -2,6 +2,7 @@
 
 import { request } from "./storefront-client";
 import { createUuid } from "./uuid";
+import type { Order } from "./account-api";
 
 export type PaymentProvider = "STRIPE" | "PAYPAL" | "TWOCHECKOUT";
 export const PAYMENT_RETURN_ORDER_KEY = "ukcs.paypalCheckout";
@@ -12,6 +13,10 @@ export interface PaymentMethodInfo {
 }
 export function listPaymentMethods(): Promise<PaymentMethodInfo[]> {
   return request("payments/methods");
+}
+
+export function getPaymentReminderOrder(token: string): Promise<Order> {
+  return request(`payments/reminder-links/${encodeURIComponent(token)}`);
 }
 
 export interface PaymentAttempt {
