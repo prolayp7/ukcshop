@@ -26,9 +26,17 @@ export default function BackToTop() {
   useEffect(() => {
     const footer = document.querySelector("footer");
     if (!footer) return;
-    const observer = new IntersectionObserver(([entry]) => setFooterVisible(entry.isIntersecting));
+    const updateFooterVisibility = () => {
+      const rect = footer.getBoundingClientRect();
+      setFooterVisible(window.matchMedia("(max-width: 767px)").matches && rect.top < window.innerHeight && rect.bottom > 0);
+    };
+    const observer = new IntersectionObserver(updateFooterVisibility);
     observer.observe(footer);
-    return () => observer.disconnect();
+    window.addEventListener("resize", updateFooterVisibility);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateFooterVisibility);
+    };
   }, []);
 
   const showButton = visible && !footerVisible;

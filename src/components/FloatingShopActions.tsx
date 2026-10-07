@@ -29,7 +29,7 @@ export default function FloatingShopActions() {
     const observer = new IntersectionObserver((entries) => {
       for (const entry of entries) {
         if (entry.target === footer) {
-          setFooterVisible(entry.isIntersecting);
+          updateFooterVisibility();
           continue;
         }
         const hidden = !entry.isIntersecting && entry.boundingClientRect.bottom <= 48;
@@ -37,14 +37,22 @@ export default function FloatingShopActions() {
         if (entry.target === headerSearch) setSearchHidden(hidden);
       }
     }, { rootMargin: "-48px 0px 0px 0px" });
+    const updateFooterVisibility = () => {
+      if (!footer) return;
+      const rect = footer.getBoundingClientRect();
+      setFooterVisible(window.matchMedia("(max-width: 767px)").matches && rect.top < window.innerHeight && rect.bottom > 0);
+    };
+    const onResize = () => updateFooterVisibility();
     if (headerBasket) observer.observe(headerBasket);
     if (headerSearch) observer.observe(headerSearch);
     if (footer) observer.observe(footer);
+    window.addEventListener("resize", onResize);
     const updatePosition = () => setBottom(consentGiven() ? 78 : 150);
     updatePosition();
     window.addEventListener("ukcs:consent-changed", updatePosition);
     return () => {
       observer.disconnect();
+      window.removeEventListener("resize", onResize);
       window.removeEventListener("ukcs:consent-changed", updatePosition);
     };
   }, []);
