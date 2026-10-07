@@ -5,7 +5,6 @@ import { toast } from "@/lib/notifications";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { DesignParts } from "@/lib/parts";
 import { useCart } from "@/lib/cart";
 import { useCustomerAuth } from "@/lib/storefront-client";
 import { Address, ShippingQuote, Order, listAddresses, listShippingMethods, checkout, CheckoutAddress } from "@/lib/account-api";
@@ -13,6 +12,11 @@ import { listPaymentMethods, createPaymentAttempt, capturePaymentAttempt, PAYMEN
 import { money } from "@/lib/catalogue";
 import { Icon, ProductVisual } from "@/components/Icon";
 import { useHref } from "@/lib/design-context";
+import { useApi } from "@/lib/use-api";
+import type { Product } from "@/lib/types";
+import Header from "@/designs/highstreet/Header";
+import Footer from "@/designs/highstreet/Footer";
+import Crumbs from "@/components/Crumbs";
 
 const STEPS = ["Delivery", "Payment", "Review"];
 
@@ -28,8 +32,7 @@ const PROVIDERS: { id: Provider; label: string; blurb: string; redirect: string 
   { id: "PAYPAL", label: "PayPal", blurb: "Pay securely with your PayPal account or a card via PayPal", redirect: "PayPal" },
 ];
 
-export default function CheckoutPage({ parts }: { parts: DesignParts }) {
-  const { Header, Footer, Crumbs } = parts;
+export default function CheckoutPage() {
   const href = useHref();
   const { isLoggedIn } = useCustomerAuth();
   const { cart, loaded } = useCart();
@@ -50,6 +53,8 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
   const [placing, setPlacing] = useState(false);
   const [placeError, setPlaceError] = useState("");
   const [capturing, setCapturing] = useState(false);
+  const successProductIds = order?.items.map((item) => item.productId).join(",") ?? "";
+  const successProducts = useApi<{ items: Product[] }>(paid && successProductIds ? `/api/products?ids=${successProductIds}` : null);
   const [enabledProviders, setEnabledProviders] = useState<Provider[]>([]);
   const [chosen, setChosen] = useState<Provider | null>(null);
   const provider = chosen && enabledProviders.includes(chosen) ? chosen : (enabledProviders[0] ?? null);
@@ -191,38 +196,66 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
       <>
         <Header />
         <div className="wrap">
-          <div className="ck-done">
-            <Icon id="i-shield" w={34} />
-            <h1>Order placed</h1>
-            <p className="ck-ref">
-              Reference <b>{order.orderNumber}</b>
-            </p>
-            <p>A confirmation has been emailed to you.</p>
-            <div className="ck-donebox">
-              {order.items.map((item) => (
-                <div className="ck-item" key={item.id}>
-                  <span className="ck-name">
-                    {item.titleSnapshot}
-                    <em>Qty {item.quantity}</em>
-                  </span>
-                  <b>{money(Number(item.subtotal))}</b>
+          <div className="ck-done ck-success">
+            <section className="ck-success-main" aria-labelledby="order-success-title">
+              <div className="ck-success-badge"><Icon id="i-shield" w={30} /></div>
+              <p className="ck-success-status">Payment confirmed</p>
+              <h1 id="order-success-title">Order placed</h1>
+              <p className="ck-success-lead">A confirmation has been sent to <b>{order.email}</b>.</p>
+              <dl className="ck-success-facts">
+                <div>
+                  <dt>Order reference</dt>
+                  <dd>{order.orderNumber}</dd>
                 </div>
-              ))}
-              <div className="bk-row bk-total">
-                <span>Paid</span>
-                <b>{money(Number(order.total))}</b>
-              </div>
-            </div>
-            <div className="ck-doneacts">
-              {isLoggedIn ? (
-                <Link className="bk-cta" href={href.order(order.uuid)}>
-                  Track this order
+                <div className="ck-success-delivery">
+                  <dt>Delivering to</dt>
+                  <dd>{order.shippingFullName}<br />{order.shippingLine1}{order.shippingLine2 ? `, ${order.shippingLine2}` : ""}<br />{order.shippingCity}, {order.shippingPostcode}</dd>
+                </div>
+              </dl>
+              <div className="ck-doneacts">
+                {isLoggedIn ? (
+                  <Link className="bk-cta" href={href.order(order.uuid)}>
+                    Track this order
+                  </Link>
+                ) : null}
+                <Link className="ck-back" href={href.home()}>
+                  Continue shopping
                 </Link>
-              ) : null}
-              <Link className="ck-back" href={href.home()}>
-                Continue shopping
-              </Link>
-            </div>
+              </div>
+            </section>
+            <section className="ck-success-order" aria-labelledby="order-summary-title">
+              <header className="ck-success-orderhead">
+                <h2 id="order-summary-title">Order summary</h2>
+                <span>{order.items.length} {order.items.length === 1 ? "item" : "items"}</span>
+              </header>
+              <div className="ck-success-items">
+                {order.items.map((item) => {
+                  const product = successProducts.data?.items.find((entry) => entry.id === item.productId);
+                  return (
+                    <article className="ck-success-item" key={item.id}>
+                      <span className="ck-success-image" aria-hidden="true">
+                        {product?.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={product.image} alt="" />
+                        ) : (
+                          <ProductVisual productId={item.productId} iconId="package" w={66} h={54} />
+                        )}
+                      </span>
+                      <span className="ck-success-product">
+                        <b>{item.titleSnapshot}</b>
+                        {item.variantTitleSnapshot ? <em>{item.variantTitleSnapshot}</em> : null}
+                        <small>Qty {item.quantity}{item.skuSnapshot ? ` · SKU ${item.skuSnapshot}` : ""}</small>
+                      </span>
+                      <strong className="ck-success-line-total">{money(Number(item.subtotal))}</strong>
+                    </article>
+                  );
+                })}
+              </div>
+              <div className="ck-success-total">
+                <span>Paid</span>
+                <strong>{money(Number(order.total))}</strong>
+              </div>
+            </section>
           </div>
         </div>
         <Footer />
@@ -271,10 +304,10 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
                   <section className="ck-block">
                     <h2>Contact email</h2>
                     <div className="ck-field">
-                      <label>Email address</label>
-                      <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+                      <label>Email address <span className="ck-required" aria-hidden="true">*</span></label>
+                      <input type="email" aria-required="true" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
                     </div>
-                    <p style={{ fontSize: 12.5, color: "var(--c-muted)", margin: "8px 0 0" }}>
+                    <p style={{ fontSize: 14, color: "var(--c-muted)", margin: "8px 0 0" }}>
                       Already have an account? <Link href={href.login({ next: href.checkout() })}>Sign in</Link>
                     </p>
                   </section>
@@ -306,12 +339,12 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
                   {selectedSavedId === null && (
                     <>
                       <div className="ck-field">
-                        <label>Full name</label>
-                        <input value={addressForm.fullName} onChange={(e) => setAddressForm({ ...addressForm, fullName: e.target.value })} />
+                        <label>Full name <span className="ck-required" aria-hidden="true">*</span></label>
+                        <input aria-required="true" value={addressForm.fullName} onChange={(e) => setAddressForm({ ...addressForm, fullName: e.target.value })} />
                       </div>
                       <div className="ck-field">
-                        <label>Address line 1</label>
-                        <input value={addressForm.line1} onChange={(e) => setAddressForm({ ...addressForm, line1: e.target.value })} />
+                        <label>Address line 1 <span className="ck-required" aria-hidden="true">*</span></label>
+                        <input aria-required="true" value={addressForm.line1} onChange={(e) => setAddressForm({ ...addressForm, line1: e.target.value })} />
                       </div>
                       <div className="ck-field">
                         <label>Address line 2 (optional)</label>
@@ -319,12 +352,12 @@ export default function CheckoutPage({ parts }: { parts: DesignParts }) {
                       </div>
                       <div className="ck-two">
                         <div className="ck-field">
-                          <label>City</label>
-                          <input value={addressForm.city} onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })} />
+                          <label>City <span className="ck-required" aria-hidden="true">*</span></label>
+                          <input aria-required="true" value={addressForm.city} onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })} />
                         </div>
                         <div className="ck-field">
-                          <label>Postcode</label>
-                          <input value={addressForm.postcode} onChange={(e) => setAddressForm({ ...addressForm, postcode: e.target.value })} />
+                          <label>Postcode <span className="ck-required" aria-hidden="true">*</span></label>
+                          <input aria-required="true" value={addressForm.postcode} onChange={(e) => setAddressForm({ ...addressForm, postcode: e.target.value })} />
                         </div>
                       </div>
                       <div className="ck-field">

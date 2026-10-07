@@ -168,15 +168,17 @@ export default function InvoicePage() {
           <div>
             <div className={styles.box}>
               <h4>Statutory VAT rate analysis</h4>
-              <table className={styles.vat}>
-                <thead><tr><th>VAT category &amp; rate</th><th>Goods net total</th><th>VAT payable</th><th>Gross total</th></tr></thead>
-                <tbody>
-                  {[...byRate.entries()].map(([rate, row]) => (
-                    <tr key={rate}><td>{rateLabel(rate)}</td><td>{money(row.net)}</td><td>{money(row.vat)}</td><td>{money(row.gross)}</td></tr>
-                  ))}
-                </tbody>
-                <tfoot><tr><td>Totals subject to VAT</td><td>{money(totals.net)}</td><td>{money(totals.vat)}</td><td>{money(totals.gross)}</td></tr></tfoot>
-              </table>
+              <div className={styles.vatScroll} role="region" aria-label="VAT rate analysis table" tabIndex={0}>
+                <table className={styles.vat}>
+                  <thead><tr><th>VAT category &amp; rate</th><th>Goods net total</th><th>VAT payable</th><th>Gross total</th></tr></thead>
+                  <tbody>
+                    {[...byRate.entries()].map(([rate, row]) => (
+                      <tr key={rate}><td>{rateLabel(rate)}</td><td>{money(row.net)}</td><td>{money(row.vat)}</td><td>{money(row.gross)}</td></tr>
+                    ))}
+                  </tbody>
+                  <tfoot><tr><td>Totals subject to VAT</td><td>{money(totals.net)}</td><td>{money(totals.vat)}</td><td>{money(totals.gross)}</td></tr></tfoot>
+                </table>
+              </div>
             </div>
             <p className={styles.note}>Statutory tax point: {date}. Item prices above include VAT at the rate shown.</p>
           </div>

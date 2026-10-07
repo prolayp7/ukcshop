@@ -4,18 +4,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import Image from "next/image";
-import { BookOpenText, ChevronDown, ChevronRight, Grid2x2, Heart, Home, LifeBuoy, UserRound, type LucideIcon } from "lucide-react";
+import { BookOpenText, ChevronDown, ChevronRight, Grid2x2, Home, LifeBuoy, Search, UserRound, type LucideIcon } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Icon } from "@/components/Icon";
 import { useHref, useInitialStorefrontChrome } from "@/lib/design-context";
 import type { ApiCategory, HeaderNavItem } from "@/lib/api";
 import { theme } from "@/lib/theme.config";
 
-const links: Array<{ href: string | null; label: string; icon: LucideIcon }> = [
+const links: Array<{ href: string | null; label: string; icon: LucideIcon; action?: "categories" | "search" }> = [
   { href: "/", label: "Home", icon: Home },
-  { href: null, label: "Categories", icon: Grid2x2 },
+  { href: null, label: "Categories", icon: Grid2x2, action: "categories" },
   { href: "/faqs", label: "Guides", icon: BookOpenText },
-  { href: "/account", label: "Saved", icon: Heart },
+  { href: null, label: "Search", icon: Search, action: "search" },
   { href: "/account", label: "Account", icon: UserRound },
 ];
 
@@ -68,9 +68,9 @@ export function MobileBottomNav({ categories }: { categories: ApiCategory[] }) {
         {links.map((link) => {
           const Icon = link.icon;
           const active =
-            link.href === null
+            link.action === "categories"
               ? open || pathname.startsWith("/c/") || pathname.startsWith("/category/")
-              : !open && (link.href === "/" ? pathname === "/" : pathname === link.href || pathname.startsWith(`${link.href}/`));
+              : !open && link.href !== null && (link.href === "/" ? pathname === "/" : pathname === link.href || pathname.startsWith(`${link.href}/`) || (link.label === "Account" && (pathname === "/login" || pathname === "/register" || pathname === "/forgot-password")));
 
           const content = (
             <>
@@ -85,9 +85,16 @@ export function MobileBottomNav({ categories }: { categories: ApiCategory[] }) {
               <button
                 key={link.label}
                 type="button"
-                aria-haspopup="dialog"
-                aria-expanded={open}
-                onClick={() => setOpen(true)}
+                data-mobile-search-trigger={link.action === "search" ? "" : undefined}
+                aria-haspopup={link.action ? "dialog" : undefined}
+                aria-expanded={link.action === "categories" ? open : undefined}
+                onClick={() => {
+                  if (link.action === "search") {
+                    window.dispatchEvent(new Event("ukcs:open-mobile-search"));
+                  } else {
+                    setOpen(true);
+                  }
+                }}
                 className="relative flex min-h-12 flex-col items-center justify-center gap-1 rounded-md px-1 text-center focus-visible:outline-2 focus-visible:outline-[#e40503]"
               >
                 {content}

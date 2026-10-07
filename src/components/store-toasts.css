@@ -3,33 +3,34 @@ section[data-react-aria-top-layer][aria-live="polite"] { padding: 0; }
 
 [data-sonner-toaster] { z-index: 11000 !important; }
 [data-sonner-toast].store-toast {
-  --normal-bg: #fff;
-  --normal-text: #101827;
-  --normal-border: #dce3ed;
-  --success-bg: #fff;
-  --success-text: #087747;
-  --success-border: #dce3ed;
-  --error-bg: #fff;
-  --error-text: #c52b32;
-  --error-border: #dce3ed;
-  --warning-bg: #fff;
-  --warning-text: #a85b00;
-  --warning-border: #dce3ed;
-  --info-bg: #fff;
-  --info-text: #2166bd;
-  --info-border: #dce3ed;
-  padding: 18px 32px 18px 18px;
+  --normal-bg: #09090b;
+  --normal-text: #e2231a;
+  --normal-border: #303036;
+  --success-bg: #09090b;
+  --success-text: #4ade80;
+  --success-border: #303036;
+  --error-bg: #09090b;
+  --error-text: #ff6b6b;
+  --error-border: #303036;
+  --warning-bg: #09090b;
+  --warning-text: #ffb02e;
+  --warning-border: #303036;
+  --info-bg: #09090b;
+  --info-text: #61a5fa;
+  --info-border: #303036;
+  padding: 16px 36px 16px 16px;
   border-radius: 10px;
-  border-inline-start: 3px solid currentColor;
-  box-shadow: 0 8px 20px -8px #18283b40;
+  border-inline-start: 4px solid var(--blue, #e2231a) !important;
+  box-shadow: 0 8px 24px -8px #18283b66;
   font-family: inherit;
   align-items: flex-start;
 }
-.store-toast [data-title] { color: #101827; font-size: 13px; font-weight: 700; }
-.store-toast [data-description] { color: #596678 !important; font-size: 12px; line-height: 1.5; }
+.store-toast [data-title] { color: #f5f5f7 !important; font-size: 13px; font-weight: 700; }
+.store-toast [data-description] { color: #b8bdc7 !important; font-size: 12px; line-height: 1.5; }
 .store-toast [data-icon] { margin-top: 2px; }
-.store-toast [data-button] { background: var(--navy, #16171a) !important; color: #fff !important; }
-.store-toast [data-close-button] { left: auto; right: 8px; top: 8px; transform: none; border: 0; background: transparent; color: #647080; }
+.store-toast [data-button] { background: var(--blue, #e2231a) !important; color: #fff !important; }
+.store-toast [data-cancel-button] { background: #202024 !important; color: #f5f5f7 !important; }
+.store-toast [data-close-button] { left: auto; right: 8px; top: 8px; transform: none; border: 0; background: transparent; color: #b8bdc7; }
 .store-toast :focus-visible { outline: 2px solid var(--blue, #e2231a); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) {
   [data-sonner-toast] { transition-duration: 0ms !important; animation: none !important; }

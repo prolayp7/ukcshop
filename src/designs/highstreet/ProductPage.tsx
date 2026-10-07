@@ -214,9 +214,9 @@ function ProductDetail({
       </div>
 
       </div>
-      <Rail title="Related products" sub={`Alternatives in ${p.subcategory}, at a similar price.`} items={related} link={{ href: href.category({ sub: p.subcategory }), label: "See all " + p.subcategory }} />
-      <Rail title="Recommended for you" sub="Popular right now across the catalogue." items={recommended} />
-      {recentlyViewed.length ? <Rail title="Recently viewed" items={recentlyViewed.slice(0, 4)} /> : null}
+      <Rail title="Related products" sub={`Alternatives in ${p.subcategory}, at a similar price.`} items={related} link={{ href: href.category({ sub: p.subcategory }), label: "See all " + p.subcategory }} className="home-product-rail" />
+      <Rail title="Recommended for you" sub="Popular right now across the catalogue." items={recommended} className="home-product-rail" />
+      {recentlyViewed.length ? <Rail title="Recently viewed" items={recentlyViewed.slice(0, 4)} className="home-product-rail" /> : null}
       <Footer />
     </>
   );
@@ -231,7 +231,7 @@ function switchTab(e: React.MouseEvent<HTMLButtonElement>, tab: string) {
   wrap.querySelector(`#${tab}`)?.classList.add("on");
 }
 
-function Rail({ title, sub, items, link }: { title: string; sub?: string; items: Product[]; link?: { href: string; label: string } }) {
+function Rail({ title, sub, items, link, className }: { title: string; sub?: string; items: Product[]; link?: { href: string; label: string }; className?: string }) {
   if (!items.length) return null;
   return (
     <section>
@@ -247,7 +247,7 @@ function Rail({ title, sub, items, link }: { title: string; sub?: string; items:
             </a>
           ) : null}
         </div>
-        <div className="rail">
+        <div className={`rail${className ? ` ${className}` : ""}`}>
           {items.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}

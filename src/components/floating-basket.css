@@ -16,6 +16,7 @@
 .floating-basket:hover { background: var(--blue-dark, #a8140d); }
 .floating-basket:focus-visible { outline: 3px solid var(--blue-dark, #a8140d); outline-offset: 4px; }
 @media (max-width: 767px) {
+  .floating-action-center-search { display: none; }
   .floating-basket-secondary { display: none; }
 }
 .floating-basket-count {

@@ -2,13 +2,15 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useSearchParams } from "next/navigation";
-import { DesignParts } from "@/lib/parts";
 import { useWishlist } from "@/lib/basket";
 import { fetchMe, useCustomerAuth } from "@/lib/storefront-client";
 import { Address, Order, ReturnView, listAddresses, listOrders, listReturns } from "@/lib/account-api";
 import { useApi } from "@/lib/use-api";
 import { Product } from "@/lib/types";
 import { useHref } from "@/lib/design-context";
+import Header from "@/designs/highstreet/Header";
+import Footer from "@/designs/highstreet/Footer";
+import Crumbs from "@/components/Crumbs";
 import AccountOverview from "./AccountOverview";
 import { OrdersTab, WishlistTab, AddressesTab, DetailsTab } from "./AccountTabs";
 import { ReturnsTab } from "./ReturnParts";
@@ -20,8 +22,7 @@ const subscribeToMount = () => () => {};
 const clientMounted = () => true;
 const serverMounted = () => false;
 
-export default function AccountPage({ parts }: { parts: DesignParts }) {
-  const { Header, Footer, Crumbs } = parts;
+export default function AccountPage() {
   const href = useHref();
   const params = useSearchParams();
   const raw = params.get("tab");

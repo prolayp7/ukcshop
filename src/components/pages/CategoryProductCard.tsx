@@ -53,7 +53,7 @@ export default function CategoryProductCard({ product: p, showDealTimer = false 
       {p.reviews > 0 ? <div className="category-rating" aria-label={`${p.rating} out of 5, ${p.reviews} reviews`}>{Array.from({ length: 5 }, (_, i) => <Star key={i} size={17} fill={i < Math.round(p.rating) ? "currentColor" : "none"} />)}<span>({p.reviews})</span></div> : null}
       <h3><Link href={href.product(p.slug)}>{p.name}</Link></h3>
       {Object.keys(p.specs).length > 0 ? <dl className="category-product-specs">{Object.entries(p.specs).slice(0, 3).map(([key, value]) => <div key={key}><dt>{key}</dt><dd>{String(value)}</dd></div>)}</dl> : null}
-      <p className={`category-stock ${p.stockStatus}`}><i />{p.stockStatus === "out" ? "Out of Stock" : p.stockStatus === "low" ? `Low Stock — ${p.stock} left` : `In Stock (${p.stock} available)`}</p>
+      <p className={`category-stock ${p.stockStatus}`}><i />{p.stockStatus === "out" ? "Out of Stock" : p.stockStatus === "low" ? `Low Stock — ${p.stock} left` : <>In Stock <span className="category-stock-count">({p.stock} available)</span></>}</p>
     </div>
     <div className="category-product-buy">
       {showDealTimer && p.dealEndsAt ? <DealCountdown endsAt={p.dealEndsAt} /> : null}

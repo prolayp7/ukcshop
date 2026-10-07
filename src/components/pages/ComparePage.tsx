@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeftRight, ArrowRight, BadgeCheck, Cpu, Download, Monitor, Share2, Sparkles, Trash2 } from "lucide-react";
+import { ArrowLeftRight, ArrowRight, BadgeCheck, Cpu, Download, Monitor, Share2, ShoppingCart, Sparkles, Trash2 } from "lucide-react";
 import { DesignParts } from "@/lib/parts";
 import { Compare, COMPARE_MAX, useCompare } from "@/lib/basket";
 import { money, stars, stockText } from "@/lib/catalogue";
@@ -68,6 +68,7 @@ export default function ComparePage({ parts }: { parts: DesignParts }) {
     <>
       <Header />
       <Crumbs items={[{ label: "Home", href: href.home() }, ...(commonCategory ? [{ label: commonCategory, href: href.category({ cat: commonCategory }) }] : []), { label: "Product comparison" }]} />
+      <div className={`cmp-page${products.length ? "" : " cmp-page-empty"}`}>
       <div className="wrap">
         <div className="cmp-head">
           {products.length > 0 && (
@@ -185,7 +186,8 @@ export default function ComparePage({ parts }: { parts: DesignParts }) {
                   </div>
                   <div className="cmp-actions">
                     <AddToBasketButton product={p} className="cmp-add">
-                      Add to basket
+                      <ShoppingCart size={15} aria-hidden="true" />
+                      <span>Add to basket</span>
                     </AddToBasketButton>
                     <a href={href.product(p.slug)} className="cmp-view">
                       View product
@@ -239,6 +241,7 @@ export default function ComparePage({ parts }: { parts: DesignParts }) {
             </div>
           </>
         )}
+      </div>
       </div>
       <Footer />
     </>

@@ -20,6 +20,7 @@ export default function CompareBar() {
     return (
       <button
         type="button"
+        className="compare-tray-minimized"
         onClick={() => setMinimized(false)}
         aria-label="Expand product comparison tray"
         style={{
@@ -50,6 +51,7 @@ export default function CompareBar() {
   return (
     <div
       id="ukcs-cmp-tray"
+      className="compare-tray"
       style={{
         position: "fixed",
         left: 0,
@@ -63,6 +65,7 @@ export default function CompareBar() {
       }}
     >
       <div
+        className="compare-tray-inner"
         style={{
           maxWidth: 1514,
           margin: "0 auto",
@@ -73,8 +76,9 @@ export default function CompareBar() {
           flexWrap: "wrap",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 12, flex: "none" }}>
+        <div className="compare-tray-summary" style={{ display: "flex", alignItems: "center", gap: 12, flex: "none" }}>
           <span
+            className="compare-tray-count"
             style={{
               width: 30,
               height: 30,
@@ -90,20 +94,22 @@ export default function CompareBar() {
           >
             {count}
           </span>
-          <div>
-            <b style={{ display: "block", fontSize: 14, whiteSpace: "nowrap" }}>
+          <div className="compare-tray-copy">
+            <b className="compare-tray-title" style={{ display: "block", fontSize: 14, whiteSpace: "nowrap" }}>
               {count} Product{count === 1 ? "" : "s"} Selected for Direct Comparison
             </b>
+            <b className="compare-tray-mobile-title">{count} product{count === 1 ? "" : "s"} selected</b>
             <span style={{ fontSize: 11.5, color: "rgba(255,255,255,.55)" }}>
               Compare specifications, features &amp; prices side by side
             </span>
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 8, flex: 1, minWidth: 0, overflowX: "auto" }}>
+        <div className="compare-tray-products" style={{ display: "flex", gap: 8, flex: 1, minWidth: 0, overflowX: "auto" }}>
           {products.map((p) => (
             <div
               key={p.id}
+              className="compare-tray-product"
               style={{
                 position: "relative",
                 display: "flex",
@@ -118,6 +124,7 @@ export default function CompareBar() {
               }}
             >
               <span
+                className="compare-tray-thumb"
                 style={{
                   width: 34,
                   height: 34,
@@ -130,7 +137,7 @@ export default function CompareBar() {
               >
                 <ProductVisual productId={p.id} iconId={p.icon} w={26} h={20} />
               </span>
-              <span style={{ minWidth: 0 }}>
+              <span className="compare-tray-product-copy" style={{ minWidth: 0 }}>
                 <b
                   style={{
                     display: "block",
@@ -157,9 +164,9 @@ export default function CompareBar() {
                   width: 18,
                   height: 18,
                   borderRadius: "50%",
-                  background: "#111",
+                  background: "var(--blue)",
                   color: "#fff",
-                  border: "2px solid #12151c",
+                  border: "2px solid var(--blue)",
                   fontSize: 11,
                   lineHeight: 1,
                   display: "grid",
@@ -174,6 +181,7 @@ export default function CompareBar() {
           {Array.from({ length: COMPARE_MAX - count }, (_, i) => (
             <div
               key={`empty-${i}`}
+              className="compare-tray-slot"
               style={{
                 flex: "none",
                 width: 130,
@@ -190,9 +198,10 @@ export default function CompareBar() {
           ))}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 16, flex: "none" }}>
+        <div className="compare-tray-actions" style={{ display: "flex", alignItems: "center", gap: 16, flex: "none" }}>
           <a
             href={href.compare()}
+            className="compare-tray-primary"
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -211,6 +220,7 @@ export default function CompareBar() {
           </a>
           <button
             type="button"
+            className="compare-tray-minimize"
             onClick={() => setMinimized(true)}
             style={{ color: "rgba(255,255,255,.6)", fontSize: 12.5, cursor: "pointer" }}
           >
@@ -218,6 +228,7 @@ export default function CompareBar() {
           </button>
           <button
             type="button"
+            className="compare-tray-close"
             aria-label="Close comparison tray"
             onClick={() => Compare.clear()}
             style={{ color: "rgba(255,255,255,.6)", cursor: "pointer", display: "grid", placeItems: "center" }}

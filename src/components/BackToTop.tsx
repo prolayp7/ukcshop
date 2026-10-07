@@ -7,6 +7,7 @@ import { consentGiven } from "./CookieBanner";
  * styling (not themed per design), colored to the RigForge brand red. */
 export default function BackToTop() {
   const [visible, setVisible] = useState(false);
+  const [footerVisible, setFooterVisible] = useState(false);
   const [bottom, setBottom] = useState(92);
 
   useEffect(() => {
@@ -21,6 +22,16 @@ export default function BackToTop() {
       window.removeEventListener("ukcs:consent-changed", onConsent);
     };
   }, []);
+
+  useEffect(() => {
+    const footer = document.querySelector("footer");
+    if (!footer) return;
+    const observer = new IntersectionObserver(([entry]) => setFooterVisible(entry.isIntersecting));
+    observer.observe(footer);
+    return () => observer.disconnect();
+  }, []);
+
+  const showButton = visible && !footerVisible;
 
   return (
     <button
@@ -44,9 +55,9 @@ export default function BackToTop() {
         justifyContent: "center",
         cursor: "pointer",
         boxShadow: "0 12px 30px -10px rgba(0,0,0,.5)",
-        opacity: visible ? 1 : 0,
-        visibility: visible ? "visible" : "hidden",
-        transform: visible ? "translateY(0)" : "translateY(8px)",
+        opacity: showButton ? 1 : 0,
+        visibility: showButton ? "visible" : "hidden",
+        transform: showButton ? "translateY(0)" : "translateY(8px)",
         transition: "opacity .2s, transform .2s, bottom .2s",
       }}
     >

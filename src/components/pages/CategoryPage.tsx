@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Grid2X2, List, Package, SlidersHorizontal, X } from "lucide-react";
 import { parts } from "@/designs/highstreet";
@@ -14,6 +14,7 @@ import { useHref } from "@/lib/design-context";
 import { Icon } from "@/components/Icon";
 import { plainText } from "@/lib/category";
 import CategoryProductCard from "@/components/pages/CategoryProductCard";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 export default function CategoryPage({ category, tree, initialMin, initialMax, initialSort, deals, initialProducts, initialFacets, benefits, initialQuery = "" }: {
   benefits: { id: number; label: string; icon: string | null }[];
@@ -37,6 +38,30 @@ export default function CategoryPage({ category, tree, initialMin, initialMax, i
   const [perPage, setPerPage] = useState(12);
   const [view, setView] = useState<"grid" | "list">("grid");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [controlsStuck, setControlsStuck] = useState(false);
+  const controlsRef = useRef<HTMLDivElement>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const controls = controlsRef.current;
+    if (!controls) return;
+
+    let stuck = false;
+    const update = () => {
+      const rect = controls.getBoundingClientRect();
+      const next = window.matchMedia("(max-width: 600px)").matches && rect.top <= 49 && rect.bottom > 0;
+      if (next === stuck) return;
+      stuck = next;
+      setControlsStuck(next);
+    };
+
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const params = new URLSearchParams(window.location.search);
@@ -82,6 +107,17 @@ export default function CategoryPage({ category, tree, initialMin, initialMax, i
   const shown = results.data?.items ?? [];
   const total = results.data?.meta.total ?? 0;
   const facets = facetsRes.data?.meta.facets;
+  const { error, hasMore, loadMore, loading } = results;
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    if (!target || !hasMore || loading || error) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) loadMore();
+    }, { rootMargin: "600px 0px" });
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [error, hasMore, loadMore, loading]);
   useEffect(() => {
     // A search for a brand name (e.g. "asus") should land with that brand's
     // filter checkbox already ticked, not just listed in the sidebar.
@@ -120,6 +156,16 @@ export default function CategoryPage({ category, tree, initialMin, initialMax, i
     ...(stock ? [{ key: "stock", label: "In Stock Only", remove: () => setStock(false) }] : []),
   ];
 
+  const filterPanel = <>
+    <div className="category-refine"><h2>Refine Results</h2><button type="button" onClick={reset}>Reset</button></div>
+    <fieldset><legend>Manufacturer</legend>{facets?.brands.map((brand) => <label key={brand.slug}><input type="checkbox" checked={brands.includes(brand.slug)} onChange={() => { setBrands(brands.includes(brand.slug) ? brands.filter((b) => b !== brand.slug) : [...brands, brand.slug]); }} /><span>{brand.title}</span><small>{brand.count}</small></label>)}{!facets?.brands.length ? <p className="category-muted">{facetsRes.loading ? "Loading…" : "No manufacturers"}</p> : null}</fieldset>
+    <fieldset><legend>Price Range ({CURRENCY_SYMBOL})</legend>
+      {maxPrice > 0 ? <><input aria-label="Maximum price slider" className="category-range" type="range" min="0" max={maxPrice} value={priceMax || maxPrice} onChange={(event) => { setPriceMax(event.target.value); }} /><small>Up to {money(Number(priceMax || maxPrice))}</small></> : null}
+    </fieldset>
+    {(facets?.specifications ?? []).filter((spec) => !["brand", "category"].includes(spec.title.toLowerCase())).map((spec) => <div className="category-spec-filter" key={spec.title}><p className="category-spec-filter-title">{spec.title.replace(/([a-z])([A-Z])/g, "$1 $2")}</p><fieldset aria-label={spec.title}>{spec.values.map(({ value, count }) => <label key={value}><input type="checkbox" checked={specs[spec.title]?.includes(value) ?? false} onChange={() => { const next = { ...specs }; const selected = next[spec.title] ?? []; const values = selected.includes(value) ? selected.filter((v) => v !== value) : [...selected, value]; if (values.length) next[spec.title] = values; else delete next[spec.title]; setSpecs(next); }} /><span>{value}</span><small>{count}</small></label>)}</fieldset></div>)}
+    <fieldset><legend>Availability</legend><label><input type="checkbox" checked={stock} onChange={(event) => { setStock(event.target.checked); }} /><span>In Stock Only</span></label></fieldset>
+  </>;
+
   return <>
     <Header />
     <div className="category-page">
@@ -139,20 +185,28 @@ export default function CategoryPage({ category, tree, initialMin, initialMax, i
         </Link>)}</div>
       </div></section> : null}
       <div className="category-catalogue" id="category-results"><div className="category-wrap category-layout">
-        <button className="category-mobile-filter" onClick={() => setFiltersOpen(!filtersOpen)} aria-expanded={filtersOpen} aria-controls="category-filters"><SlidersHorizontal size={18} /> Refine results</button>
-        <aside id="category-filters" className={`category-sidebar${filtersOpen ? " is-open" : ""}`}>
-          <div className="category-refine"><h2>Refine Results</h2><button onClick={reset}>Reset</button></div>
-          <fieldset><legend>Manufacturer</legend>{facets?.brands.map((brand) => <label key={brand.slug}><input type="checkbox" checked={brands.includes(brand.slug)} onChange={() => { setBrands(brands.includes(brand.slug) ? brands.filter((b) => b !== brand.slug) : [...brands, brand.slug]); }} /><span>{brand.title}</span><small>{brand.count}</small></label>)}{!facets?.brands.length ? <p className="category-muted">{facetsRes.loading ? "Loading…" : "No manufacturers"}</p> : null}</fieldset>
-          <fieldset><legend>Price Range ({CURRENCY_SYMBOL})</legend>
-            <div className="category-price-inputs"><input aria-label="Minimum price" type="number" min="0" max={priceMax || undefined} placeholder="Min" value={priceMin} onChange={(event) => { setPriceMin(event.target.value); }} /><span>–</span><input aria-label="Maximum price" type="number" min={priceMin || "0"} placeholder="Max" value={priceMax} onChange={(event) => { setPriceMax(event.target.value); }} /></div>
-            {maxPrice > 0 ? <><input aria-label="Maximum price slider" className="category-range" type="range" min="0" max={maxPrice} value={priceMax || maxPrice} onChange={(event) => { setPriceMax(event.target.value); }} /><small>Up to {money(Number(priceMax || maxPrice))}</small></> : null}
-          </fieldset>
-          {(facets?.specifications ?? []).filter((spec) => !["brand", "category"].includes(spec.title.toLowerCase())).map((spec) => <div className="category-spec-filter" key={spec.title}><p className="category-spec-filter-title">{spec.title.replace(/([a-z])([A-Z])/g, "$1 $2")}</p><fieldset aria-label={spec.title}>{spec.values.map(({ value, count }) => <label key={value}><input type="checkbox" checked={specs[spec.title]?.includes(value) ?? false} onChange={() => { const next = { ...specs }; const selected = next[spec.title] ?? []; const values = selected.includes(value) ? selected.filter((v) => v !== value) : [...selected, value]; if (values.length) next[spec.title] = values; else delete next[spec.title]; setSpecs(next); }} /><span>{value}</span><small>{count}</small></label>)}</fieldset></div>)}
-          <fieldset><legend>Availability</legend><label><input type="checkbox" checked={stock} onChange={(event) => { setStock(event.target.checked); }} /><span>In Stock Only</span></label></fieldset>
-        </aside>
+        <aside className="category-sidebar" aria-label="Product filters">{filterPanel}</aside>
+        <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+          <SheetContent side="bottom" className="category-filter-sheet">
+            <SheetHeader className="category-filter-sheet-header">
+              <SheetTitle>Refine Results</SheetTitle>
+            </SheetHeader>
+            <section className="category-filter-summary" aria-label="Selected filters">
+              <div className="category-filter-summary-heading">
+                <p aria-live="polite">{activeFilters.length ? `Selected filters (${activeFilters.length})` : "No filters selected"}</p>
+                {activeFilters.length ? <button type="button" onClick={reset}>Clear all</button> : null}
+              </div>
+              {activeFilters.length ? <ul>{activeFilters.map((filter) => <li key={filter.key}><button type="button" onClick={filter.remove} aria-label={`Remove filter: ${filter.label}`}><span>{filter.label}</span><X size={14} aria-hidden="true" /></button></li>)}</ul> : null}
+            </section>
+            <div className="category-filter-scroll" id="category-filter-sheet-panel">
+              <aside className="category-sidebar category-mobile-panel" aria-label="Product filters">{filterPanel}</aside>
+            </div>
+          </SheetContent>
+        </Sheet>
         <section className="category-results" aria-label="Products" aria-busy={results.loading}>
-          <div className="category-controls">
+          <div ref={controlsRef} className={`category-controls${controlsStuck ? " is-stuck" : ""}`}>
           <div className="category-toolbar">
+            <button className="category-mobile-filter" onClick={() => setFiltersOpen(true)} aria-expanded={filtersOpen} aria-controls="category-filter-sheet-panel"><SlidersHorizontal size={18} /> Filters</button>
             <p aria-live="polite" aria-atomic="true" aria-busy={results.loading}>{!results.data && results.loading ? "Loading products…" : <>Showing <b>{shown.length ? 1 : 0}–{shown.length}</b> of <strong>{total}</strong> Products</>}</p>
             <label className="category-sort">Sort:<select value={sort} onChange={(event) => { setSort(event.target.value as ProductListParams["sort"]); }}><option value="newest">Newest arrivals</option><option value="price_asc">Price: low to high</option><option value="price_desc">Price: high to low</option><option value="name_asc">Name: A–Z</option><option value="name_desc">Name: Z–A</option></select></label>
             <div className="category-page-size"><span>Show:</span>{[12, 24, 48].map((size) => <button key={size} aria-pressed={perPage === size} onClick={() => { setPerPage(size); }}>{size}</button>)}</div>
@@ -174,16 +228,14 @@ export default function CategoryPage({ category, tree, initialMin, initialMax, i
           </div>
           {results.loading ? <span className="category-loading-status" role="status">Loading products…</span> : null}
           {results.error ? <div className="category-empty" role="alert"><h2>Products could not be loaded</h2><p>Your current results are still available. Please try again.</p><button onClick={results.retry}>Retry</button></div> : !results.loading && !shown.length ? <div className="category-empty"><h2>No products found</h2><p>Try adjusting your filters.</p>{filtered ? <button onClick={reset}>Clear filters</button> : null}</div> : null}
-          <div className="category-load-more">
-            {results.hasMore && !results.error ? <button disabled={results.loading} onClick={results.loadMore}>{results.loading ? "Loading more products…" : "Load more products"}</button> : null}
-          </div>
+          <div ref={loadMoreRef} className="category-load-more" aria-hidden="true" />
         </section>
       </div></div>
       {category?.additionalDescription || category?.faqs?.length ? <section className="category-wrap category-details">
         {category.additionalDescription ? <p>{plainText(category.additionalDescription)}</p> : null}
         {category.faqs?.length ? <><h2>Frequently asked questions</h2>{category.faqs.map((faq, i) => <details key={i}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}</> : null}
       </section> : null}
-      <div className="category-history-recommendations">
+      <div className="category-history-recommendations history-products">
         <Section title="Recommended based on your browsing history" items={recentProductsRes.data?.items ?? []} />
         <Section title="Customers who viewed items in your browsing history also viewed" items={alsoViewedRes.data?.items ?? []} />
       </div>

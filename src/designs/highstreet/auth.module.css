@@ -26,7 +26,8 @@
 .input { display: flex; align-items: center; padding-left: 12px; color: var(--body); }
 .input > svg { flex-shrink: 0; }
 .input input { flex: 1; min-width: 0; width: 100%; border: 0; background: transparent; border-radius: 6px; }
-.input:focus-within { border-color: var(--blue); }
+.input:focus-within { border-color: var(--blue); outline: 2px solid var(--blue); outline-offset: 3px; }
+.input :is(input, button):focus-visible { outline: none; }
 .input input::placeholder { color: var(--body); opacity: 1; }
 .input button { display: grid; place-items: center; flex-shrink: 0; width: 44px; min-height: 44px; border-radius: 4px; }
 .input button:hover { color: var(--blue); background: var(--blue-soft); }
@@ -48,7 +49,8 @@
 .error { display: flex; gap: 8px; align-items: flex-start; margin: 0; border-radius: 6px; background: var(--blue-soft); color: var(--blue-dark); font-size: 14px; padding: 12px; }
 .error svg { flex-shrink: 0; margin-top: 2px; }
 .fieldError { display: block; color: var(--blue-dark); margin-top: 6px; font-size: 13px; }
-.field [aria-invalid=true] { outline: 1px solid var(--blue-dark); outline-offset: -1px; }
+.field > input[aria-invalid=true], .input:has([aria-invalid=true]) { border-color: color-mix(in srgb, var(--blue-dark) 52%, var(--line)); }
+.field [aria-invalid=true] { outline: none; }
 .hint { display: block; margin-top: 8px; font-size: 12px; color: var(--body); }
 .otpRow { display: flex; gap: 8px; margin-top: 7px; }
 .otpRow input { width: 100%; aspect-ratio: 1; min-width: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); text-align: center; font-family: inherit; font-size: 28px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; color: var(--ink); caret-color: var(--blue); }
@@ -98,13 +100,6 @@
 .basket { width: 100%; min-height: 42px; display: flex; justify-content: center; align-items: center; gap: 7px; color: white; background: var(--navy); border-radius: 5px; padding: 9px; font-size: 13px; font-weight: 600; }
 .basket:hover { background: var(--navy-2); }
 .basket:disabled { opacity: .5; cursor: not-allowed; }
-.productList { grid-template-columns: 1fr; }
-.productList .product { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 20px; }
-.productList .productImage { height: 140px; align-self: center; margin: 0; }
-.productList .productInfo { display: grid; grid-template-columns: 1fr auto; column-gap: 12px; }
-.productList .productInfo > :is(small, h3, .rating, dl) { grid-column: 1 / -1; }
-.productList .stock { grid-column: 1; }
-.productList .basket { grid-column: 2; grid-row: span 2; align-self: center; }
 .memberNote { display: flex; gap: 16px; background: var(--card); padding: 24px; border-radius: 10px; margin-top: 22px; }
 .memberNote > svg { flex-shrink: 0; color: var(--blue); }
 .memberNote h3 { font-size: 17px; margin: 0; font-weight: 700; }
@@ -119,15 +114,22 @@
   .panel { padding: 24px; }
   .showcaseHeader { padding: 22px; }
   .showcaseHeader h2 { font-size: 21px; }
-  .productList .product { grid-template-columns: 90px minmax(0, 1fr); gap: 12px; }
-  .productList .productInfo { display: block; }
 }
 @media (max-width: 800px) {
   .layout { grid-template-columns: 1fr; gap: 32px; padding-top: 16px; }
   .panel h1 { font-size: 34px; }
   .field > input, .input input { font-size: 16px; }
   .showcaseHeader h2 { font-size: 22px; }
-  .productList .product { grid-template-columns: 120px minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .page { padding-bottom: 0; }
+  .service { display: none; }
+}
+@media (max-width: 760px) {
+  .products { display: flex; grid-template-columns: none; gap: 12px; overflow-x: auto; padding: 0 18% 4px 0; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .products::-webkit-scrollbar { display: none; }
+  .products > .product { flex: 0 0 90%; scroll-snap-align: start; }
+  .products > .product:last-child { margin-right: 14px; }
 }
 @media (max-width: 420px) {
   .panel { padding: 24px 18px; }
@@ -137,10 +139,9 @@
   .benefits strong { font-size: 12px; }
   .benefits span { font-size: 11px; }
   .products { grid-template-columns: 1fr; }
-  .productList .product { grid-template-columns: 85px minmax(0, 1fr); }
-  .productList .productImage { height: 100px; }
   .showcaseHeader { padding: 22px 18px; }
   .showcaseHeader h2 { align-items: flex-start; }
+  .service { gap: 8px; margin-top: 12px; padding: 10px 16px; }
 }
 
 .recoveryEmail { font-weight: 600; overflow-wrap: anywhere; }

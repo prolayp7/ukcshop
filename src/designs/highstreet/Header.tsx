@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CAT_ORDER, type Product } from "@/lib/types";
+import { type Product } from "@/lib/types";
 import { money, CURRENCY, CURRENCY_SYMBOL } from "@/lib/catalogue";
 import { Icon, ProductVisual } from "@/components/Icon";
 import { BasketCount, BasketTotal } from "@/components/BasketBadge";
@@ -15,6 +15,7 @@ import { type ApiCategory, type ApiBrand, type ListMeta, type TopBarContent } fr
 import { useWishlist, useCompare } from "@/lib/basket";
 import { useCustomerAuth } from "@/lib/storefront-client";
 import { theme } from "@/lib/theme.config";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import QuickView from "./QuickView";
 import FloatingShopActions from "@/components/FloatingShopActions";
 
@@ -53,6 +54,7 @@ export default function Header() {
     : "";
   const navRef = useRef<HTMLElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
+  const mobileSearchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const search = searchRef.current;
@@ -75,9 +77,30 @@ export default function Header() {
   }, []);
 
   const [q, setQ] = useState("");
-  const [searchCategory, setSearchCategory] = useState("");
   const [open, setOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [openMega, setOpenMega] = useState<string | null>(null);
+
+  function openSearch() {
+    setOpen(true);
+    setMobileSearchOpen(true);
+  }
+
+  useEffect(() => {
+    const openMobileSearch = () => {
+      if (window.matchMedia("(max-width: 760px)").matches) {
+        openSearch();
+      } else {
+        searchRef.current?.querySelector<HTMLInputElement>('input[type="search"]')?.focus();
+      }
+    };
+    window.addEventListener("ukcs:open-mobile-search", openMobileSearch);
+    return () => window.removeEventListener("ukcs:open-mobile-search", openMobileSearch);
+  }, []);
+
+  useEffect(() => {
+    if (mobileSearchOpen) mobileSearchInputRef.current?.focus();
+  }, [mobileSearchOpen]);
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
@@ -106,11 +129,8 @@ export default function Header() {
   // Fetched once (small, slow-changing lists) rather than per keystroke, then
   // filtered client-side — same live source the category/brand pages use.
   const categoriesRes = useApi<{ items: ApiCategory[] }>("/api/categories", { items: initialCategories }, { skipInitialFetch: true });
-  const categorySlug = searchCategory
-    ? categoriesRes.data?.items.flatMap((category) => [category, ...category.children]).find((category) => category.title === searchCategory)?.slug
-    : undefined;
   const searchRes = useApi<{ items: Product[] }>(debouncedQ.length >= 2
-    ? `/api/products?q=${encodeURIComponent(debouncedQ)}${categorySlug ? `&category=${encodeURIComponent(categorySlug)}` : ""}&perPage=5`
+    ? `/api/products?q=${encodeURIComponent(debouncedQ)}&perPage=5`
     : null);
   const brandsRes = useApi<{ items: ApiBrand[] }>("/api/brands");
   // The admin-managed menu is loaded and tagged in the root server layout; an empty/unavailable menu
@@ -140,8 +160,69 @@ export default function Header() {
 
   function runSearch(query: string) {
     setOpen(false);
+    setMobileSearchOpen(false);
     if (!query.trim()) return;
-    router.push(href.category({ ...(searchCategory ? { cat: searchCategory } : {}), q: query }));
+    router.push(href.category({ q: query }));
+  }
+
+  function renderSuggestions(className: string, visible = open) {
+    if (!visible || !suggestions) return null;
+    const closeSearch = () => {
+      setOpen(false);
+      setMobileSearchOpen(false);
+    };
+    return (
+      <div className={className}>
+        {suggestions.prods.length ? (
+          <div className="sugg-col">
+            <div className="sugg-h">Products</div>
+            {suggestions.prods.map((p) => (
+              <Link key={p.id} href={href.product(p.slug)} className="sugg-p" onMouseDown={(e) => e.preventDefault()} onClick={closeSearch}>
+                <ProductVisual productId={p.id} iconId={p.icon} w={34} h={26} />
+                <span className="sugg-ptx">
+                  <b>{p.name}</b>
+                  <span>{p.brand}</span>
+                </span>
+                <span className="sugg-price">{money(p.price)}</span>
+              </Link>
+            ))}
+          </div>
+        ) : null}
+        {suggestions.cats.length || suggestions.brandHits.length ? (
+          <div className="sugg-side">
+            {suggestions.cats.length ? (
+              <>
+                <div className="sugg-h">Categories</div>
+                {suggestions.cats.map((c) => (
+                  <Link href={href.category({ sub: c })} key={c} className="sugg-tag" onMouseDown={(e) => e.preventDefault()} onClick={closeSearch}>
+                    {c}
+                  </Link>
+                ))}
+              </>
+            ) : null}
+            {suggestions.brandHits.length ? (
+              <>
+                <div className="sugg-h">Brands</div>
+                {suggestions.brandHits.map((b) => (
+                  <Link href={href.brand(b.slug)} key={b.slug} className="sugg-tag" onMouseDown={(e) => e.preventDefault()} onClick={closeSearch}>
+                    {b.title}
+                  </Link>
+                ))}
+              </>
+            ) : null}
+          </div>
+        ) : null}
+        {suggestions.loading && !suggestions.prods.length ? (
+          <div className="sugg-empty">Searching…</div>
+        ) : !suggestions.prods.length && !suggestions.cats.length && !suggestions.brandHits.length ? (
+          <div className="sugg-empty">No matches — press Enter to search the full catalogue anyway.</div>
+        ) : (
+          <button type="button" className="sugg-all" onMouseDown={(e) => e.preventDefault()} onClick={() => runSearch(q)}>
+            View all results for &ldquo;{q}&rdquo; <Icon id="i-arr" w={13} />
+          </button>
+        )}
+      </div>
+    );
   }
 
   return (
@@ -184,131 +265,46 @@ export default function Header() {
           <Link className="logo" href={href.home()}>
             <Image className="mark" src={settings.logo || "/images/logo/rigforge-mark.png"} alt={theme.brand.name} width={694} height={512} priority />
           </Link>
-          <div className="searchbox" ref={searchRef}>
-            <form
-              className="search"
-              role="search"
-              onSubmit={(e) => {
-                e.preventDefault();
-                runSearch(q.trim());
-              }}
-            >
-              <select aria-label="Search category" value={searchCategory} onChange={(e) => setSearchCategory(e.target.value)}>
-                <option value="">All categories</option>
-                {CAT_ORDER.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
+          <div className="searchbox" ref={searchRef} onClick={() => {
+            if (window.matchMedia("(max-width: 760px)").matches) openSearch();
+          }}>
+            <form className="search" role="search" onSubmit={(e) => { e.preventDefault(); runSearch(q.trim()); }}>
               <input
                 type="search"
                 value={q}
-                onChange={(e) => {
-                  setQ(e.target.value);
+                onChange={(e) => { setQ(e.target.value); setOpen(true); }}
+                onFocus={() => {
                   setOpen(true);
+                  if (window.matchMedia("(max-width: 760px)").matches) {
+                    setMobileSearchOpen(true);
+                  }
                 }}
-                onFocus={() => setOpen(true)}
-                onBlur={() => setTimeout(() => setOpen(false), 150)}
+                onBlur={() => {
+                  if (window.matchMedia("(max-width: 760px)").matches) return;
+                  setTimeout(() => setOpen(false), 150);
+                }}
                 placeholder="Search by name, SKU, MPN, brand or specification…"
               />
-              <button type="submit">
-                <Icon id="i-search" w={17} />
-                Search
-              </button>
+              <button type="submit"><Icon id="i-search" w={17} /> Search</button>
             </form>
-            {open && suggestions ? (
-              <div className="sugg">
-                {suggestions.prods.length ? (
-                  <div className="sugg-col">
-                    <div className="sugg-h">Products</div>
-                    {suggestions.prods.map((p) => (
-                      <Link key={p.id} href={href.product(p.slug)} className="sugg-p" onMouseDown={(e) => e.preventDefault()}>
-                        <ProductVisual productId={p.id} iconId={p.icon} w={34} h={26} />
-                        <span className="sugg-ptx">
-                          <b>{p.name}</b>
-                          <span>{p.brand}</span>
-                        </span>
-                        <span className="sugg-price">{money(p.price)}</span>
-                      </Link>
-                    ))}
-                  </div>
-                ) : null}
-                {suggestions.cats.length || suggestions.brandHits.length ? (
-                  <div className="sugg-side">
-                    {suggestions.cats.length ? (
-                      <>
-                        <div className="sugg-h">Categories</div>
-                        {suggestions.cats.map((c) => (
-                          <Link href={href.category({ sub: c })} key={c} className="sugg-tag" onMouseDown={(e) => e.preventDefault()}>
-                            {c}
-                          </Link>
-                        ))}
-                      </>
-                    ) : null}
-                    {suggestions.brandHits.length ? (
-                      <>
-                        <div className="sugg-h">Brands</div>
-                        {suggestions.brandHits.map((b) => (
-                          <Link href={href.brand(b.slug)} key={b.slug} className="sugg-tag" onMouseDown={(e) => e.preventDefault()}>
-                            {b.title}
-                          </Link>
-                        ))}
-                      </>
-                    ) : null}
-                  </div>
-                ) : null}
-                {suggestions.loading && !suggestions.prods.length ? (
-                  <div className="sugg-empty">Searching…</div>
-                ) : !suggestions.prods.length && !suggestions.cats.length && !suggestions.brandHits.length ? (
-                  <div className="sugg-empty">No matches — press Enter to search the full catalogue anyway.</div>
-                ) : (
-                  <button type="button" className="sugg-all" onMouseDown={(e) => e.preventDefault()} onClick={() => runSearch(q)}>
-                    View all results for &ldquo;{q}&rdquo; <Icon id="i-arr" w={13} />
-                  </button>
-                )}
-              </div>
-            ) : null}
+            {renderSuggestions("sugg")}
           </div>
           <div className="mast-actions">
             <Link className="act" href={href.compare()} aria-label="Compare products">
-              <span className="ic">
-                <Icon id="i-compare" w={22} />
-                {cmpCount ? <span className="badge">{cmpCount}</span> : null}
-              </span>
-              <span>
-                <span className="lbl">Products</span>
-                <span className="val">Compare</span>
-              </span>
+              <span className="ic"><Icon id="i-compare" w={22} />{cmpCount ? <span className="badge">{cmpCount}</span> : null}</span>
+              <span className="act-tooltip"><span className="lbl">Products</span><span className="val">Compare</span></span>
             </Link>
             <Link className="act" href={href.account({ tab: "wishlist" })} aria-label="Wishlist">
-              <span className="ic">
-                <Icon id="i-heart" w={22} />
-                {wishCount ? <span className="badge">{wishCount}</span> : null}
-              </span>
-              <span>
-                <span className="lbl">Saved</span>
-                <span className="val">Wishlist</span>
-              </span>
+              <span className="ic"><Icon id="i-heart" w={22} />{wishCount ? <span className="badge">{wishCount}</span> : null}</span>
+              <span className="act-tooltip"><span className="lbl">Saved</span><span className="val">Wishlist</span></span>
             </Link>
             <Link className="act" href={isLoggedIn ? href.account() : href.login()} aria-label="My account">
-              <span className={`ic${isLoggedIn ? " account-initials" : ""}`} aria-hidden="true">
-                {isLoggedIn ? accountInitials : <Icon id="i-user" w={22} />}
-              </span>
-              <span>
-                <span className="lbl">{isLoggedIn ? customer?.firstName : "Sign in"}</span>
-                <span className="val">My account</span>
-              </span>
+              <span className={`ic${isLoggedIn ? " account-initials" : ""}`} aria-hidden="true">{isLoggedIn ? accountInitials : <Icon id="i-user" w={22} />}</span>
+              <span className="act-tooltip"><span className="lbl">{isLoggedIn ? customer?.firstName : "Sign in"}</span><span className="val">My account</span></span>
             </Link>
             <CartTrigger className="act header-basket" ariaLabel="Open basket">
-              <span className="ic">
-                <Icon id="i-bag" w={22} />
-                <span className="badge basket-badge"><BasketCount /></span>
-              </span>
-              <span>
-                <span className="lbl">Basket</span>
-                <span className="val">
-                  <BasketTotal />
-                </span>
-              </span>
+              <span className="ic"><Icon id="i-bag" w={22} /><span className="badge basket-badge"><BasketCount /></span></span>
+              <span className="act-tooltip"><span className="lbl">Basket</span><span className="val"><BasketTotal /></span></span>
             </CartTrigger>
           </div>
         </div>
@@ -380,6 +376,24 @@ export default function Header() {
           </div>
         </div>
       </nav>
+      <Sheet open={mobileSearchOpen} onOpenChange={(nextOpen) => { setMobileSearchOpen(nextOpen); if (!nextOpen) setOpen(false); }}>
+        <SheetContent
+          side="bottom"
+          className="category-filter-sheet mobile-header-search-sheet"
+          finalFocus={() => document.querySelector<HTMLElement>("[data-mobile-search-trigger]")}
+        >
+          <SheetHeader className="category-filter-sheet-header">
+            <SheetTitle>Search products</SheetTitle>
+          </SheetHeader>
+          <form className="mobile-header-search-form" role="search" onSubmit={(event) => { event.preventDefault(); runSearch(q.trim()); }}>
+            <label htmlFor="mobile-header-search-input">Search by name, SKU, MPN, brand or specification</label>
+            <div className="mobile-header-search-controls">
+              <input ref={mobileSearchInputRef} id="mobile-header-search-input" type="search" value={q} onChange={(event) => { setQ(event.target.value); setOpen(true); }} onFocus={() => setOpen(true)} placeholder="Search products" />
+            </div>
+          </form>
+          {renderSuggestions("mobile-search-suggestions", q.trim().length >= 2)}
+        </SheetContent>
+      </Sheet>
       <QuickView />
       <FloatingShopActions />
     </>

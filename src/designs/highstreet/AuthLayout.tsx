@@ -41,14 +41,14 @@ export default function AuthLayout({ children, registration = false, pageTitle, 
             {benefits.map((benefit, index) => { const Icon = BENEFIT_ICONS[benefit.icon] ?? Package; return <div key={index}><Icon size={20} /><strong>{benefit.title}</strong>{benefit.text && <span>{benefit.text}</span>}</div>; })}
           </div>}
         </div>
-        {showcase && <AuthShowcase registration={registration} title={showcase.title} description={showcase.description} />}
+        {showcase && <AuthShowcase title={showcase.title} description={showcase.description} />}
       </div>
     </div>
     <Footer />
   </>;
 }
 
-function AuthShowcase({ registration, title, description }: { registration: boolean; title: string; description: string }) {
+function AuthShowcase({ title, description }: { title: string; description: string }) {
   const href = useHref();
   const { data, loading, error } = useApi<{ items: Product[] }>("/api/products/recommended?limit=4");
   const products = data?.items ?? [];
@@ -61,7 +61,7 @@ function AuthShowcase({ registration, title, description }: { registration: bool
       </nav>
     </header>
     <div className={styles.showcaseTitle}><h3>Recommended products</h3><Link href={href.category()}>Shop all <ArrowRight size={14} /></Link></div>
-    {loading ? <p className={styles.empty} role="status">Loading recommendations…</p> : products.length ? <div className={`${styles.products} ${registration ? styles.productList : ""}`}>
+    {loading ? <p className={styles.empty} role="status">Loading recommendations…</p> : products.length ? <div className={styles.products}>
       {products.map(product => <article key={product.id} className={styles.product}>
         <Link href={href.product(product.slug)} className={styles.productImage} aria-label={product.name}>
           <ProductThumbnail key={product.image} image={product.image} />

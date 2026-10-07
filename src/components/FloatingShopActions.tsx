@@ -18,14 +18,20 @@ export default function FloatingShopActions() {
   const openBasket = useCartDrawer();
   const [headerHidden, setHeaderHidden] = useState(false);
   const [searchHidden, setSearchHidden] = useState(false);
+  const [footerVisible, setFooterVisible] = useState(false);
   const [bottom, setBottom] = useState(150);
   const count = (cart?.items ?? []).reduce((total, item) => total + item.quantity, 0);
 
   useEffect(() => {
     const headerBasket = document.querySelector(".header-basket");
     const headerSearch = document.querySelector('.searchbox input[type="search"]');
+    const footer = document.querySelector("footer");
     const observer = new IntersectionObserver((entries) => {
       for (const entry of entries) {
+        if (entry.target === footer) {
+          setFooterVisible(entry.isIntersecting);
+          continue;
+        }
         const hidden = !entry.isIntersecting && entry.boundingClientRect.bottom <= 48;
         if (entry.target === headerBasket) setHeaderHidden(hidden);
         if (entry.target === headerSearch) setSearchHidden(hidden);
@@ -33,6 +39,7 @@ export default function FloatingShopActions() {
     }, { rootMargin: "-48px 0px 0px 0px" });
     if (headerBasket) observer.observe(headerBasket);
     if (headerSearch) observer.observe(headerSearch);
+    if (footer) observer.observe(footer);
     const updatePosition = () => setBottom(consentGiven() ? 78 : 150);
     updatePosition();
     window.addEventListener("ukcs:consent-changed", updatePosition);
@@ -53,7 +60,7 @@ export default function FloatingShopActions() {
   }
 
   return <>
-    {headerHidden ? <>
+    {!footerVisible && headerHidden ? <>
       <Link className="floating-basket floating-basket-secondary" style={{ bottom: secondaryBottom }} href={href.account({ tab: "wishlist" })} aria-label={`Wishlist, ${wishlist.count} items`} title="View wishlist">
         <Heart size={21} aria-hidden="true" />
         {wishlist.count > 0 ? <span className="floating-basket-count" aria-hidden="true">{wishlist.count > 99 ? "99+" : wishlist.count}</span> : null}
@@ -63,8 +70,8 @@ export default function FloatingShopActions() {
         {compare.count > 0 ? <span className="floating-basket-count" aria-hidden="true">{compare.count}</span> : null}
       </Link>
     </> : null}
-    {searchHidden ? <button className="floating-basket floating-action-center-search" type="button" style={{ bottom: bottom + (showBasket ? 58 : 0) }} onClick={focusSearch} aria-label="Search products" title="Search products"><Search size={21} aria-hidden="true" /></button> : null}
-    {showBasket ? <button className="floating-basket" type="button" style={{ bottom }} onClick={openBasket} aria-label={`Open basket, ${count} item${count === 1 ? "" : "s"}`} aria-haspopup="dialog" title="View your basket">
+    {!footerVisible && searchHidden ? <button className="floating-basket floating-action-center-search" type="button" style={{ bottom: bottom + (showBasket ? 58 : 0) }} onClick={focusSearch} aria-label="Search products" title="Search products"><Search size={21} aria-hidden="true" /></button> : null}
+    {!footerVisible && showBasket ? <button className="floating-basket" type="button" style={{ bottom }} onClick={openBasket} aria-label={`Open basket, ${count} item${count === 1 ? "" : "s"}`} aria-haspopup="dialog" title="View your basket">
     <ShoppingBag size={21} aria-hidden="true" />
     <span className="floating-basket-count" aria-hidden="true">{count > 99 ? "99+" : count}</span>
   </button> : null}
