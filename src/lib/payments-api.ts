@@ -1,6 +1,7 @@
 "use client";
 
 import { request } from "./storefront-client";
+import { createUuid } from "./uuid";
 
 export type PaymentProvider = "STRIPE" | "PAYPAL" | "TWOCHECKOUT";
 export const PAYMENT_RETURN_ORDER_KEY = "ukcs.paypalCheckout";
@@ -32,7 +33,7 @@ export function createPaymentAttempt(input: { orderUuid: string; email: string; 
   return request("payments/attempts", {
     method: "POST",
     body: JSON.stringify(input),
-    headers: { "Idempotency-Key": crypto.randomUUID() },
+    headers: { "Idempotency-Key": createUuid() },
   });
 }
 

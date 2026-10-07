@@ -4,6 +4,7 @@ import { toast, notifyFailure } from "./notifications";
 import { useCallback, useSyncExternalStore } from "react";
 import { Product } from "./types";
 import { request, useCustomerAuth, isLoggedIn as customerIsLoggedIn } from "./storefront-client";
+import { createUuid } from "./uuid";
 
 function lsGet<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -187,7 +188,7 @@ export const Recent = {
   sessionId(): string {
     const existing = lsGet("session-id", "");
     if (existing) return existing;
-    const sessionId = window.crypto.randomUUID();
+    const sessionId = createUuid();
     lsSet("session-id", sessionId);
     return sessionId;
   },

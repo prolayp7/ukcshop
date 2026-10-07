@@ -13,6 +13,7 @@ import { money } from "@/lib/catalogue";
 import { Icon, ProductVisual } from "@/components/Icon";
 import { useHref } from "@/lib/design-context";
 import { useApi } from "@/lib/use-api";
+import { createUuid } from "@/lib/uuid";
 import type { Product } from "@/lib/types";
 import Header from "@/designs/highstreet/Header";
 import Footer from "@/designs/highstreet/Footer";
@@ -152,7 +153,7 @@ export default function CheckoutPage() {
   const crumbs = [{ label: "Home", href: href.home() }, { label: "Basket", href: href.basket() }, { label: "Checkout" }];
 
   // one key per checkout page visit: a double click or retry returns the same order
-  const checkoutKey = useRef(crypto.randomUUID());
+  const checkoutKey = useRef(createUuid());
   const placeOrder = async () => {
     if (!shippingAddress || !shippingMethodId || !provider || placingRef.current) return;
     placingRef.current = true;
